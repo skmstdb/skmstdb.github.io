@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sakai Masato Database</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            display: flex; /* 使用 Flexbox 布局 */
+            min-height: 100vh; /* 确保页面高度占满视口 */
+        }
+
+        /* A区域：左侧固定导航栏 */
+        .sidebar {
+            position: fixed; /* 固定在左侧 */
+            top: 0; /* 距离顶部为 0 */
+            left: 0; /* 距离左侧为 0 */
+            width: calc(100% / 7); /* 占比 1/7（1:6 比例） */
+            height: 100vh; /* 高度为视口高度 */
+            background-color: #E9E6DD; /* 背景颜色 */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* 垂直分布内容 */
+            padding: 20px; /* 内边距 */
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* 添加阴影效果 */
+        }
+
+        .logo-text {
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px; /* 底部间距 */
+            cursor: pointer; /* 鼠标悬停时显示指针 */
+        }
+
+        .logo-text a {
+            text-decoration: none; /* 移除下划线 */
+            color: black; /* 默认文字颜色 */
+        }
+
+        .logo-text a:hover {
+            text-decoration: underline; /* 鼠标悬停时添加下划线 */
+        }
+
+        .sidebar-nav {
+            list-style-type: none;
+            text-align: center;
+            flex-grow: 1; /* 垂直居中导航项 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* 垂直居中 */
+        }
+
+        .sidebar-nav-item {
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .sidebar-nav-item a {
+            text-decoration: none;
+            color: black;
+        }
+
+        .footer {
+            font-size: 12px;
+            text-align: center;
+            margin-top: 20px; /* 顶部间距 */
+        }
+
+        /* B区域：主要内容区域 */
+        .main-content-wrapper {
+            width: calc(100% * 6 / 7); /* 占比 6/7（1:6 比例） */
+            margin-left: calc(100% / 7); /* 左侧留出导航栏的宽度 */
+            padding: 40px; /* 内边距 */
+            box-sizing: border-box;
+            background-color: #fff; /* 背景颜色 */
+        }
+
+        .main-content {
+            max-width: 1200px; /* 设置最大宽度，适配内容 */
+            width: 100%;
+            margin: 0 auto; /* 横向居中 */
+        }
+
+        /* 标题和导航区域 */
+        .content-header {
+            text-align: center; /* 居中对齐标题 */
+            margin-bottom: 50px;
+        }
+
+        .title {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        /* 子导航样式 */
+        .navigation {
+            display: flex;
+            flex-wrap: wrap; /* 允许换行 */
+            gap: 15px; /* 调整为原来的 1.5 倍（原值为 10px） */
+            justify-content: center; /* 横向居中导航按钮 */
+            margin-bottom: 40px;
+            padding: 10px; /* 模拟边框的内边距 */
+            max-width: 100%; /* 确保宽度适配内容 */
+            box-sizing: border-box;
+        }
+
+        .nav-item {
+            padding: 8px 20px;
+            cursor: pointer;
+            background-color: white;
+            border: 1px solid black;
+            font-size: 16px;
+        }
+
+        .nav-item.active {
+            background-color: black;
+            color: white;
+        }
+
+        /* 作品网格 */
+        .works-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* 每行只显示一部作品 */
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .work-item {
+            margin-bottom: 20px;
+        }
+
+        /* 标签通用样式 */
+        .work-tag {
+            display: inline-block;
+            background-color: #818380; /* 修改为灰色 */
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center; /* 标签内文字居中 */
+            width: 80px; /* 固定宽度 */
+            height: 30px; /* 固定高度 */
+            line-height: 30px; /* 垂直居中文字 */
+            margin-right: 10px;
+            box-sizing: border-box; /* 确保尺寸一致 */
+        }
+
+        .work-title a {
+            display: inline-block; /* 使标题与标签对齐 */
+            font-size: 16px;
+            vertical-align: middle; /* 垂直对齐标签 */
+            color: black;
+            text-decoration: none; /* 移除下划线 */
+        }
+
+        .work-title a:hover {
+            text-decoration: underline; /* 添加悬停效果 */
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 1200px) {
+            .main-content {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 100%; /* 在小屏幕设备上占据全宽 */
+                height: auto; /* 高度自适应 */
+                position: relative; /* 取消固定定位 */
+            }
+
+            .main-content-wrapper {
+                margin-left: 0; /* 取消左侧边距 */
+                width: 100%;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .works-grid {
+                grid-template-columns: 1fr; /* 每行显示一个作品 */
+            }
+        }
+
+        @media (max-width: 600px) {
+            .works-grid {
+                grid-template-columns: 1fr; /* 每行显示一个作品 */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- A区域：左侧固定导航栏 -->
+    <div class="sidebar">
+        <div class="logo-text">
+            <a href="works.html">Sakai Masato Database</a>
+        </div>
+
+        <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="works.html">WORKS</a></li>
+            <li class="sidebar-nav-item"><a href="about.html">ABOUT</a></li>
+        </ul>
+
+        <div class="footer">
+            © H2COL All Rights Reserved.
+        </div>
+    </div>
+
+    <!-- B区域：主要内容区域 -->
+    <div class="main-content-wrapper">
+        <div class="main-content">
+            <div class="content-header">
+                <h1 class="title">WORKS</h1>
+                <div class="navigation">
+                    <button class="nav-item active" data-category="all">全て</button>
+                    <button class="nav-item" data-category="映画">映画</button>
+                    <button class="nav-item" data-category="TV">TV</button>
+                    <button class="nav-item" data-category="舞台">舞台</button>
+                    <button class="nav-item" data-category="声の出演">声の出演</button>
+                    <button class="nav-item" data-category="その他">その他</button>
+                    <button class="nav-item" data-category="BOOK">BOOK</button>
+                </div>
+            </div>
+
+            <!-- 嵌入外部文件 -->
+            <div class="works-grid" id="works-container">
+                <!-- 外部文件内容将动态加载到这里 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 动态加载外部文件内容
+        document.addEventListener('DOMContentLoaded', function () {
+            const container = document.getElementById('works-container');
+            fetch('works-data.html') // 加载外部文件
+                .then(response => response.text())
+                .then(data => {
+                    container.innerHTML = data; // 将外部文件内容插入到容器中
+                    // 初始化筛选功能
+                    initFilter();
+                })
+                .catch(error => console.error('Error loading works data:', error));
+        });
+
+        // 初始化筛选功能
+        function initFilter() {
+            const navItems = document.querySelectorAll('.nav-item');
+            const workItems = document.querySelectorAll('.work-item');
+            // 默认显示“全て”类别
+            showCategory('all');
+            // 添加点击事件监听器
+            navItems.forEach(item => {
+                item.addEventListener('click', function () {
+                    // 移除所有按钮的active状态
+                    navItems.forEach(btn => btn.classList.remove('active'));
+                    // 给当前按钮添加active状态
+                    this.classList.add('active');
+                    // 获取当前按钮对应的类别
+                    const category = this.dataset.category;
+                    // 显示对应类别的作品
+                    showCategory(category);
+                });
+            });
+            // 根据类别显示作品
+            function showCategory(category) {
+                workItems.forEach(item => {
+                    if (category === 'all' || item.dataset.category === category) {
+                        item.style.display = 'block'; // 显示符合条件的作品
+                    } else {
+                        item.style.display = 'none'; // 隐藏不符合条件的作品
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
