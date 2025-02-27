@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sakai Masato Database</title>
-    <!-- 引入 Font Awesome 图标库 -->
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         * {
@@ -15,49 +15,49 @@
         }
 
         body {
-            display: flex; /* 使用 Flexbox 布局 */
-            min-height: 100vh; /* 确保页面高度占满视口 */
+            display: flex; 
+            min-height: 100vh;
         }
 
-        /* A区域：左侧固定导航栏 */
+        
         .sidebar {
-            position: fixed; /* 固定在左侧 */
-            top: 0; /* 距离顶部为 0 */
-            left: 0; /* 距离左侧为 0 */
-            width: calc(100% / 7); /* 占比 1/7（1:6 比例） */
-            height: 100vh; /* 高度为视口高度 */
-            background-color: #E9E6DD; /* 背景颜色 */
+            position: fixed; 
+            top: 0; 
+            left: 0;
+            width: calc(100% / 7); 
+            height: 100vh; 
+            background-color: #E9E6DD; 
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* 垂直分布内容 */
-            padding: 20px; /* 内边距 */
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* 添加阴影效果 */
+            justify-content: space-between; 
+            padding: 20px; 
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); 
         }
 
         .logo-text {
             font-size: 16px;
             font-weight: bold;
             text-align: center;
-            margin-bottom: 20px; /* 底部间距 */
-            cursor: pointer; /* 鼠标悬停时显示指针 */
+            margin-bottom: 20px; 
+            cursor: pointer; 
         }
 
         .logo-text a {
-            text-decoration: none; /* 移除下划线 */
-            color: black; /* 默认文字颜色 */
+            text-decoration: none; 
+            color: black; 
         }
 
         .logo-text a:hover {
-            text-decoration: underline; /* 鼠标悬停时添加下划线 */
+            text-decoration: underline; 
         }
 
         .sidebar-nav {
             list-style-type: none;
             text-align: center;
-            flex-grow: 1; /* 垂直居中导航项 */
+            flex-grow: 1; 
             display: flex;
             flex-direction: column;
-            justify-content: center; /* 垂直居中 */
+            justify-content: center; 
         }
 
         .sidebar-nav-item {
@@ -74,31 +74,31 @@
         .footer {
             font-size: 12px;
             text-align: center;
-            margin-top: 20px; /* 顶部间距 */
+            margin-top: 20px; 
         }
 
-        /* B区域：主要内容区域 */
+        
         .main-content-wrapper {
-            width: calc(100% * 6 / 7); /* 占比 6/7（1:6 比例） */
-            margin-left: calc(100% / 7); /* 左侧留出导航栏的宽度 */
-            padding: 40px; /* 内边距 */
+            width: calc(100% * 6 / 7); 
+            margin-left: calc(100% / 7); 
+            padding: 40px;
             box-sizing: border-box;
-            background-color: #fff; /* 背景颜色 */
+            background-color: #fff; 
             display: flex;
             flex-direction: column;
-            align-items: center; /* 横向居中 */
-            min-height: 100vh; /* 确保内容区域高度占满视口 */
+            align-items: center; 
+            min-height: 100vh; 
         }
 
         .main-content {
-            max-width: 1200px; /* 设置最大宽度，适配内容 */
+            max-width: 1200px; 
             width: 100%;
-            text-align: center; /* 文本居中 */
+            text-align: center; 
         }
 
-        /* 标题和导航区域 */
+        
         .content-header {
-            text-align: center; /* 居中对齐标题 */
+            text-align: center;
             margin-bottom: 50px;
         }
 
@@ -108,11 +108,11 @@
             margin-bottom: 30px;
         }
 
-        /* 按钮组样式 */
+        
         .button-group {
             display: flex;
-            justify-content: center; /* 横向居中按钮 */
-            gap: 15px; /* 按钮之间的间距 */
+            justify-content: center; 
+            gap: 15px; 
             margin-bottom: 40px;
         }
 
@@ -122,13 +122,13 @@
             background-color: white;
             border: 1px solid black;
             font-size: 16px;
-            text-decoration: none; /* 移除下划线 */
+            text-decoration: none; 
             color: black;
-            border-radius: 25px; /* 圆角长方形 */
-            transition: background-color 0.3s, color 0.3s; /* 平滑过渡效果 */
-            display: flex; /* 使用 Flexbox 布局 */
-            align-items: center; /* 垂直居中图标和文字 */
-            justify-content: center; /* 水平居中图标和文字 */
+            border-radius: 25px;
+            transition: background-color 0.3s, color 0.3s;
+            display: flex; 
+            align-items: center;
+            justify-content: center;
         }
 
         .button-group a:hover {
@@ -136,30 +136,30 @@
             color: white;
         }
 
-        /* 图标样式 */
+        
         .button-group i {
-            margin-right: 5px; /* 图标与文字之间的间距 */
+            margin-right: 5px; 
         }
 
-        /* 关于内容样式 */
+        
         .about-content {
-            width: 70%; /* 宽度占 B 区域的 70% */
-            margin: 0 auto; /* 横向居中 */
-            text-align: left; /* 每段文字靠左对齐 */
+            width: 70%; 
+            margin: 0 auto;
+            text-align: left; 
             font-size: 18px;
             line-height: 1.6;
             color: #333;
-            background-color: #f9f9f9; /* 浅灰色背景 */
-            padding: 20px; /* 内边距 */
-            border-radius: 10px; /* 圆角 */
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* 添加轻微阴影 */
+            background-color: #f9f9f9; 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
         }
 
         .about-content p {
-            margin-bottom: 15px; /* 段落之间的间距 */
+            margin-bottom: 15px; 
         }
 
-        /* 响应式调整 */
+        
         @media (max-width: 1200px) {
             .main-content {
                 padding: 20px;
@@ -168,7 +168,7 @@
 
         @media (max-width: 768px) {
             .button-group {
-                flex-wrap: wrap; /* 允许按钮换行 */
+                flex-wrap: wrap; 
             }
 
             .about-content {
@@ -178,7 +178,7 @@
     </style>
 </head>
 <body>
-    <!-- A区域：左侧固定导航栏 -->
+   
     <div class="sidebar">
         <div class="logo-text">
             <a href="index.html">Sakai Masato Database</a>
@@ -194,13 +194,13 @@
         </div>
     </div>
 
-    <!-- B区域：主要内容区域 -->
+    
     <div class="main-content-wrapper">
         <div class="main-content">
             <div class="content-header">
                 <h1 class="title">ABOUT</h1>
 
-                <!-- 按钮组 -->
+               
                 <div class="button-group">
                     <a href="https://sakai-masato.com/" target="_blank">
                         <i class="fas fa-home"></i>堺さんの公式HP
@@ -220,7 +220,7 @@
                 </div>
             </div>
 
-            <!-- 关于内容 -->
+           
             <div class="about-content">
                 <p>This site is not an official site, with no affiliation with Mr. Sakai Masato or his management.</p>
                 <p>All media on this site belong to their respective copyright owners. I have no intention of infringing on any copyrights and all content is used under the 'Fair Use' copyright laws.</p>
