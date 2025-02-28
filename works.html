@@ -9,7 +9,10 @@
     <link rel="icon" href="/favicon.png" type="image/png">
     <link rel="icon" href="/favicon-32x32.png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
     <style>
+        /* General Reset and Font */
         * {
             margin: 0;
             padding: 0;
@@ -20,47 +23,48 @@
         body {
             display: flex;
             min-height: 100vh;
+            background-color: #f6f4ef; /* Consistent background */
         }
 
-        
+        /* Sidebar Styles */
         .sidebar {
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: calc(100% / 7); 
-            height: 100vh; 
-            background-color: #F2F3F4; 
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: calc(100% / 7);
+            height: 100vh;
+            background-color: #f2f3f4;
             display: flex;
             flex-direction: column;
-            justify-content: space-between; 
-            padding: 20px; 
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); 
+            justify-content: space-between;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
         }
 
         .logo-text {
             font-size: 16px;
             font-weight: bold;
             text-align: center;
-            margin-bottom: 20px; 
-            cursor: pointer; 
+            margin-bottom: 20px;
+            cursor: pointer;
         }
 
         .logo-text a {
             text-decoration: none;
-            color: black; 
+            color: black;
         }
 
         .logo-text a:hover {
-            text-decoration: underline; 
+            text-decoration: underline;
         }
 
         .sidebar-nav {
             list-style-type: none;
             text-align: center;
-            flex-grow: 1; 
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center; 
+            justify-content: center;
         }
 
         .sidebar-nav-item {
@@ -72,32 +76,45 @@
         .sidebar-nav-item a {
             text-decoration: none;
             color: black;
+            display: block; /* Make the entire <li> clickable */
+            padding: 5px 0; /* Add some padding for a larger clickable area */
         }
 
+        .sidebar-nav-item a:hover {
+            text-decoration: underline;
+        }
+
+        .sidebar-nav-item a.active {
+            color: #fff;
+            background-color: black; /* Highlight the active link */
+            border-radius: 5px; /* Optional: Rounded corners for the active link */
+        }
+
+        /* Footer Styles */
         .footer {
             font-size: 12px;
             text-align: center;
-            margin-top: 20px; 
+            margin-top: 20px;
         }
 
-        
+        /* Main Content Styles */
         .main-content-wrapper {
-            width: calc(100% * 6 / 7); 
-            margin-left: calc(100% / 7); 
-            padding: 40px; 
+            width: calc(100% * 6 / 7);
+            margin-left: calc(100% / 7);
+            padding: 40px;
             box-sizing: border-box;
-            background-color: #f6f4ef; 
+            background-color: #f6f4ef;
         }
 
         .main-content {
-            max-width: 950px; 
+            max-width: 950px;
             width: 100%;
-            margin: 0 auto; 
+            margin: 0 auto;
         }
 
-        
+        /* Content Header Styles */
         .content-header {
-            text-align: center; 
+            text-align: center;
             margin-bottom: 50px;
         }
 
@@ -107,15 +124,15 @@
             margin-bottom: 30px;
         }
 
-        
+        /* Navigation Styles */
         .navigation {
             display: flex;
-            flex-wrap: wrap; 
-            gap: 15px; 
-            justify-content: center; 
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
             margin-bottom: 40px;
-            padding: 10px; 
-            max-width: 100%; 
+            padding: 10px;
+            max-width: 100%;
             box-sizing: border-box;
         }
 
@@ -132,10 +149,10 @@
             color: white;
         }
 
-        
+        /* Works Grid Styles */
         .works-grid {
             display: grid;
-            grid-template-columns: 1fr; 
+            grid-template-columns: 1fr;
             gap: 30px;
             margin-bottom: 60px;
         }
@@ -144,36 +161,34 @@
             margin-bottom: 20px;
         }
 
-        
+        /* Work Tag Styles */
         .work-tag {
             display: inline-block;
-            background-color: #f6f4ef; 
             color: black;
             font-size: 16px;
-            
-            text-align: center; 
-            width: 80px; 
-            height: 30px; 
-            line-height: 30px; 
-            margin-right: 10px;
-            box-sizing: border-box; 
+            text-align: center;
+            width: 80px;
+            height: 30px;
+            line-height: 30px;
+            margin-right: 19px;
+            box-sizing: border-box;
         }
 
         .work-title a {
-            display: inline-block; 
+            display: inline-block;
             font-size: 16px;
             height: 30px;
             line-height: 30px;
-            vertical-align: middle; 
+            vertical-align: middle;
             color: black;
-            text-decoration: none; 
+            text-decoration: none;
         }
 
         .work-title a:hover {
-            text-decoration: underline; 
+            text-decoration: underline;
         }
 
-        
+        /* Media Queries for Responsiveness */
         @media (max-width: 1200px) {
             .main-content {
                 padding: 20px;
@@ -181,14 +196,27 @@
         }
 
         @media (max-width: 1024px) {
-            .sidebar {
-                width: 100%; 
-                height: auto; 
-                position: relative; 
+           .sidebar {
+                width: 100%;
+                position: static;
+                height: auto;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-around;
+            }
+
+            .sidebar-nav {
+                flex-direction: row;
+                justify-content: center;
+            }
+
+            .sidebar-nav-item {
+                margin-bottom: 0;
+                margin-left: 10px;
             }
 
             .main-content-wrapper {
-                margin-left: 0; 
+                margin-left: 0;
                 width: 100%;
                 padding: 20px;
             }
@@ -196,35 +224,38 @@
 
         @media (max-width: 768px) {
             .works-grid {
-                grid-template-columns: 1fr; 
+                grid-template-columns: 1fr;
             }
         }
 
         @media (max-width: 600px) {
             .works-grid {
-                grid-template-columns: 1fr; 
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    
-    <div class="sidebar">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
         <div class="logo-text">
             <a href="index.html">Sakai Masato Database</a>
         </div>
 
-        <ul class="sidebar-nav">
-            <li class="sidebar-nav-item"><a href="works.html">WORKS</a></li>
-            <li class="sidebar-nav-item"><a href="about.html">ABOUT</a></li>
-        </ul>
+        <nav>
+            <ul class="sidebar-nav">
+                <li class="sidebar-nav-item"><a href="works.html" class="active">WORKS</a></li>
+                <li class="sidebar-nav-item"><a href="about.html">ABOUT</a></li>
+            </ul>
+        </nav>
 
-        <div class="footer">
+        <footer class="footer">
             © H2COL All Rights Reserved.
-        </div>
-    </div>
+        </footer>
+    </aside>
 
-   
+    <!-- Main Content -->
     <div class="main-content-wrapper">
         <div class="main-content">
             <div class="content-header">
@@ -240,53 +271,68 @@
                 </div>
             </div>
 
-            <!-- 嵌入外部文件 -->
+            <!-- Embed External File -->
             <div class="works-grid" id="works-container">
-                <!-- 外部文件内容将动态加载到这里 -->
+                <!-- External file content will be loaded dynamically here -->
             </div>
         </div>
     </div>
 
     <script>
-        // 动态加载外部文件内容
+        // Dynamically load external file content
         document.addEventListener('DOMContentLoaded', function () {
             const container = document.getElementById('works-container');
-            fetch('works-data.html') // 加载外部文件
+            fetch('works-data.html') // Load external file
                 .then(response => response.text())
                 .then(data => {
-                    container.innerHTML = data; // 将外部文件内容插入到容器中
-                    // 初始化筛选功能
+                    container.innerHTML = data; // Insert external file content into the container
+                    // Initialize filtering
                     initFilter();
                 })
                 .catch(error => console.error('Error loading works data:', error));
         });
 
-        // 初始化筛选功能
+        // Initialize filtering
         function initFilter() {
             const navItems = document.querySelectorAll('.nav-item');
             const workItems = document.querySelectorAll('.work-item');
-            // 默认显示“全て”类别
+            // Initially show "全て" category
             showCategory('all');
-            // 添加点击事件监听器
+            // Add click event listener
             navItems.forEach(item => {
                 item.addEventListener('click', function () {
-                    // 移除所有按钮的active状态
+                    // Remove active state from all buttons
                     navItems.forEach(btn => btn.classList.remove('active'));
-                    // 给当前按钮添加active状态
+                    // Add active state to the current button
                     this.classList.add('active');
-                    // 获取当前按钮对应的类别
+                    // Get the category for the current button
                     const category = this.dataset.category;
-                    // 显示对应类别的作品
+                    // Show works of the corresponding category
                     showCategory(category);
                 });
             });
-            // 根据类别显示作品
+            // Show works based on category
             function showCategory(category) {
                 workItems.forEach(item => {
                     if (category === 'all' || item.dataset.category === category) {
-                        item.style.display = 'block'; // 显示符合条件的作品
+                        item.style.display = 'block';
+                        const workTags = item.querySelectorAll('.work-tag');
+                        
+                        if (category === 'all') {
+                            workTags.forEach(tag => {
+                                tag.style.display = 'inline-block';
+                            });
+                        } else {
+                            workTags.forEach((tag, index) => {
+                                if (workTags.length === 3) {
+                                    tag.style.display = index < 2 ? 'inline-block' : 'none';
+                                } else {
+                                    tag.style.display = index === 0 ? 'inline-block' : 'none';
+                                }
+                            });
+                        }
                     } else {
-                        item.style.display = 'none'; // 隐藏不符合条件的作品
+                        item.style.display = 'none';
                     }
                 });
             }
