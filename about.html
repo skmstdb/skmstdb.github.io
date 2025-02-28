@@ -21,6 +21,7 @@
             display: flex;
             min-height: 100vh;
             background-color: #f6f4ef;
+            flex-direction: column;
         }
 
         .sidebar {
@@ -32,9 +33,96 @@
             background-color: #f2f3f4;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            align-items: center;
             padding: 20px;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        nav {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .sidebar-nav {
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                height: 60px;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+            }
+
+            .hamburger {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                width: 30px;
+                height: 30px;
+                cursor: pointer;
+                position: absolute;
+                right: 20px;
+                top: 15px;
+                z-index: 1001;
+            }
+
+            .hamburger span {
+                display: block;
+                width: 25px;
+                height: 3px;
+                background-color: black;
+                margin: 4px 0;
+                transition: 0.3s;
+            }
+
+            .main-content-wrapper {
+                width: 100%;
+                margin-left: 0;
+                padding-top: 80px;
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+            }
+
+            .main-content {
+                flex: 1;
+            }
+
+            .footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                padding: 10px;
+                background-color: #f2f3f4;
+                z-index: 999;
+                text-align: center;
+            }
+
+            .about-content {
+                width: 90%;
+                margin-bottom: 60px;
+            }
+            nav {
+                display: block;
+                position: fixed;
+                top: 60px;
+                left: 0;
+                width: 100%;
+                background-color: #f2f3f4;
+                flex-direction: column;
+                padding: 20px 0;
+                display: none;
+                z-index: 999;
+            }
+            nav.active {
+                display: flex;
+            }
         }
 
         .logo-text {
@@ -176,88 +264,134 @@
         }
 
         @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                min-height: 100vh;
+            }
+
             .sidebar {
                 width: 100%;
-                position: static;
-                height: auto;
+                position: fixed;
+                height: 60px;
                 flex-direction: row;
                 align-items: center;
-                justify-content: space-around;
+                justify-content: space-between;
+                padding: 0 20px;
+                z-index: 1000;
             }
 
-            .sidebar-nav {
-              flex-direction: row;
-              justify-content: center;
+            .logo-text {
+                margin-bottom: 0;
+                text-align: left;
+                display: block;
             }
 
-            .sidebar-nav-item {
-              margin-bottom: 0;
-              margin-left: 10px;
+            .hamburger {
+                display: block;
+                cursor: pointer;
+                padding: 10px;
+                margin-left: auto;
             }
 
             .main-content-wrapper {
                 width: 100%;
                 margin-left: 0;
-                padding: 20px;
+                padding-top: 80px;
+                min-height: calc(100vh - 60px);
+                display: flex;
+                flex-direction: column;
             }
-
-            .button-group {
-                flex-wrap: wrap;
-                justify-content: center;
+            .main-content {
+                padding-bottom: 60px;
+            }
+            .footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                padding: 10px;
+                background-color: #f2f3f4;
+                z-index: 999;
+                text-align: center;
             }
 
             .about-content {
-                font-size: 16px;
                 width: 90%;
+                margin-bottom: 60px;
             }
         }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar">
-        <div class="logo-text">
-            <a href="index.html">Sakai Masato Database</a>
+<aside class="sidebar">
+    <div class="logo-text">
+        <a href="index.html">Sakai Masato Database</a>
+    </div>
+
+    <div class="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <nav>
+        <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="works.html">WORKS</a></li>
+            <li class="sidebar-nav-item"><a href="about.html" class="active">ABOUT</a></li>
+        </ul>
+    </nav>
+
+    <footer class="footer">
+        © H2COL All Rights Reserved.
+    </footer>
+</aside>
+
+<div class="main-content-wrapper">
+    <main class="main-content">
+        <div class="content-header">
+            <h1 class="title">ABOUT</h1>
+
+            <div class="button-group">
+                <a href="https://www.youtube.com/@H2COL43" target="_blank">
+                    <i class="fab fa-youtube"></i>
+                </a>
+                <a href="https://x.com/h2col43" target="_blank">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a href="mailto:h2col2017@gmail.com" target="_blank">
+                    <i class="fas fa-envelope"></i>
+                </a>
+            </div>
         </div>
 
-        <nav>
-            <ul class="sidebar-nav">
-                <li class="sidebar-nav-item"><a href="works.html">WORKS</a></li>
-                <li class="sidebar-nav-item"><a href="about.html" class="active">ABOUT</a></li>
-            </ul>
-        </nav>
+        <div class="about-content">
+            <p>This site is not an official site, with no affiliation with Mr. Sakai Masato or his management.</p>
+            <p>All media on this site belong to their respective copyright owners. I have no intention of infringing on any copyrights and all content is used under the 'Fair Use' copyright laws.</p>
+            <p>If there is any infringement, please contact me, and I will remove the content promptly.</p>
+            <p>All materials presented here are sourced from publicly accessible information on the internet.</p>
+            <p>If you notice any errors or omissions in the content of this website, please don't hesitate to let me know. I welcome and appreciate your feedback to help improve the accuracy and completeness of the information provided.</p>
+        </div>
+    </main>
+</div>
 
-        <footer class="footer">
-            © H2COL All Rights Reserved.
-        </footer>
-    </aside>
+<script>
+    const hamburger = document.querySelector('.hamburger');
+    const nav = document.querySelector('nav');
 
-    <div class="main-content-wrapper">
-        <main class="main-content">
-            <div class="content-header">
-                <h1 class="title">ABOUT</h1>
+    hamburger.addEventListener('click', function() {
+        nav.classList.toggle('active');
 
-                <div class="button-group">
-                    <a href="https://www.youtube.com/@H2COL43" target="_blank">
-                        <i class="fab fa-youtube"></i>
-                    </a>
-                    <a href="https://x.com/h2col43" target="_blank">
-                        <i class="fab fa-twitter"></i>
-                    </a>
-                    <a href="mailto:h2col2017@gmail.com" target="_blank">
-                        <i class="fas fa-envelope"></i>
-                    </a>
-                </div>
-            </div>
+        this.classList.toggle('is-active');
+        if(this.classList.contains('is-active')){
+            this.innerHTML = `<span></span>`
+        } else {
+            this.innerHTML = `<span></span>
+            <span></span>
+            <span></span>`
+        }
 
-            <div class="about-content">
-                <p>This site is not an official site, with no affiliation with Mr. Sakai Masato or his management.</p>
-                <p>All media on this site belong to their respective copyright owners. I have no intention of infringing on any copyrights and all content is used under the 'Fair Use' copyright laws.</p>
-                <p>If there is any infringement, please contact me, and I will remove the content promptly.</p>
-                <p>All materials presented here are sourced from publicly accessible information on the internet.</p>
-                <p>If you notice any errors or omissions in the content of this website, please don't hesitate to let me know. I welcome and appreciate your feedback to help improve the accuracy and completeness of the information provided.</p>
-            </div>
-        </main>
-    </div>
+    });
+</script>
 </body>
 </html>
