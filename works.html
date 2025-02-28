@@ -153,12 +153,71 @@
         .works-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 30px;
+            gap: 15px;
             margin-bottom: 60px;
         }
 
         .work-item {
-            margin-bottom: 20px;
+            margin-bottom: 1px;
+            padding-bottom: 3px;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .work-tag {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            color: black;
+            font-size: 16px;
+            text-align: center;
+            width: 80px;
+            margin-right: 19px;
+            padding: 6px 0;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+
+        .work-title {
+            flex: 1;
+            padding-right: 20px;
+            min-width: 0;
+            position: relative;
+            padding-bottom: 3px;
+        }
+
+        .work-title a {
+            display: inline-block;
+            font-size: 16px;
+            padding: 6px 0;
+            color: black;
+            text-decoration: none;
+            line-height: 1.5;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+
+        .work-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            height: 1px;
+            background-color: #ddd;
+            width: calc(100% - 180px);
+            left: 180px;
+            margin-top: 3px;
+        }
+
+        /* 年份变化的条目使用完整分割线 */
+        .work-item.year-start::after {
+            width: 100%;
+            left: 0;
+        }
+
+        .work-item:last-child::after {
+            display: none;
         }
 
         /* Work Tag Styles */
@@ -172,6 +231,23 @@
             line-height: 30px;
             margin-right: 19px;
             box-sizing: border-box;
+        }
+
+        .work-tag.year {
+            width: 80px;
+        }
+
+        .work-tag.category {
+            width: 80px;
+        }
+
+        .work-title {
+            display: inline-block;
+            width: calc(100% - 360px); /* 调整宽度以适应新的顺序 */
+        }
+
+        .work-tag.role {
+            width: 80px;
         }
 
         .work-title a {
@@ -282,60 +358,81 @@
         // Dynamically load external file content
         document.addEventListener('DOMContentLoaded', function () {
             const container = document.getElementById('works-container');
-            fetch('works-data.html') // Load external file
+            fetch('works-data.html')
                 .then(response => response.text())
                 .then(data => {
-                    container.innerHTML = data; // Insert external file content into the container
-                    // Initialize filtering
+                    container.innerHTML = data;
                     initFilter();
+                    processYearDisplay(); // 确保在页面加载完成后立即处理年份显示
                 })
                 .catch(error => console.error('Error loading works data:', error));
         });
 
-        // Initialize filtering
+        function processYearDisplay() {
+            const visibleWorkItems = Array.from(document.querySelectorAll('.work-item')).filter(
+                item => window.getComputedStyle(item).display !== 'none'
+            );
+            
+            let currentYear = null;
+            visibleWorkItems.forEach((item, index) => {
+                const yearTag = item.querySelector('.work-tag:first-child');
+                if (!yearTag) return;
+                
+                const year = yearTag.textContent.trim();
+                const nextItem = visibleWorkItems[index + 1];
+                const nextYearTag = nextItem?.querySelector('.work-tag:first-child');
+                const nextYear = nextYearTag?.textContent.trim();
+
+                // 处理年份显示
+                if (year === currentYear) {
+                    yearTag.style.visibility = 'hidden';
+                } else {
+                    currentYear = year;
+                    yearTag.style.visibility = 'visible';
+                }
+
+                // 处理分割线
+                if (nextItem && year !== nextYear) {
+                    // 如果下一个条目的年份不同，使用完整分割线
+                    item.classList.add('year-start');
+                } else {
+                    // 如果年份相同或是最后一个条目，使用短分割线
+                    item.classList.remove('year-start');
+                }
+
+                // 最后一个条目不显示分割线
+                if (index === visibleWorkItems.length - 1) {
+                    item.classList.add('last-item');
+                } else {
+                    item.classList.remove('last-item');
+                }
+            });
+        }
+
         function initFilter() {
             const navItems = document.querySelectorAll('.nav-item');
             const workItems = document.querySelectorAll('.work-item');
-            // Initially show "全て" category
-            showCategory('all');
-            // Add click event listener
-            navItems.forEach(item => {
-                item.addEventListener('click', function () {
-                    // Remove active state from all buttons
-                    navItems.forEach(btn => btn.classList.remove('active'));
-                    // Add active state to the current button
-                    this.classList.add('active');
-                    // Get the category for the current button
-                    const category = this.dataset.category;
-                    // Show works of the corresponding category
-                    showCategory(category);
-                });
-            });
-            // Show works based on category
+            
             function showCategory(category) {
                 workItems.forEach(item => {
                     if (category === 'all' || item.dataset.category === category) {
                         item.style.display = 'block';
-                        const workTags = item.querySelectorAll('.work-tag');
-                        
-                        if (category === 'all') {
-                            workTags.forEach(tag => {
-                                tag.style.display = 'inline-block';
-                            });
-                        } else {
-                            workTags.forEach((tag, index) => {
-                                if (workTags.length === 3) {
-                                    tag.style.display = index < 2 ? 'inline-block' : 'none';
-                                } else {
-                                    tag.style.display = index === 0 ? 'inline-block' : 'none';
-                                }
-                            });
-                        }
                     } else {
                         item.style.display = 'none';
                     }
                 });
+                setTimeout(processYearDisplay, 0); // 使用 setTimeout 确保在 DOM 更新后处理年份
             }
+
+            showCategory('all');
+
+            navItems.forEach(item => {
+                item.addEventListener('click', function () {
+                    navItems.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    showCategory(this.dataset.category);
+                });
+            });
         }
     </script>
 </body>
