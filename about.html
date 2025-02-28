@@ -18,49 +18,49 @@
         }
 
         body {
-            display: flex; 
+            display: flex;
             min-height: 100vh;
+            background-color: #f6f4ef;
         }
 
-        
         .sidebar {
-            position: fixed; 
-            top: 0; 
+            position: fixed;
+            top: 0;
             left: 0;
-            width: calc(100% / 7); 
-            height: 100vh; 
-            background-color: #f2f3f4; 
+            width: calc(100% / 7);
+            height: 100vh;
+            background-color: #f2f3f4;
             display: flex;
             flex-direction: column;
-            justify-content: space-between; 
-            padding: 20px; 
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); 
+            justify-content: space-between;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
         }
 
         .logo-text {
             font-size: 16px;
             font-weight: bold;
             text-align: center;
-            margin-bottom: 20px; 
-            cursor: pointer; 
+            margin-bottom: 20px;
+            cursor: pointer;
         }
 
         .logo-text a {
-            text-decoration: none; 
-            color: black; 
+            text-decoration: none;
+            color: black;
         }
 
         .logo-text a:hover {
-            text-decoration: underline; 
+            text-decoration: underline;
         }
 
         .sidebar-nav {
             list-style-type: none;
             text-align: center;
-            flex-grow: 1; 
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center; 
+            justify-content: center;
         }
 
         .sidebar-nav-item {
@@ -72,34 +72,43 @@
         .sidebar-nav-item a {
             text-decoration: none;
             color: black;
+            display: block;
+            padding: 5px 0;
+        }
+
+        .sidebar-nav-item a:hover {
+            text-decoration: underline;
+        }
+
+        .sidebar-nav-item a.active {
+            color: #fff;
+            background-color: black;
+            border-radius: 5px;
         }
 
         .footer {
             font-size: 12px;
             text-align: center;
-            margin-top: 20px; 
+            margin-top: 20px;
         }
 
-        
         .main-content-wrapper {
-            width: calc(100% * 6 / 7); 
-            margin-left: calc(100% / 7); 
+            width: calc(100% * 6 / 7);
+            margin-left: calc(100% / 7);
             padding: 40px;
             box-sizing: border-box;
-            background-color: #f6f4ef; 
             display: flex;
             flex-direction: column;
-            align-items: center; 
-            min-height: 100vh; 
+            align-items: center;
+            min-height: 100vh;
         }
 
         .main-content {
-            max-width: 1200px; 
+            max-width: 1200px;
             width: 100%;
-            text-align: center; 
+            text-align: center;
         }
 
-        
         .content-header {
             text-align: center;
             margin-bottom: 50px;
@@ -111,58 +120,55 @@
             margin-bottom: 30px;
         }
 
-        
         .button-group {
             display: flex;
-            justify-content: center; 
-            gap: 15px; 
+            justify-content: center;
+            gap: 15px;
             margin-bottom: 40px;
+            flex-wrap: wrap;
         }
 
         .button-group a {
             padding: 8px 20px;
             cursor: pointer;
-            background-color: white;
-            border: 1px solid black;
+            background-color: transparent;
+            border: none;
             font-size: 16px;
-            text-decoration: none; 
+            text-decoration: none;
             color: black;
-            border-radius: 25px;
-            transition: background-color 0.3s, color 0.3s;
-            display: flex; 
+            transition: color 0.3s;
+            display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .button-group a:hover {
-            background-color: black;
-            color: white;
+            background-color: transparent;
+            color: #666;
         }
 
-        
         .button-group i {
-            margin-right: 5px; 
+            margin-right: 5px;
+            font-size: 24px;
         }
 
-        
         .about-content {
-            width: 70%; 
+            width: 70%;
             margin: 0 auto;
-            text-align: left; 
+            text-align: left;
             font-size: 18px;
             line-height: 1.6;
             color: #333;
-            background-color: #f9f9f9; 
-            padding: 20px; 
-            border-radius: 10px; 
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .about-content p {
-            margin-bottom: 15px; 
+            margin-bottom: 15px;
         }
 
-        
         @media (max-width: 1200px) {
             .main-content {
                 padding: 20px;
@@ -170,44 +176,68 @@
         }
 
         @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: static;
+                height: auto;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-around;
+            }
+
+            .sidebar-nav {
+              flex-direction: row;
+              justify-content: center;
+            }
+
+            .sidebar-nav-item {
+              margin-bottom: 0;
+              margin-left: 10px;
+            }
+
+            .main-content-wrapper {
+                width: 100%;
+                margin-left: 0;
+                padding: 20px;
+            }
+
             .button-group {
-                flex-wrap: wrap; 
+                flex-wrap: wrap;
+                justify-content: center;
             }
 
             .about-content {
                 font-size: 16px;
+                width: 90%;
             }
         }
     </style>
 </head>
 <body>
-   
-    <div class="sidebar">
+
+    <aside class="sidebar">
         <div class="logo-text">
             <a href="index.html">Sakai Masato Database</a>
         </div>
 
-        <ul class="sidebar-nav">
-            <li class="sidebar-nav-item"><a href="works.html">WORKS</a></li>
-            <li class="sidebar-nav-item"><a href="about.html" class="active">ABOUT</a></li>
-        </ul>
+        <nav>
+            <ul class="sidebar-nav">
+                <li class="sidebar-nav-item"><a href="works.html">WORKS</a></li>
+                <li class="sidebar-nav-item"><a href="about.html" class="active">ABOUT</a></li>
+            </ul>
+        </nav>
 
-        <div class="footer">
+        <footer class="footer">
             © H2COL All Rights Reserved.
-        </div>
-    </div>
+        </footer>
+    </aside>
 
-    
     <div class="main-content-wrapper">
-        <div class="main-content">
+        <main class="main-content">
             <div class="content-header">
                 <h1 class="title">ABOUT</h1>
 
-               
                 <div class="button-group">
-                    <a href="https://sakai-masato.com/" target="_blank">
-                        <i class="fas fa-home"></i>堺さんの公式HP
-                    </a>
                     <a href="https://www.youtube.com/@H2COL43" target="_blank">
                         <i class="fab fa-youtube"></i>
                     </a>
@@ -217,13 +247,9 @@
                     <a href="mailto:h2col2017@gmail.com" target="_blank">
                         <i class="fas fa-envelope"></i>
                     </a>
-                    <a href="https://h2col.notion.site/Sakai-Masato-Database-15d8a08476c780d49eb1d3ea923fd879" target="_blank">
-                        <i class="fab fa-notion"></i>Database
-                    </a>
                 </div>
             </div>
 
-           
             <div class="about-content">
                 <p>This site is not an official site, with no affiliation with Mr. Sakai Masato or his management.</p>
                 <p>All media on this site belong to their respective copyright owners. I have no intention of infringing on any copyrights and all content is used under the 'Fair Use' copyright laws.</p>
@@ -231,7 +257,7 @@
                 <p>All materials presented here are sourced from publicly accessible information on the internet.</p>
                 <p>If you notice any errors or omissions in the content of this website, please don't hesitate to let me know. I welcome and appreciate your feedback to help improve the accuracy and completeness of the information provided.</p>
             </div>
-        </div>
+        </main>
     </div>
 </body>
 </html>
