@@ -10,9 +10,7 @@
     <link rel="icon" href="/favicon-32x32.png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
     <style>
-        /* General Reset and Font */
         * {
             margin: 0;
             padding: 0;
@@ -23,10 +21,9 @@
         body {
             display: flex;
             min-height: 100vh;
-            background-color: #f6f4ef; /* Consistent background */
+            background-color: #f6f4ef;
         }
 
-        /* Sidebar Styles */
         .sidebar {
             position: fixed;
             top: 0;
@@ -76,8 +73,8 @@
         .sidebar-nav-item a {
             text-decoration: none;
             color: black;
-            display: block; /* Make the entire <li> clickable */
-            padding: 5px 0; /* Add some padding for a larger clickable area */
+            display: block;
+            padding: 5px 0;
         }
 
         .sidebar-nav-item a:hover {
@@ -86,18 +83,16 @@
 
         .sidebar-nav-item a.active {
             color: #fff;
-            background-color: black; /* Highlight the active link */
-            border-radius: 5px; /* Optional: Rounded corners for the active link */
+            background-color: black;
+            border-radius: 5px;
         }
 
-        /* Footer Styles */
         .footer {
             font-size: 12px;
             text-align: center;
             margin-top: 20px;
         }
 
-        /* Main Content Styles */
         .main-content-wrapper {
             width: calc(100% * 6 / 7);
             margin-left: calc(100% / 7);
@@ -112,7 +107,6 @@
             margin: 0 auto;
         }
 
-        /* Content Header Styles */
         .content-header {
             text-align: center;
             margin-bottom: 50px;
@@ -124,7 +118,6 @@
             margin-bottom: 30px;
         }
 
-        /* Navigation Styles */
         .navigation {
             display: flex;
             flex-wrap: wrap;
@@ -149,7 +142,6 @@
             color: white;
         }
 
-        /* Works Grid Styles */
         .works-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -210,7 +202,6 @@
             margin-top: 3px;
         }
 
-        /* 年份变化的条目使用完整分割线 */
         .work-item.year-start::after {
             width: 100%;
             left: 0;
@@ -220,7 +211,6 @@
             display: none;
         }
 
-        /* Work Tag Styles */
         .work-tag {
             display: inline-block;
             color: black;
@@ -243,7 +233,7 @@
 
         .work-title {
             display: inline-block;
-            width: calc(100% - 360px); /* 调整宽度以适应新的顺序 */
+            width: calc(100% - 360px);
         }
 
         .work-tag.role {
@@ -264,7 +254,6 @@
             text-decoration: underline;
         }
 
-        /* Media Queries for Responsiveness */
         @media (max-width: 1200px) {
             .main-content {
                 padding: 20px;
@@ -272,7 +261,7 @@
         }
 
         @media (max-width: 1024px) {
-           .sidebar {
+            .sidebar {
                 width: 100%;
                 position: static;
                 height: auto;
@@ -299,39 +288,158 @@
         }
 
         @media (max-width: 768px) {
-            .works-grid {
-                grid-template-columns: 1fr;
+            .work-item {
+                flex-direction: column;
+                align-items: flex-start;
+                padding-bottom: 10px;
+            }
+
+            .work-tag {
+                display: none;
+            }
+
+            .work-title {
+                width: 100%;
+                padding-right: 0;
+                margin-top: 0;
+                min-height: 40px;
+                display: flex;
+                align-items: center;
+            }
+
+            .work-title a {
+                line-height: 1.5;
+                padding: 8px 0;
+            }
+
+            .work-item::after {
+                display: none;
             }
         }
 
-        @media (max-width: 600px) {
-            .works-grid {
-                grid-template-columns: 1fr;
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            z-index: 1001;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background-color: black;
+            margin: 4px 0;
+            transition: 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: fixed;
+                height: 60px;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 20px;
+                z-index: 1000;
+            }
+
+            .logo-text {
+                margin-bottom: 0;
+                text-align: left;
+                display: block;
+            }
+
+            .hamburger {
+                display: block;
+            }
+
+            nav {
+                display: none;
+                position: fixed;
+                top: 60px;
+                left: 0;
+                width: 100%;
+                background-color: #f2f3f4;
+                flex-direction: column;
+                padding: 20px 0;
+                z-index: 999;
+            }
+
+            nav.active {
+                display: flex;
+            }
+
+            .main-content-wrapper {
+                width: 100%;
+                margin-left: 0;
+                padding-top: 80px;
+                min-height: calc(100vh - 60px);
+                display: flex;
+                flex-direction: column;
+            }
+
+            .main-content {
+                padding-bottom: 60px;
+            }
+
+            .footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                padding: 10px;
+                background-color: #f2f3f4;
+                z-index: 999;
+                text-align: center;
+            }
+
+            .sidebar-nav {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .sidebar-nav-item {
+                margin-bottom: 15px;
+            }
+
+            .sidebar-nav-item a.active {
+                background-color: black;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 0;
             }
         }
     </style>
 </head>
 <body>
-
-    <!-- Sidebar -->
     <aside class="sidebar">
         <div class="logo-text">
             <a href="index.html">Sakai Masato Database</a>
         </div>
-
+        <div class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
         <nav>
             <ul class="sidebar-nav">
                 <li class="sidebar-nav-item"><a href="works.html" class="active">WORKS</a></li>
                 <li class="sidebar-nav-item"><a href="about.html">ABOUT</a></li>
             </ul>
         </nav>
-
         <footer class="footer">
             © H2COL All Rights Reserved.
         </footer>
     </aside>
 
-    <!-- Main Content -->
     <div class="main-content-wrapper">
         <div class="main-content">
             <div class="content-header">
@@ -347,15 +455,12 @@
                 </div>
             </div>
 
-            <!-- Embed External File -->
             <div class="works-grid" id="works-container">
-                <!-- External file content will be loaded dynamically here -->
             </div>
         </div>
     </div>
 
     <script>
-        // Dynamically load external file content
         document.addEventListener('DOMContentLoaded', function () {
             const container = document.getElementById('works-container');
             fetch('works-data.html')
@@ -363,7 +468,7 @@
                 .then(data => {
                     container.innerHTML = data;
                     initFilter();
-                    processYearDisplay(); // 确保在页面加载完成后立即处理年份显示
+                    processYearDisplay();
                 })
                 .catch(error => console.error('Error loading works data:', error));
         });
@@ -372,18 +477,15 @@
             const visibleWorkItems = Array.from(document.querySelectorAll('.work-item')).filter(
                 item => window.getComputedStyle(item).display !== 'none'
             );
-            
             let currentYear = null;
             visibleWorkItems.forEach((item, index) => {
                 const yearTag = item.querySelector('.work-tag:first-child');
                 if (!yearTag) return;
-                
                 const year = yearTag.textContent.trim();
                 const nextItem = visibleWorkItems[index + 1];
                 const nextYearTag = nextItem?.querySelector('.work-tag:first-child');
                 const nextYear = nextYearTag?.textContent.trim();
 
-                // 处理年份显示
                 if (year === currentYear) {
                     yearTag.style.visibility = 'hidden';
                 } else {
@@ -391,16 +493,12 @@
                     yearTag.style.visibility = 'visible';
                 }
 
-                // 处理分割线
                 if (nextItem && year !== nextYear) {
-                    // 如果下一个条目的年份不同，使用完整分割线
                     item.classList.add('year-start');
                 } else {
-                    // 如果年份相同或是最后一个条目，使用短分割线
                     item.classList.remove('year-start');
                 }
 
-                // 最后一个条目不显示分割线
                 if (index === visibleWorkItems.length - 1) {
                     item.classList.add('last-item');
                 } else {
@@ -412,7 +510,7 @@
         function initFilter() {
             const navItems = document.querySelectorAll('.nav-item');
             const workItems = document.querySelectorAll('.work-item');
-            
+
             function showCategory(category) {
                 workItems.forEach(item => {
                     if (category === 'all' || item.dataset.category === category) {
@@ -421,11 +519,10 @@
                         item.style.display = 'none';
                     }
                 });
-                setTimeout(processYearDisplay, 0); // 使用 setTimeout 确保在 DOM 更新后处理年份
+                setTimeout(processYearDisplay, 0);
             }
 
             showCategory('all');
-
             navItems.forEach(item => {
                 item.addEventListener('click', function () {
                     navItems.forEach(btn => btn.classList.remove('active'));
@@ -434,6 +531,20 @@
                 });
             });
         }
+
+        const hamburger = document.querySelector('.hamburger');
+        const nav = document.querySelector('nav');
+
+        hamburger.addEventListener('click', function () {
+            nav.classList.toggle('active');
+            this.classList.toggle('is-active');
+
+            if (this.classList.contains('is-active')) {
+                this.innerHTML = `<span></span>`;
+            } else {
+                this.innerHTML = `<span></span><span></span><span></span>`;
+            }
+        });
     </script>
 </body>
 </html>
