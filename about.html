@@ -7,7 +7,6 @@
     <link rel="icon" href="/favicon.png" type="image/png">
     <link rel="icon" href="/favicon-32x32.png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         * {
@@ -51,11 +50,14 @@
 
         @media (max-width: 768px) {
             .sidebar {
+                width: 100%;
+                position: fixed;
                 height: 60px;
                 flex-direction: row;
-                justify-content: space-between;
                 align-items: center;
-                width: 100%;
+                justify-content: space-between;
+                padding: 0 20px;
+                z-index: 1000;
             }
 
             .hamburger {
@@ -108,6 +110,7 @@
                 width: 90%;
                 margin-bottom: 60px;
             }
+
             nav {
                 display: block;
                 position: fixed;
@@ -120,6 +123,7 @@
                 display: none;
                 z-index: 999;
             }
+
             nav.active {
                 display: flex;
             }
@@ -288,9 +292,6 @@
 
             .hamburger {
                 display: block;
-                cursor: pointer;
-                padding: 10px;
-                margin-left: auto;
             }
 
             .main-content-wrapper {
@@ -301,9 +302,11 @@
                 display: flex;
                 flex-direction: column;
             }
+
             .main-content {
                 padding-bottom: 60px;
             }
+
             .footer {
                 position: fixed;
                 bottom: 0;
@@ -319,79 +322,86 @@
                 width: 90%;
                 margin-bottom: 60px;
             }
+
+            .sidebar-nav {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .sidebar-nav-item {
+                margin-bottom: 15px;
+            }
+
+            .sidebar-nav-item a.active {
+                background-color: black;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 0;
+            }
         }
     </style>
 </head>
 <body>
-
-<aside class="sidebar">
-    <div class="logo-text">
-        <a href="index.html">Sakai Masato Database</a>
-    </div>
-
-    <div class="hamburger">
-        <span></span>
-        <span></span>
-        <span></span>
-    </div>
-
-    <nav>
-        <ul class="sidebar-nav">
-            <li class="sidebar-nav-item"><a href="works.html">WORKS</a></li>
-            <li class="sidebar-nav-item"><a href="about.html" class="active">ABOUT</a></li>
-        </ul>
-    </nav>
-
-    <footer class="footer">
-        © H2COL All Rights Reserved.
-    </footer>
-</aside>
-
-<div class="main-content-wrapper">
-    <main class="main-content">
-        <div class="content-header">
-            <h1 class="title">ABOUT</h1>
-
-            <div class="button-group">
-                <a href="https://www.youtube.com/@H2COL43" target="_blank">
-                    <i class="fab fa-youtube"></i>
-                </a>
-                <a href="https://x.com/h2col43" target="_blank">
-                    <i class="fab fa-twitter"></i>
-                </a>
-                <a href="mailto:h2col2017@gmail.com" target="_blank">
-                    <i class="fas fa-envelope"></i>
-                </a>
-            </div>
+    <aside class="sidebar">
+        <div class="logo-text">
+            <a href="index.html">Sakai Masato Database</a>
         </div>
-
-        <div class="about-content">
-            <p>This site is not an official site, with no affiliation with Mr. Sakai Masato or his management.</p>
-            <p>All media on this site belong to their respective copyright owners. I have no intention of infringing on any copyrights and all content is used under the 'Fair Use' copyright laws.</p>
-            <p>If there is any infringement, please contact me, and I will remove the content promptly.</p>
-            <p>All materials presented here are sourced from publicly accessible information on the internet.</p>
-            <p>If you notice any errors or omissions in the content of this website, please don't hesitate to let me know. I welcome and appreciate your feedback to help improve the accuracy and completeness of the information provided.</p>
-        </div>
-    </main>
-</div>
-
-<script>
-    const hamburger = document.querySelector('.hamburger');
-    const nav = document.querySelector('nav');
-
-    hamburger.addEventListener('click', function() {
-        nav.classList.toggle('active');
-
-        this.classList.toggle('is-active');
-        if(this.classList.contains('is-active')){
-            this.innerHTML = `<span></span>`
-        } else {
-            this.innerHTML = `<span></span>
+        <div class="hamburger">
             <span></span>
-            <span></span>`
-        }
+            <span></span>
+            <span></span>
+        </div>
+        <nav>
+            <ul class="sidebar-nav">
+                <li class="sidebar-nav-item"><a href="works.html">WORKS</a></li>
+                <li class="sidebar-nav-item"><a href="about.html" class="active">ABOUT</a></li>
+            </ul>
+        </nav>
+        <footer class="footer">
+            © H2COL All Rights Reserved.
+        </footer>
+    </aside>
 
-    });
-</script>
+    <div class="main-content-wrapper">
+        <main class="main-content">
+            <div class="content-header">
+                <h1 class="title">ABOUT</h1>
+                <div class="button-group">
+                    <a href="https://www.youtube.com/@H2COL43" target="_blank">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                    <a href="https://x.com/h2col43" target="_blank">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="mailto:h2col2017@gmail.com" target="_blank">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="about-content">
+                <p>This site is not an official site, with no affiliation with Mr. Sakai Masato or his management.</p>
+                <p>All media on this site belong to their respective copyright owners. I have no intention of infringing on any copyrights and all content is used under the 'Fair Use' copyright laws.</p>
+                <p>If there is any infringement, please contact me, and I will remove the content promptly.</p>
+                <p>All materials presented here are sourced from publicly accessible information on the internet.</p>
+                <p>If you notice any errors or omissions in the content of this website, please don't hesitate to let me know. I welcome and appreciate your feedback to help improve the accuracy and completeness of the information provided.</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const hamburger = document.querySelector('.hamburger');
+        const nav = document.querySelector('nav');
+
+        hamburger.addEventListener('click', function () {
+            nav.classList.toggle('active');
+            this.classList.toggle('is-active');
+
+            if (this.classList.contains('is-active')) {
+                this.innerHTML = `<span></span>`;
+            } else {
+                this.innerHTML = `<span></span><span></span><span></span>`;
+            }
+        });
+    </script>
 </body>
 </html>
