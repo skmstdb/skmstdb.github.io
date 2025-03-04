@@ -36,6 +36,7 @@
             justify-content: space-between;
             padding: 20px;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
         }
 
         .logo-text {
@@ -277,85 +278,46 @@
             }
         }
 
-        @media (max-width: 1024px) {
+        @media (min-width: 768px) and (max-width: 1024px) {
             .sidebar {
-                width: 100%;
-                position: static;
-                height: auto;
-                flex-direction: row;
-                align-items: center;
-                justify-content: space-around;
+                width: calc(100% / 7);
+                position: fixed;
+                height: 100vh;
             }
-
-            .sidebar-nav {
-                flex-direction: row;
-                justify-content: center;
-            }
-
-            .sidebar-nav-item {
-                margin-bottom: 0;
-                margin-left: 10px;
-            }
-
+            
             .main-content-wrapper {
-                margin-left: 0;
-                width: 100%;
-                padding: 20px;
+                width: calc(100% * 6 / 7);
+                margin-left: calc(100% / 7);
+            }
+            
+            .hamburger {
+                display: none;
+            }
+            
+            nav {
+                display: block !important;
+            }
+            
+            .sidebar-nav {
+                flex-direction: column;
+            }
+            
+            .sidebar-nav-item {
+                margin-bottom: 15px;
+            }
+            
+            .footer {
+                position: static;
+                margin-top: 20px;
+                padding: 0;
             }
             
             .work-item {
-                width: 90%;
+                width: 80%;
             }
         }
 
-        @media (max-width: 768px) {
-            .work-item {
-                width: 100%;
-                padding: 15px;
-            }
-            
-            .tags-container {
-                flex-wrap: wrap;
-            }
-            
-            .work-tag {
-                margin-bottom: 5px;
-                margin-right: 10px;
-            }
-            
-            .work-title {
-                margin-top: 8px;
-            }
-            
-            .nav-item {
-                padding: 8px 15px;
-                font-size: 14px;
-            }
-        }
-
-        .hamburger {
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            width: 30px;
-            height: 30px;
-            cursor: pointer;
-            position: absolute;
-            right: 20px;
-            top: 15px;
-            z-index: 1001;
-        }
-
-        .hamburger span {
-            display: block;
-            width: 25px;
-            height: 3px;
-            background-color: black;
-            margin: 4px 0;
-            transition: 0.3s;
-        }
-
-        @media (max-width: 768px) {
+        @media (max-width: 767px) {
             .sidebar {
                 width: 100%;
                 position: fixed;
@@ -364,7 +326,6 @@
                 align-items: center;
                 justify-content: space-between;
                 padding: 0 20px;
-                z-index: 1000;
             }
 
             .logo-text {
@@ -374,7 +335,7 @@
             }
 
             .hamburger {
-                display: block;
+                display: flex;
             }
 
             nav {
@@ -398,14 +359,31 @@
                 margin-left: 0;
                 padding-top: 80px;
                 min-height: calc(100vh - 60px);
-                display: flex;
-                flex-direction: column;
             }
-
-            .main-content {
-                padding-bottom: 60px;
+            
+            .work-item {
+                width: 100%;
+                padding: 15px;
             }
-
+            
+            .tags-container {
+                flex-wrap: wrap;
+            }
+            
+            .work-tag {
+                margin-bottom: 5px;
+                margin-right: 10px;
+            }
+            
+            .work-title {
+                margin-top: 8px;
+            }
+            
+            .nav-item {
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+            
             .footer {
                 position: fixed;
                 bottom: 0;
@@ -416,22 +394,40 @@
                 z-index: 999;
                 text-align: center;
             }
-
+            
             .sidebar-nav {
                 flex-direction: column;
                 align-items: center;
             }
-
+            
             .sidebar-nav-item {
                 margin-bottom: 15px;
             }
-
+            
             .sidebar-nav-item a.active {
                 background-color: black;
                 color: white;
                 padding: 10px 20px;
                 border-radius: 0;
             }
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 30px;
+            height: 24px;
+            cursor: pointer;
+            z-index: 1001;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background-color: black;
+            transition: 0.3s;
         }
     </style>
 </head>
@@ -512,7 +508,7 @@
                         );
                         
                         return `
-                        <div class="work-item" data-category="${category}" data-lead-role="${isLeadRole}" onclick="window.location.href='${linkUrl}'">
+                        <div class="work-item" data-category="${category}" data-lead-role="${isLeadRole}" onclick="window.open('${linkUrl}', '_blank')">
                             <div class="tags-container">
                                 ${tagsHtml}
                             </div>
