@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="堺雅人の出演作品と、各動画配信サービスでの視聴方法を一覧で紹介。映画やドラマをどこでオンライン視聴できるか、詳細な情報をチェック！ / Explore Sakai Masato's works and where to watch them on streaming services. Find out where to watch his movies and dramas online.">
+    <meta name="description"
+        content="堺雅人の出演作品と、各動画配信サービスでの視聴方法を一覧で紹介。映画やドラマをどこでオンライン視聴できるか、詳細な情報をチェック！ / Explore Sakai Masato's works and where to watch them on streaming services. Find out where to watch his movies and dramas online.">
     <meta name="keywords" content="堺雅人, 出演作品, 映画, テレビドラマ, 動画配信サービス, Sakai Masato, Film, Movie, TV, Shows, Series">
     <title>Sakai Masato Database</title>
     <link rel="icon" href="/favicon.png" type="image/png">
@@ -11,6 +13,30 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
+        :root {
+            --bg-color: #f6f4ef;
+            --sidebar-bg-color: #f2f3f4;
+            --text-color: black;
+            --link-color: black;
+            --link-hover-color: black;
+            --active-link-bg-color: black;
+            --active-link-text-color: #fff;
+            --box-shadow-color: rgba(0, 0, 0, 0.1);
+            --nav-item-bg-color: white;
+        }
+
+        .dark-mode {
+            --bg-color: #121212;
+            --sidebar-bg-color: #333;
+            --text-color: #fff;
+            --link-color: #fff;
+            --link-hover-color: #ddd;
+            --active-link-bg-color: #fff;
+            --active-link-text-color: black;
+            --box-shadow-color: rgba(255, 255, 255, 0.1);
+            --nav-item-bg-color: #444;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -21,7 +47,9 @@
         body {
             display: flex;
             min-height: 100vh;
-            background-color: #f6f4ef;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .sidebar {
@@ -30,13 +58,14 @@
             left: 0;
             width: calc(100% / 7);
             height: 100vh;
-            background-color: #f2f3f4;
+            background-color: var(--sidebar-bg-color);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             padding: 20px;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 2px 0 5px var(--box-shadow-color);
             z-index: 1000;
+            transition: background-color 0.3s;
         }
 
         .logo-text {
@@ -49,11 +78,13 @@
 
         .logo-text a {
             text-decoration: none;
-            color: black;
+            color: var(--link-color);
+            transition: color 0.3s;
         }
 
         .logo-text a:hover {
             text-decoration: underline;
+            color: var(--link-hover-color);
         }
 
         .sidebar-nav {
@@ -73,18 +104,20 @@
 
         .sidebar-nav-item a {
             text-decoration: none;
-            color: black;
+            color: var(--link-color);
             display: block;
             padding: 5px 0;
+            transition: color 0.3s;
         }
 
         .sidebar-nav-item a:hover {
             text-decoration: underline;
+            color: var(--link-hover-color);
         }
 
         .sidebar-nav-item a.active {
-            color: #fff;
-            background-color: black;
+            color: var(--active-link-text-color);
+            background-color: var(--active-link-bg-color);
             border-radius: 5px;
         }
 
@@ -92,6 +125,7 @@
             font-size: 12px;
             text-align: center;
             margin-top: 20px;
+            color: var(--text-color);
         }
 
         .main-content-wrapper {
@@ -99,7 +133,8 @@
             margin-left: calc(100% / 7);
             padding: 40px;
             box-sizing: border-box;
-            background-color: #f6f4ef;
+            background-color: var(--bg-color);
+            transition: background-color 0.3s;
         }
 
         .main-content {
@@ -111,6 +146,7 @@
         .content-header {
             text-align: center;
             margin-bottom: 50px;
+            position: relative;
         }
 
         .title {
@@ -133,17 +169,18 @@
         .nav-item {
             padding: 10px 20px;
             cursor: pointer;
-            background-color: white;
+            background-color: var(--nav-item-bg-color);
             border-radius: 12px;
             font-size: 16px;
             font-family: "ヒラギノ明朝 ProN", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
             border: none;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            transition: box-shadow 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 4px var(--box-shadow-color);
+            transition: box-shadow 0.3s ease, transform 0.2s ease, background-color 0.3s, color 0.3s;
+            color: var(--text-color);
         }
 
         .nav-item:hover {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px var(--box-shadow-color);
             transform: translateY(-1px);
         }
 
@@ -165,18 +202,18 @@
         .work-item {
             width: calc(4 * 100% / 6);
             margin: 0 auto;
-            background-color: white;
+            background-color: var(--nav-item-bg-color);
             border-radius: 15px;
             padding: 16px 20px;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
-            transition: box-shadow 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 3px 6px var(--box-shadow-color);
+            transition: box-shadow 0.3s ease, transform 0.2s ease, background-color 0.3s, color 0.3s;
             display: flex;
             flex-direction: column;
             cursor: pointer;
         }
 
         .work-item:hover {
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 20px var(--box-shadow-color);
             transform: translateY(-2px);
         }
 
@@ -187,7 +224,7 @@
 
         .work-tag {
             font-family: "ヒラギノ明朝 ProN", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
-            color: #333;
+            color: var(--text-color);
             font-size: 14px;
             margin-right: 20px;
             white-space: nowrap;
@@ -205,7 +242,7 @@
         .work-title {
             font-family: "ヒラギノ明朝 ProN", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
             font-size: 16px;
-            color: black;
+            color: var(--text-color);
             flex-grow: 1;
             font-weight: normal;
         }
@@ -255,17 +292,57 @@
             border-radius: 50%;
         }
 
-        input:checked + .slider {
+        input:checked+.slider {
             background-color: black;
         }
 
-        input:checked + .slider:before {
+        input:checked+.slider:before {
             transform: translateX(26px);
         }
 
         .switch-label {
             font-size: 14px;
             font-family: "ヒラギノ明朝 ProN", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+            color: var(--text-color);
+        }
+
+        #dark-mode-toggle {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            width: auto;
+            height: auto;
+            padding: 0;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 20px;
+            line-height: 1;
+            color: var(--text-color);
+            transition: color 0.3s;
+        }
+
+        #dark-mode-toggle[data-mode="light"]::before {
+            content: "☀︎";
+        }
+
+        #dark-mode-toggle[data-mode="dark"]::before {
+            content: "⏾";
+        }
+
+        @media (max-width: 767px) {
+            .main-content-wrapper {
+                width: 95%;
+                margin-left: auto;
+                margin-right: auto;
+                padding-top: 80px;
+            }
+
+            #dark-mode-toggle {
+                position: absolute;
+                top: 15px;
+                right: 20px;
+            }
         }
 
         .hamburger {
@@ -285,7 +362,7 @@
             display: block;
             width: 25px;
             height: 3px;
-            background-color: black;
+            background-color: var(--text-color);
             transition: 0.3s;
         }
 
@@ -293,7 +370,7 @@
             .main-content {
                 padding: 20px;
             }
-            
+
             .work-item {
                 width: 80%;
             }
@@ -305,34 +382,34 @@
                 position: fixed;
                 height: 100vh;
             }
-            
+
             .main-content-wrapper {
                 width: calc(100% * 6 / 7);
                 margin-left: calc(100% / 7);
             }
-            
+
             .hamburger {
                 display: none;
             }
-            
+
             nav {
                 display: block !important;
             }
-            
+
             .sidebar-nav {
                 flex-direction: column;
             }
-            
+
             .sidebar-nav-item {
                 margin-bottom: 15px;
             }
-            
+
             .footer {
                 position: static;
                 margin-top: 20px;
                 padding: 0;
             }
-            
+
             .work-item {
                 width: 80%;
             }
@@ -365,7 +442,7 @@
                 top: 60px;
                 left: 0;
                 width: 100%;
-                background-color: #f2f3f4;
+                background-color: var(--sidebar-bg-color);
                 flex-direction: column;
                 padding: 20px 0;
                 z-index: 999;
@@ -376,55 +453,56 @@
             }
 
             .main-content-wrapper {
-                width: 100%;
-                margin-left: 0;
+                width: 95%;
+                margin-left: auto;
+                margin-right: auto;
                 padding-top: 80px;
                 min-height: calc(100vh - 60px);
             }
-            
+
             .work-item {
                 width: 100%;
                 padding: 15px;
             }
-            
+
             .tags-container {
                 flex-wrap: wrap;
             }
-            
+
             .work-tag {
                 margin-bottom: 5px;
                 margin-right: 10px;
             }
-            
+
             .work-title {
                 margin-top: 8px;
             }
-            
+
             .nav-item {
                 padding: 8px 15px;
                 font-size: 14px;
             }
-            
+
             .footer {
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 width: 100%;
                 padding: 10px;
-                background-color: #f2f3f4;
+                background-color: var(--sidebar-bg-color);
                 z-index: 999;
                 text-align: center;
             }
-            
+
             .sidebar-nav {
                 flex-direction: column;
                 align-items: center;
             }
-            
+
             .sidebar-nav-item {
                 margin-bottom: 15px;
             }
-            
+
             .sidebar-nav-item a.active {
                 background-color: black;
                 color: white;
@@ -434,10 +512,13 @@
         }
     </style>
 </head>
+
 <body>
     <aside class="sidebar">
         <div class="logo-text">
-            <a href="https://h2col.notion.site/Sakai-Masato-Database-15d8a08476c780d49eb1d3ea923fd879">Sakai Masato Database</a>
+            <a
+                href="https://h2col.notion.site/Sakai-Masato-Database-15d8a08476c780d49eb1d3ea923fd879">Sakai
+                Masato Database</a>
         </div>
         <div class="hamburger">
             <span></span>
@@ -459,6 +540,7 @@
         <div class="main-content">
             <div class="content-header">
                 <h1 class="title">WORKS</h1>
+                <button id="dark-mode-toggle" aria-label="Toggle Dark Mode" data-mode="light"></button>
                 <div class="navigation">
                     <button class="nav-item active" data-category="all">全て</button>
                     <button class="nav-item" data-category="映画">映画</button>
@@ -490,26 +572,26 @@
                 .then(data => {
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = data;
-                    
+
                     const workItems = tempDiv.querySelectorAll('.work-item');
                     const newContent = Array.from(workItems).map(item => {
                         const category = item.dataset.category;
                         const tags = Array.from(item.querySelectorAll('.work-tag'));
                         const titleElement = item.querySelector('.work-title a');
-                        
+
                         const linkUrl = titleElement ? titleElement.getAttribute('href') : '#';
                         const titleText = titleElement ? titleElement.textContent : '';
-                        
+
                         const tagsHtml = tags.map(tag => {
                             const subtag = tag.dataset.subtag || '';
                             return `<span class="work-tag" data-subtag="${subtag}">${tag.textContent}</span>`;
                         }).join('');
-                        
-                        const isLeadRole = tags.some(tag => 
-                            tag.dataset.subtag === 'role' && 
+
+                        const isLeadRole = tags.some(tag =>
+                            tag.dataset.subtag === 'role' &&
                             tag.textContent.includes('主演')
                         );
-                        
+
                         return `
                         <div class="work-item" data-category="${category}" data-lead-role="${isLeadRole}" onclick="window.open('${linkUrl}', '_blank')">
                             <div class="tags-container">
@@ -519,36 +601,51 @@
                         </div>
                         `;
                     }).join('');
-                    
+
                     container.innerHTML = newContent;
                     initFilter();
-                    
+
                     updateDisplayElements('all');
                 })
                 .catch(error => console.error('Error loading works data:', error));
+
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+
+            const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            darkModeToggle.dataset.mode = isDarkMode ? "dark" : "light";
+
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+            }
+
+            darkModeToggle.addEventListener('click', function () {
+                document.body.classList.toggle('dark-mode');
+                this.dataset.mode = document.body.classList.contains('dark-mode') ? "dark" : "light";
+            });
         });
 
         function initFilter() {
             const navItems = document.querySelectorAll('.nav-item');
             const workItems = document.querySelectorAll('.work-item');
             const leadRoleFilter = document.getElementById('lead-role-filter');
-            
+
             let currentCategory = 'all';
-            
+
             let showLeadRoleOnly = false;
 
             function applyFilters() {
                 workItems.forEach(item => {
                     const categoryMatch = currentCategory === 'all' || item.dataset.category === currentCategory;
                     const roleMatch = !showLeadRoleOnly || item.dataset.leadRole === 'true';
-                    
+
                     if (categoryMatch && roleMatch) {
                         item.style.display = 'flex';
                     } else {
                         item.style.display = 'none';
                     }
                 });
-                
+
                 updateDisplayElements(currentCategory);
             }
 
@@ -560,17 +657,17 @@
                     applyFilters();
                 });
             });
-            
-            leadRoleFilter.addEventListener('change', function() {
+
+            leadRoleFilter.addEventListener('change', function () {
                 showLeadRoleOnly = this.checked;
                 applyFilters();
             });
         }
-        
+
         function updateDisplayElements(category) {
             const worksElements = document.querySelectorAll('.work-tag[data-subtag="works"]');
             const roleElements = document.querySelectorAll('.work-tag[data-subtag="role"]');
-            
+
             if (category === 'all') {
                 worksElements.forEach(element => {
                     element.style.display = 'inline';
@@ -603,4 +700,5 @@
         });
     </script>
 </body>
+
 </html>
