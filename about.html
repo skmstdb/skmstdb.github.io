@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,30 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
+        :root {
+            --bg-color: #f6f4ef;
+            --sidebar-bg-color: #f2f3f4;
+            --text-color: black;
+            --link-color: black;
+            --active-link-bg-color: black;
+            --active-link-text-color: #fff;
+            --box-shadow-color: rgba(0, 0, 0, 0.1);
+            --nav-item-bg-color: white;
+            --about-content-bg-color: #f9f9f9;
+        }
+
+        .dark-mode {
+            --bg-color: #121212;
+            --sidebar-bg-color: #333;
+            --text-color: #fff;
+            --link-color: #ddd;
+            --active-link-bg-color: #fff;
+            --active-link-text-color: black;
+            --box-shadow-color: rgba(255, 255, 255, 0.1);
+            --nav-item-bg-color: #444;
+            --about-content-bg-color: #444;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -19,8 +44,10 @@
         body {
             display: flex;
             min-height: 100vh;
-            background-color: #f6f4ef;
+            background-color: var(--bg-color);
             flex-direction: column;
+            transition: background-color 0.3s, color 0.3s;
+            color: var(--text-color);
         }
 
         .sidebar {
@@ -29,12 +56,13 @@
             left: 0;
             width: calc(100% / 7);
             height: 100vh;
-            background-color: #f2f3f4;
+            background-color: var(--sidebar-bg-color);
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 2px 0 5px var(--box-shadow-color);
+            transition: background-color 0.3s;
         }
 
         nav {
@@ -77,7 +105,7 @@
                 display: block;
                 width: 25px;
                 height: 3px;
-                background-color: black;
+                background-color: var(--text-color);
                 margin: 4px 0;
                 transition: 0.3s;
             }
@@ -101,7 +129,7 @@
                 left: 0;
                 width: 100%;
                 padding: 10px;
-                background-color: #f2f3f4;
+                background-color: var(--sidebar-bg-color);
                 z-index: 999;
                 text-align: center;
             }
@@ -117,7 +145,7 @@
                 top: 60px;
                 left: 0;
                 width: 100%;
-                background-color: #f2f3f4;
+                background-color: var(--sidebar-bg-color);
                 flex-direction: column;
                 padding: 20px 0;
                 display: none;
@@ -139,11 +167,13 @@
 
         .logo-text a {
             text-decoration: none;
-            color: black;
+            color: var(--link-color);
+            transition: color 0.3s;
         }
 
         .logo-text a:hover {
             text-decoration: underline;
+            color: var(--link-hover-color);
         }
 
         .sidebar-nav {
@@ -163,7 +193,7 @@
 
         .sidebar-nav-item a {
             text-decoration: none;
-            color: black;
+            color: var(--link-color);
             display: block;
             padding: 5px 0;
         }
@@ -173,8 +203,8 @@
         }
 
         .sidebar-nav-item a.active {
-            color: #fff;
-            background-color: black;
+            color: var(--active-link-text-color);
+            background-color: var(--active-link-bg-color);
             border-radius: 5px;
         }
 
@@ -182,6 +212,7 @@
             font-size: 12px;
             text-align: center;
             margin-top: 20px;
+            color: var(--text-color);
         }
 
         .main-content-wrapper {
@@ -193,6 +224,7 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            transition: background-color 0.3s;
         }
 
         .main-content {
@@ -204,6 +236,7 @@
         .content-header {
             text-align: center;
             margin-bottom: 50px;
+            position: relative;
         }
 
         .title {
@@ -227,7 +260,7 @@
             border: none;
             font-size: 16px;
             text-decoration: none;
-            color: black;
+            color: var(--link-color);
             transition: color 0.3s;
             display: flex;
             align-items: center;
@@ -250,15 +283,40 @@
             text-align: left;
             font-size: 18px;
             line-height: 1.6;
-            color: #333;
-            background-color: #f9f9f9;
+            color: var(--text-color);
+            background-color: var(--about-content-bg-color);
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 5px var(--box-shadow-color);
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .about-content p {
             margin-bottom: 15px;
+        }
+
+        #dark-mode-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: auto;
+            height: auto;
+            padding: 0;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 20px;
+            line-height: 1;
+            color: var(--text-color);
+            transition: color 0.3s;
+        }
+
+        #dark-mode-toggle[data-mode="light"]::before {
+            content: "☀︎";
+        }
+
+        #dark-mode-toggle[data-mode="dark"]::before {
+            content: "⏾";
         }
 
         @media (max-width: 1200px) {
@@ -288,6 +346,7 @@
                 margin-bottom: 0;
                 text-align: left;
                 display: block;
+                color: var(--text-color);
             }
 
             .hamburger {
@@ -313,9 +372,10 @@
                 left: 0;
                 width: 100%;
                 padding: 10px;
-                background-color: #f2f3f4;
+                background-color: var(--sidebar-bg-color);
                 z-index: 999;
                 text-align: center;
+                color: var(--text-color);
             }
 
             .about-content {
@@ -341,6 +401,7 @@
         }
     </style>
 </head>
+
 <body>
     <aside class="sidebar">
         <div class="logo-text">
@@ -366,6 +427,7 @@
         <main class="main-content">
             <div class="content-header">
                 <h1 class="title">ABOUT</h1>
+                <button id="dark-mode-toggle" data-mode="light" aria-label="Toggle Dark Mode"></button>
                 <div class="button-group">
                     <a href="https://www.youtube.com/@H2COL43" target="_blank">
                         <i class="fab fa-youtube"></i>
@@ -391,6 +453,7 @@
     <script>
         const hamburger = document.querySelector('.hamburger');
         const nav = document.querySelector('nav');
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
 
         hamburger.addEventListener('click', function () {
             nav.classList.toggle('active');
@@ -402,6 +465,19 @@
                 this.innerHTML = `<span></span><span></span><span></span>`;
             }
         });
+
+        const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (isDarkMode) {
+            document.body.classList.add('dark-mode');
+            darkModeToggle.dataset.mode = "dark";
+        }
+
+        darkModeToggle.addEventListener('click', function () {
+            document.body.classList.toggle('dark-mode');
+            this.dataset.mode = document.body.classList.contains('dark-mode') ? "dark" : "light";
+        });
     </script>
 </body>
+
 </html>
