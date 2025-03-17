@@ -8,6 +8,8 @@
     <link rel="icon" href="/favicon-32x32.png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <meta name="theme-color" content="#f8f4ed">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="js/darkmode.js"></script>
     <style>
         html, body {
             height: 100%;
@@ -18,6 +20,7 @@
             align-items: center;
             background-color: #f8f4ed;
             cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         h1 {
@@ -29,6 +32,7 @@
             white-space: nowrap;
             overflow: hidden;
             font-size: calc(10vw + 10vh);
+            transition: color 0.3s ease;
         }
 
         @media screen and (max-width: 768px) {
@@ -41,9 +45,34 @@
         body {
             overflow: hidden;
         }
+        
+        body.dark-mode {
+            background-color: #121212;
+        }
+        
+        body.dark-mode h1 {
+            color: #f8f4ed;
+        }
+        
+        html.dark-mode,
+        html.dark-mode body {
+            background-color: #121212;
+            color: #f8f4ed;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            meta[name="theme-color"] {
+                content: "#121212";
+            }
+        }
     </style>
 </head>
-<body onclick="window.location.href='works.html';">
+<body>
     <h1>SAKAI</h1>
+    <script>
+        document.addEventListener('click', function() {
+            window.location.href = 'works.html';
+        });
+    </script>
 </body>
 </html>
