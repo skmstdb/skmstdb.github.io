@@ -328,7 +328,7 @@
                     // 解析CSV数据
                     async function parseCSV() {
                         try {
-                            const response = await fetch('data.csv');
+                            const response = await fetch('worksdata.csv');
                             const data = await response.text();
                             const rows = data.split('\n').filter(row => row.trim());
                             const header = rows[0].split(',').map(col => col.trim()); // 获取表头
