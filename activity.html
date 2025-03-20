@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="堺雅人の活動履歴をで視覚化。出演作品やその他の活動を月別、年別に確認できます。 / Visualize Sakai Masato's activity history in a graph format. Check his works and activities by month and year.">
+    <meta name="keywords" content="堺雅人, 活動履歴, 出演作品, 映画, , 舞台, Sakai Masato, Activity, History, Film, TV">
+    <title>Sakai Masato Database</title>
+    <link rel="icon" href="/favicon.png" type="image/png">
+    <link rel="icon" href="/favicon-32x32.png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="js/darkmode.js"></script>
+    <style>
+        .content-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            width: 100%;
+            border-radius: 0;
+            padding: 1.5rem 0;
+            box-shadow: none;
+            border: none;
+        }
+
+        .filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .filter-item {
+            display: flex;
+            align-items: center;
+            background-color: var(--background);
+            border-radius: 12px;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            margin-right: 0;
+        }
+
+        .filter-item .switch-label {
+            margin-right: 10px;
+            font-size: 0.9rem;
+        }
+
+        .contribution-graph {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 2rem;
+            background-color: var(--background-alt);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: center;
+        }
+
+        .graph-container {
+            display: table;
+            border-collapse: collapse;
+            width: max-content;
+            background-color: transparent;
+            border-radius: 0;
+            padding: 0;
+            box-shadow: none;
+            border: none;
+            table-layout: fixed;
+        }
+
+        .year-row {
+            display: table-row;
+            height: 30px;
+        }
+
+        .year-label {
+            display: table-cell;
+            padding: 0.25rem 0.5rem;
+            vertical-align: middle;
+            text-align: right;
+            font-weight: bold;
+            min-width: 60px;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .month-container {
+            display: table-cell;
+            padding: 0;
+            vertical-align: top;
+            width: 30px;
+            height: 30px;
+        }
+
+        .month-box {
+            height: 28px;
+            width: 28px;
+            border-radius: 3px;
+            position: relative;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        .month-box-empty {
+            background-color: #ebedf0;
+            border: none;
+        }
+
+        .month-names {
+            display: table-row;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        .month-name {
+            display: table-cell;
+            padding: 0.25rem 0;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            width: 30px;
+            vertical-align: bottom;
+        }
+
+        .month-name:first-child {
+            border-right: 1px solid var(--border-color);
+        }
+
+        .activity-segment {
+            position: absolute;
+            width: 100%;
+        }
+
+        /* Activity type colors */
+        .activity-movie {
+            background-color: rgba(0, 123, 255, 0.5);
+        }
+
+        .activity-movie.high {
+            background-color: rgba(0, 123, 255, 0.9);
+        }
+
+        .activity-tv {
+            background-color: rgba(40, 167, 69, 0.5);
+        }
+
+        .activity-tv.high {
+            background-color: rgba(40, 167, 69, 0.9);
+        }
+
+        .activity-stage {
+            background-color: rgba(255, 193, 7, 0.5);
+        }
+
+        .activity-stage.high {
+            background-color: rgba(255, 193, 7, 0.9);
+        }
+
+        .activity-book {
+            background-color: rgba(255, 120, 0, 0.5);
+        }
+
+        .activity-book.high {
+            background-color: rgba(255, 120, 0, 0.9);
+        }
+
+        .activity-other {
+            background-color: rgba(111, 66, 193, 0.5);
+        }
+
+        .activity-other.high {
+            background-color: rgba(111, 66, 193, 0.9);
+        }
+
+        .activity-voice {
+            background-color: rgba(255, 105, 180, 0.5);
+        }
+
+        .activity-voice.high {
+            background-color: rgba(255, 105, 180, 0.9);
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+            gap: 1rem;
+            justify-content: center;
+            background-color: var(--background);
+            border-radius: 12px;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-right: 1rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 0.5rem;
+            border-radius: 3px;
+        }
+
+        .month-names {
+            display: table-row;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        .month-name {
+            display: table-cell;
+            padding: 0.5rem 0;
+            text-align: center;
+        }
+
+        /* Dark mode styles */
+        @media (prefers-color-scheme: dark) {
+            .month-box-empty {
+                background-color: #1f2428;
+                border: none;
+            }
+
+            .contribution-graph {
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            }
+
+            .content-header,
+            .legend,
+            .filter-container {
+                border: 1px solid var(--border-color);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .year-label {
+                min-width: 40px;
+                font-size: 0.8rem;
+            }
+
+            .month-box {
+                height: 22px;
+                width: 22px;
+            }
+
+            .contribution-graph {
+                padding: 1rem;
+            }
+
+            .legend {
+                gap: 0.5rem;
+            }
+
+            .legend-item {
+                margin-right: 0.5rem;
+                font-size: 0.8rem;
+            }
+
+            .legend-color {
+                width: 15px;
+                height: 15px;
+            }
+            .filter-item {
+                margin-right: 0.5rem;
+            }
+        }
+
+        #filter-row-1 {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        #filter-row-2 {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="sidebar">
+        </aside>
+
+    <div class="main-content-wrapper">
+        <div class="main-content">
+            <div class="content-header">
+                <h1 class="title">ACTIVITY</h1>
+                <div class="filter-container">
+                    <div id="filter-row-1">
+                        <div class="filter-item">
+                            <span class="switch-label">映画</span>
+                            <div class="legend-color activity-movie"></div>
+                            <label class="switch">
+                                <input type="checkbox" class="type-filter" data-type="映画">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="filter-item">
+                            <span class="switch-label">TV</span>
+                            <div class="legend-color activity-tv"></div>
+                            <label class="switch">
+                                <input type="checkbox" class="type-filter" data-type="TV">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="filter-item">
+                            <span class="switch-label">舞台</span>
+                            <div class="legend-color activity-stage"></div>
+                            <label class="switch">
+                                <input type="checkbox" class="type-filter" data-type="舞台">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="filter-item">
+                            <span class="switch-label">BOOK</span>
+                            <div class="legend-color activity-book"></div>
+                            <label class="switch">
+                                <input type="checkbox" class="type-filter" data-type="BOOK">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="filter-item">
+                            <span class="switch-label">その他</span>
+                            <div class="legend-color activity-other"></div>
+                            <label class="switch">
+                                <input type="checkbox" class="type-filter" data-type="その他">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="filter-item">
+                            <span class="switch-label">声の出演</span>
+                            <div class="legend-color activity-voice"></div>
+                            <label class="switch">
+                                <input type="checkbox" class="type-filter" data-type="声の出演">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div id="filter-row-2">
+                        <div class="filter-item">
+                            <span class="switch-label">主演作品のみ</span>
+                            <label class="switch">
+                                <input type="checkbox" id="lead-role-filter">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="contribution-graph" id="contribution-graph">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to load navbar
+        async function loadNavbar() {
+            try {
+                const response = await fetch('navbar.html');
+                const navbarContent = await response.text();
+                document.querySelector('.sidebar').innerHTML = navbarContent;
+                initializeHamburger();
+                highlightCurrentPage();
+            } catch (error) {
+                console.error('Error loading navbar:', error);
+                document.querySelector('.sidebar').innerHTML = '<p>Failed to load navigation.</p>';
+            }
+        }
+
+        // Function to initialize hamburger menu
+        function initializeHamburger() {
+            const hamburger = document.querySelector('.hamburger');
+            const nav = document.querySelector('nav');
+
+            if (hamburger && nav) {
+                hamburger.addEventListener('click', function () {
+                    nav.classList.toggle('active');
+                    this.classList.toggle('is-active');
+
+                    if (this.classList.contains('is-active')) {
+                        this.innerHTML = `<span style="transform: rotate(45deg); position: absolute; top: 50%; left: 0; width: 100%; margin-top: -1px;"></span><span style="transform: rotate(-45deg); position: absolute; top: 50%; left: 0; width: 100%; margin-top: -1px;"></span>`;
+                    } else {
+                        this.innerHTML = `<span></span><span></span><span></span>`;
+                    }
+                });
+            } else {
+                console.warn('Hamburger or nav element not found in navbar.html');
+            }
+        }
+
+        // Function to highlight current page in navbar
+        function highlightCurrentPage() {
+            const currentPage = window.location.pathname.split('/').pop();
+            const navLinks = document.querySelectorAll('.sidebar nav a');
+
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+
+                if (href === currentPage ||
+                    (currentPage === 'activity.html' && href === 'activity.html') ||
+                    (currentPage === '' && href === 'index.html')) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // Function to parse CSV data
+        function parseCSV(text) {
+            const lines = text.split('\n');
+            const headers = lines[0].split(',');
+            const result = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim() === '') continue;
+                const values = lines[i].split(',');
+                const entry = {};
+
+                for (let j = 0; j < headers.length; j++) {
+                    entry[headers[j].trim()] = values[j] ? values[j].trim() : '';
+                }
+
+                result.push(entry);
+            }
+
+            return result;
+        }
+
+        // Function to get activity type class
+        function getActivityTypeClass(worksType) {
+            const mapping = {
+                '映画': 'activity-movie',
+                'TV': 'activity-tv',
+                '舞台': 'activity-stage',
+                'BOOK': 'activity-book',
+                'その他': 'activity-other',
+                '声の出演': 'activity-voice'
+            };
+
+            return mapping[worksType] || 'activity-other';
+        }
+
+        // Function to get activity order
+        function getActivityOrder(worksType) {
+            const mapping = {
+                '映画': 1,
+                'TV': 2,
+                '舞台': 3,
+                'BOOK': 4,
+                'その他': 5,
+                '声の出演': 6
+            };
+
+            return mapping[worksType] || 99;
+        }
+
+        // Function to create the contribution graph
+        function createContributionGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
+            const graphContainer = document.getElementById('contribution-graph');
+            const currentYear = new Date().getFullYear();
+            const startYear = 1992;
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            // Process data
+            const activities = {};
+
+            // Find the earliest and latest years in the data
+            let earliestYear = currentYear;
+            let latestYear = startYear;
+
+            data.forEach(item => {
+                const startDate = new Date(item.DateStart);
+                if (!isNaN(startDate.getTime())) {
+                    const year = startDate.getFullYear();
+                    earliestYear = Math.min(earliestYear, year);
+                    latestYear = Math.max(latestYear, year);
+                }
+
+                const endDate = item.DateEnd ? new Date(item.DateEnd) : null;
+                if (endDate && !isNaN(endDate.getTime())) {
+                    const year = endDate.getFullYear();
+                    latestYear = Math.max(latestYear, year);
+                }
+            });
+
+            // Ensure we include the current year if it's greater than the latest year in data
+            latestYear = Math.max(latestYear, currentYear);
+
+            // Now process the activities
+            data.forEach(item => {
+                if (showLeadRoleOnly && item.Role !== '主演') {
+                    return;
+                }
+
+                if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) {
+                    return;
+                }
+
+                const startDate = new Date(item.DateStart);
+                const endDate = item.DateEnd ? new Date(item.DateEnd) : startDate;
+
+                // Ensure valid dates
+                if (isNaN(startDate.getTime())) return;
+
+                // For each month between start and end dates
+                let currentDate = new Date(startDate);
+                while (currentDate <= endDate) {
+                    const year = currentDate.getFullYear();
+                    const month = currentDate.getMonth();
+                    const key = `${year}-${month}`;
+
+                    if (!activities[key]) {
+                        activities[key] = [];
+                    }
+
+                    if (!activities[key].some(a => a.type === item.WorksType)) {
+                        activities[key].push({
+                            type: item.WorksType,
+                            count: 1
+                        });
+                    } else {
+                        const activityIndex = activities[key].findIndex(a => a.type === item.WorksType);
+                        activities[key][activityIndex].count++;
+                    }
+
+                    // Move to next month
+                    currentDate.setMonth(currentDate.getMonth() + 1);
+                }
+            });
+
+            // Create graph container with table structure
+            const graphHTML = document.createElement('div');
+            graphHTML.className = 'graph-container';
+
+            // Create month headers
+            const monthHeaderRow = document.createElement('div');
+            monthHeaderRow.className = 'month-names';
+
+            // Add empty cell for alignment with year labels
+            const emptyHeader = document.createElement('div');
+            emptyHeader.className = 'month-name';
+            monthHeaderRow.appendChild(emptyHeader);
+
+            monthNames.forEach(name => {
+                const monthHeader = document.createElement('div');
+                monthHeader.className = 'month-name';
+                monthHeader.textContent = name;
+                monthHeaderRow.appendChild(monthHeader);
+            });
+
+            graphHTML.appendChild(monthHeaderRow);
+
+            // Create year rows (in descending order)
+            for (let year = latestYear; year >= earliestYear; year--) {
+                const yearRow = document.createElement('div');
+                yearRow.className = 'year-row';
+
+                // Add year label
+                const yearLabel = document.createElement('div');
+                yearLabel.className = 'year-label';
+                yearLabel.textContent = year;
+                yearRow.appendChild(yearLabel);
+
+                // Add month cells
+                for (let month = 0; month < 12; month++) {
+                    const key = `${year}-${month}`;
+                    const monthCell = document.createElement('div');
+                    monthCell.className = 'month-container';
+
+                    const monthBox = document.createElement('div');
+                    monthBox.className = 'month-box';
+
+                    if (activities[key] && activities[key].length > 0) {
+                        // Sort activities by type order
+                        activities[key].sort((a, b) => getActivityOrder(a.type) - getActivityOrder(b.type));
+
+                        const totalActivities = activities[key].length;
+                        let heightPerActivity = 100 / totalActivities;
+
+                        activities[key].forEach((activity, index) => {
+                            const activitySegment = document.createElement('div');
+                            activitySegment.className = `activity-segment ${getActivityTypeClass(activity.type)} ${activity.count >= 2 ? 'high' : ''}`;
+                            activitySegment.style.height = `${heightPerActivity}%`;
+                            activitySegment.style.top = `${index * heightPerActivity}%`;
+                            monthBox.appendChild(activitySegment);
+                        });
+                    } else {
+                        monthBox.classList.add('month-box-empty');
+                    }
+
+                    monthCell.appendChild(monthBox);
+                    yearRow.appendChild(monthCell);
+                }
+
+                graphHTML.appendChild(yearRow);
+            }
+
+            graphContainer.innerHTML = '';
+            graphContainer.appendChild(graphHTML);
+        }
+
+        // Load data and initialize graph
+        document.addEventListener('DOMContentLoaded', function () {
+            loadNavbar();
+
+            // Get the lead role filter
+            const leadRoleFilter = document.getElementById('lead-role-filter');
+            const typeFilters = document.querySelectorAll('.type-filter');
+
+            // Fetch CSV data
+            fetch('worksdata.csv')
+                .then(response => response.text())
+                .then(data => {
+                    const worksData = parseCSV(data);
+
+                    // Initial graph creation
+                    createContributionGraph(worksData, false, []);
+
+                    // Add event listener for lead role filter
+                    leadRoleFilter.addEventListener('change', function () {
+                        const selectedTypes = Array.from(typeFilters)
+                            .filter(input => input.checked)
+                            .map(input => input.dataset.type);
+                        createContributionGraph(worksData, this.checked, selectedTypes);
+                    });
+
+                    // Add event listener for type filters
+                    typeFilters.forEach(filter => {
+                        filter.addEventListener('change', function () {
+                            const selectedTypes = Array.from(typeFilters)
+                                .filter(input => input.checked)
+                                .map(input => input.dataset.type);
+                            createContributionGraph(worksData, leadRoleFilter.checked, selectedTypes);
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading works data:', error);
+                    document.getElementById('contribution-graph').innerHTML = '<p>Failed to load activity data.</p>';
+                });
+        });
+    </script>
+</body>
+
+</html>
