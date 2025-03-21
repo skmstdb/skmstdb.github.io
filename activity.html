@@ -19,7 +19,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.5rem; 
             text-align: center;
             width: 100%;
             border-radius: 0;
@@ -32,8 +32,21 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 1rem;
-            margin-top: 1rem;
+            gap: 0.5rem; 
+            margin-top: 0.5rem; 
+        }
+
+        #filter-row-1 {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.5rem; 
+            margin-bottom: 0.5rem; 
+        }
+
+        #filter-row-2 {
+            display: flex;
+            justify-content: center;
         }
 
         .filter-item {
@@ -52,21 +65,24 @@
         }
 
         .contribution-graph {
-            width: 100%;
+            width: 98%;
+            max-width: 1400px;
             overflow-x: auto;
-            margin-top: 2rem;
+            margin: 0.5rem auto; 
             background-color: var(--background-alt);
             border-radius: 16px;
             padding: 1.5rem;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
             border: 1px solid var(--border-color);
             display: flex;
-            justify-content: center;
+            justify-content: flex-start;
+            min-height: 300px;
         }
 
         .graph-container {
             display: table;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 2px;
             width: max-content;
             background-color: transparent;
             border-radius: 0;
@@ -76,12 +92,12 @@
             table-layout: fixed;
         }
 
-        .year-row {
+        .month-row {
             display: table-row;
             height: 30px;
         }
 
-        .year-label {
+        .month-label {
             display: table-cell;
             padding: 0.25rem 0.5rem;
             vertical-align: middle;
@@ -91,44 +107,54 @@
             border-right: 1px solid var(--border-color);
         }
 
-        .month-container {
+        .year-container {
             display: table-cell;
             padding: 0;
             vertical-align: top;
             width: 30px;
             height: 30px;
+            border-spacing: 2px;
+            padding-right: 2px;
         }
 
-        .month-box {
-            height: 28px;
-            width: 28px;
+        .year-box {
+            height: 26px;
+            width: 26px;
             border-radius: 3px;
             position: relative;
             overflow: hidden;
-            margin: 0;
+            margin: 1px;
         }
 
-        .month-box-empty {
+        .year-box-empty {
             background-color: #ebedf0;
             border: none;
         }
 
-        .month-names {
+        .year-labels {
             display: table-row;
             text-align: center;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
         }
 
-        .month-name {
+        .year-digit {
             display: table-cell;
-            padding: 0.25rem 0;
+            padding: 0.1rem 0;
             text-align: center;
             border-bottom: 1px solid var(--border-color);
-            width: 30px;
+            width: 24px;
             vertical-align: bottom;
+            white-space: nowrap;
+            line-height: 1;
+            font-size: 0.7rem;
         }
 
-        .month-name:first-child {
+        .digit-row {
+            display: table-row;
+        }
+
+        .year-digit-spacer {
+            display: table-cell;
             border-right: 1px solid var(--border-color);
         }
 
@@ -211,21 +237,9 @@
             border-radius: 3px;
         }
 
-        .month-names {
-            display: table-row;
-            text-align: center;
-            font-size: 0.8rem;
-        }
-
-        .month-name {
-            display: table-cell;
-            padding: 0.5rem 0;
-            text-align: center;
-        }
-
         /* Dark mode styles */
         @media (prefers-color-scheme: dark) {
-            .month-box-empty {
+            .year-box-empty {
                 background-color: #1f2428;
                 border: none;
             }
@@ -244,18 +258,26 @@
 
         /* Mobile responsiveness */
         @media (max-width: 768px) {
-            .year-label {
+            .month-label {
                 min-width: 40px;
                 font-size: 0.8rem;
             }
 
-            .month-box {
-                height: 22px;
-                width: 22px;
+            .year-container {
+                width: 24px;
+                padding-right: 1px;
+            }
+
+            .year-box {
+                height: 20px;
+                width: 20px;
+                margin: 1px;
             }
 
             .contribution-graph {
-                padding: 1rem;
+                width: 98%;
+                padding: 0.75rem;
+                /* 不要在这里重新定义margin */
             }
 
             .legend {
@@ -271,29 +293,17 @@
                 width: 15px;
                 height: 15px;
             }
+
             .filter-item {
                 margin-right: 0.5rem;
             }
-        }
-
-        #filter-row-1 {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        #filter-row-2 {
-            display: flex;
-            justify-content: center;
         }
     </style>
 </head>
 
 <body>
     <aside class="sidebar">
-        </aside>
+    </aside>
 
     <div class="main-content-wrapper">
         <div class="main-content">
@@ -363,7 +373,7 @@
             </div>
 
             <div class="contribution-graph" id="contribution-graph">
-                </div>
+            </div>
         </div>
     </div>
 
@@ -473,7 +483,7 @@
             const graphContainer = document.getElementById('contribution-graph');
             const currentYear = new Date().getFullYear();
             const startYear = 1992;
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '🎂', 'Nov', 'Dec'];
 
             // Process data
             const activities = {};
@@ -546,43 +556,55 @@
             const graphHTML = document.createElement('div');
             graphHTML.className = 'graph-container';
 
-            // Create month headers
-            const monthHeaderRow = document.createElement('div');
-            monthHeaderRow.className = 'month-names';
-
-            // Add empty cell for alignment with year labels
-            const emptyHeader = document.createElement('div');
-            emptyHeader.className = 'month-name';
-            monthHeaderRow.appendChild(emptyHeader);
-
-            monthNames.forEach(name => {
-                const monthHeader = document.createElement('div');
-                monthHeader.className = 'month-name';
-                monthHeader.textContent = name;
-                monthHeaderRow.appendChild(monthHeader);
-            });
-
-            graphHTML.appendChild(monthHeaderRow);
-
-            // Create year rows (in descending order)
+            // Get years in descending order
+            const years = [];
             for (let year = latestYear; year >= earliestYear; year--) {
-                const yearRow = document.createElement('div');
-                yearRow.className = 'year-row';
+                years.push(year);
+            }
 
-                // Add year label
-                const yearLabel = document.createElement('div');
-                yearLabel.className = 'year-label';
-                yearLabel.textContent = year;
-                yearRow.appendChild(yearLabel);
+            // Create year headers - each digit of the year on a separate row
+            for (let digitPosition = 0; digitPosition < 4; digitPosition++) {
+                const digitRow = document.createElement('div');
+                digitRow.className = 'digit-row';
 
-                // Add month cells
-                for (let month = 0; month < 12; month++) {
+                // Add empty cell for alignment with month labels
+                const emptySpacer = document.createElement('div');
+                emptySpacer.className = 'year-digit-spacer';
+                digitRow.appendChild(emptySpacer);
+
+                // Add year digits
+                years.forEach(year => {
+                    const digit = document.createElement('div');
+                    digit.className = 'year-digit';
+                    digit.textContent = String(year)[digitPosition];
+                    digit.style.height = '16px';
+                    digit.style.lineHeight = '1';
+                    digit.style.fontSize = '0.7rem';
+                    digitRow.appendChild(digit);
+                });
+
+                graphHTML.appendChild(digitRow);
+            }
+
+            // Create month rows
+            for (let month = 0; month < 12; month++) {
+                const monthRow = document.createElement('div');
+                monthRow.className = 'month-row';
+
+                // Add month label
+                const monthLabel = document.createElement('div');
+                monthLabel.className = 'month-label';
+                monthLabel.textContent = monthNames[month];
+                monthRow.appendChild(monthLabel);
+
+                // Add year cells for this month
+                years.forEach(year => {
                     const key = `${year}-${month}`;
-                    const monthCell = document.createElement('div');
-                    monthCell.className = 'month-container';
+                    const yearCell = document.createElement('div');
+                    yearCell.className = 'year-container';
 
-                    const monthBox = document.createElement('div');
-                    monthBox.className = 'month-box';
+                    const yearBox = document.createElement('div');
+                    yearBox.className = 'year-box';
 
                     if (activities[key] && activities[key].length > 0) {
                         // Sort activities by type order
@@ -596,17 +618,17 @@
                             activitySegment.className = `activity-segment ${getActivityTypeClass(activity.type)} ${activity.count >= 2 ? 'high' : ''}`;
                             activitySegment.style.height = `${heightPerActivity}%`;
                             activitySegment.style.top = `${index * heightPerActivity}%`;
-                            monthBox.appendChild(activitySegment);
+                            yearBox.appendChild(activitySegment);
                         });
                     } else {
-                        monthBox.classList.add('month-box-empty');
+                        yearBox.classList.add('year-box-empty');
                     }
 
-                    monthCell.appendChild(monthBox);
-                    yearRow.appendChild(monthCell);
-                }
+                    yearCell.appendChild(yearBox);
+                    monthRow.appendChild(yearCell);
+                });
 
-                graphHTML.appendChild(yearRow);
+                graphHTML.appendChild(monthRow);
             }
 
             graphContainer.innerHTML = '';
