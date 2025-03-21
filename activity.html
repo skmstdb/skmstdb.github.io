@@ -297,6 +297,20 @@
             .filter-item {
                 margin-right: 0.5rem;
             }
+            
+            /* 在移动端隐藏种类筛选开关 */
+            #filter-row-1 {
+                display: none;
+            }
+            
+            /* 确保主演筛选开关在移动端正确显示 */
+            #filter-row-2 {
+                width: 100%;
+            }
+            
+            #filter-row-2 .filter-item {
+                margin: 0 auto;
+            }
         }
     </style>
 </head>
@@ -558,7 +572,7 @@
 
             // Get years in descending order
             const years = [];
-            for (let year = latestYear; year >= earliestYear; year--) {
+            for (let year = latestYear; year >= startYear; year--) {
                 years.push(year);
             }
 
