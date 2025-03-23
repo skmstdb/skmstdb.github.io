@@ -4,12 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sakai Masato Database</title>
-    <link rel="icon" href="/favicon.png" type="image/png">
-    <link rel="icon" href="/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" href="../pic/favicon.png" type="image/png">
+    <link rel="icon" href="../pic/favicon-32x32.png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <meta name="theme-color" content="#f8f4ed">
+    
+    <!-- 消除闪烁的关键：在HTML开始时就注入主题相关的类 -->
+    <script>
+        // 立即执行，在DOM渲染前设置正确的主题
+        (function() {
+            const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (isDarkMode) {
+                document.documentElement.classList.add('dark-mode');
+                // 设置初始背景色，消除闪烁
+                document.write('<style>html{background-color:#121212!important;}body{visibility:hidden;}</style>');
+            } else {
+                // 设置初始背景色，消除闪烁
+                document.write('<style>html{background-color:#f8f4ed!important;}body{visibility:hidden;}</style>');
+            }
+        })();
+    </script>
+    
+    <meta name="theme-color" content="#f8f4ed" id="theme-color-meta">
+    
+    <!-- 预加载样式以提高渲染速度 -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="js/darkmode.js"></script>
+    
     <style>
         html, body {
             height: 100%;
@@ -46,33 +66,56 @@
             overflow: hidden;
         }
         
-        body.dark-mode {
-            background-color: #121212;
-        }
-        
-        body.dark-mode h1 {
-            color: #f8f4ed;
-        }
-        
         html.dark-mode,
         html.dark-mode body {
             background-color: #121212;
+        }
+        
+        html.dark-mode h1 {
             color: #f8f4ed;
         }
         
-        @media (prefers-color-scheme: dark) {
-            meta[name="theme-color"] {
-                content: "#121212";
-            }
+        /* 确保过渡平滑 */
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
     </style>
 </head>
 <body>
     <h1>SAKAI</h1>
+    
     <script>
-        document.addEventListener('click', function() {
-            window.location.href = 'works.html';
+        // 更新主题色元标签
+        function updateThemeColor(isDark) {
+            const metaThemeColor = document.getElementById('theme-color-meta');
+            if (metaThemeColor) {
+                metaThemeColor.setAttribute('content', isDark ? '#121212' : '#f8f4ed');
+            }
+        }
+        
+        // 页面内容完全加载后
+        window.addEventListener('load', function() {
+            // 确认深色模式状态
+            const isDarkMode = document.documentElement.classList.contains('dark-mode');
+            updateThemeColor(isDarkMode);
+            
+            // 移除隐藏并添加淡入效果
+            document.body.style.visibility = 'visible';
+            document.body.classList.add('fade-in');
+            
+            // 点击跳转
+            document.addEventListener('click', function() {
+                window.location.href = 'Works/works.html';
+            });
         });
     </script>
+    
+    <!-- 加载darkmode.js来处理主题变化 -->
+    <script src="js/darkmode.js"></script>
 </body>
 </html>
