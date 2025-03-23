@@ -4,15 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <script>
-        // 立即执行，在DOM渲染前设置正确的主题
+
         (function() {
             const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
             if (isDarkMode) {
                 document.documentElement.classList.add('dark-mode');
-                // 设置初始背景色，消除闪烁
+
                 document.write('<style>html{background-color:#121212!important;}body{visibility:hidden;}</style>');
             } else {
-                // 设置初始背景色，消除闪烁
+
                 document.write('<style>html{background-color:#f8f4ed!important;}body{visibility:hidden;}</style>');
             }
         })();
@@ -22,8 +22,8 @@
         content="堺雅人の活動履歴をで視覚化。出演作品やその他の活動を月別、年別に確認できます。 / Visualize Sakai Masato's activity history in a graph format. Check his works and activities by month and year.">
     <meta name="keywords" content="堺雅人, 活動履歴, 出演作品, 映画, , 舞台, Sakai Masato, Activity, History, Film, TV">
     <title>Sakai Masato Database</title>
-    <link rel="icon" href="../pic/favicon.png" type="image/png">
-    <link rel="icon" href="../pic/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="icon" href="favicon-32x32.png" sizes="32x32" />
     <link rel="apple-touch-icon" href="../pic/apple-touch-icon.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../style.css">
