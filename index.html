@@ -4,21 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sakai Masato Database</title>
-    <link rel="icon" href="../pic/favicon.png" type="image/png">
-    <link rel="icon" href="../pic/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" href="/pic/favicon.png" type="image/png">
+    <link rel="icon" href="/pic/favicon-32x32.png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    
-    <!-- 消除闪烁的关键：在HTML开始时就注入主题相关的类 -->
     <script>
-        // 立即执行，在DOM渲染前设置正确的主题
         (function() {
             const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
             if (isDarkMode) {
                 document.documentElement.classList.add('dark-mode');
-                // 设置初始背景色，消除闪烁
                 document.write('<style>html{background-color:#121212!important;}body{visibility:hidden;}</style>');
             } else {
-                // 设置初始背景色，消除闪烁
                 document.write('<style>html{background-color:#f8f4ed!important;}body{visibility:hidden;}</style>');
             }
         })();
@@ -26,7 +21,6 @@
     
     <meta name="theme-color" content="#f8f4ed" id="theme-color-meta">
     
-    <!-- 预加载样式以提高渲染速度 -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
