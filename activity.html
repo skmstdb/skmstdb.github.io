@@ -526,11 +526,13 @@
                 const startDate = new Date(item.DateStart);
                 const endDate = item.DateEnd ? new Date(item.DateEnd) : startDate;
 
-                // Ensure valid dates
+                // 确保日期有效
                 if (isNaN(startDate.getTime())) return;
 
-                // For each month between start and end dates
+                // 对于开始日期和结束日期之间的每个月
                 let currentDate = new Date(startDate);
+                
+                // 修复：使用更可靠的方法迭代月份
                 while (currentDate <= endDate) {
                     const year = currentDate.getFullYear();
                     const month = currentDate.getMonth();
@@ -550,8 +552,8 @@
                         activities[key][activityIndex].count++;
                     }
 
-                    // Move to next month
-                    currentDate.setMonth(currentDate.getMonth() + 1);
+                    // 修复：更安全地移动到下一个月的第一天
+                    currentDate = new Date(year, month + 1, 1);
                 }
             });
 
