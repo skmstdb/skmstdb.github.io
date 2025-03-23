@@ -1,0 +1,39 @@
+<!-- 添加 CSS 引用 -->
+<link rel="stylesheet" href="../Navi/navi.css">
+
+<div class="logo-text">
+    <a href="https://h2col.notion.site/Sakai-Masato-Database-15d8a08476c780d49eb1d3ea923fd879" target="_blank">Sakai
+        Masato Database</a>
+</div>
+<div class="hamburger">
+    <span></span>
+    <span></span>
+    <span></span>
+</div>
+<nav>
+    <ul class="sidebar-nav">
+        <li class="sidebar-nav-item"><a href="../Works/works.html">SAKAI WORKS</a></li>
+        <li class="sidebar-nav-item"><a href="../Today/whatsontoday.html">What's on TODAY</a></li>
+        <li class="sidebar-nav-item"><a href="../Activity/activity.html">SAKAI Activity</a></li>
+        <li class="sidebar-nav-item"><a href="../Calendar/sakaical.html">SAKAI Calendar</a></li>
+        <li class="sidebar-nav-item"><a href="../About/about.html">ABOUT</a></li>
+    </ul>
+</nav>
+<footer class="footer">
+    © H2COL All Rights Reserved.
+</footer>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('navbar.html script running');
+        const navLinks = document.querySelectorAll('.sidebar-nav-item a');
+
+        navLinks.forEach(link => {
+            if (link.href === window.location.href) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+    });
+</script>

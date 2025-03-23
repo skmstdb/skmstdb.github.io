@@ -1,0 +1,337 @@
+.main-content {
+    max-width: 950px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.content-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 0.5rem; 
+    text-align: center;
+    width: 100%;
+    border-radius: 0;
+    padding: 1.5rem 0;
+    box-shadow: none;
+    border: none;
+}
+
+.filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem; 
+    margin-top: 0.5rem; 
+}
+
+#filter-row-1 {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem; 
+    margin-bottom: 0.5rem; 
+}
+
+#filter-row-2 {
+    display: flex;
+    justify-content: center;
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    margin: 0 10px 10px;
+}
+
+.filter-item .legend-color {
+    margin-right: 5px;
+}
+
+.switch-label {
+    margin-right: 8px;
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    background-color: var(--background);
+    border-radius: 12px;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    margin-right: 0;
+}
+
+.filter-item .switch-label {
+    margin-right: 10px;
+    font-size: 0.9rem;
+}
+
+/* 为贡献图添加边框并保持滚动功能 */
+.contribution-graph {
+    border: 1px solid #ffffff; /* 浅色模式下的边框颜色为白色 */
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+    overflow-x: auto; /* 添加水平滚动功能 */
+    max-width: 100%; /* 确保不超出父容器 */
+}
+
+/* 深色模式下的边框颜色 */
+.dark-mode .contribution-graph {
+    border-color: #444; /* 深色模式下的边框颜色为灰色 */
+}
+
+.graph-container {
+    display: table;
+    border-collapse: separate;
+    border-spacing: 2px;
+    width: max-content;
+    background-color: transparent;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    border: none;
+    table-layout: fixed;
+}
+
+.month-row {
+    display: table-row;
+    height: 30px;
+}
+
+.month-label {
+    display: table-cell;
+    padding: 0.25rem 0.5rem;
+    vertical-align: middle;
+    text-align: right;
+    font-weight: bold;
+    min-width: 60px;
+    border-right: 1px solid var(--border-color);
+}
+
+.year-container {
+    display: table-cell;
+    padding: 0;
+    vertical-align: top;
+    width: 30px;
+    height: 30px;
+    border-spacing: 2px;
+    padding-right: 2px;
+}
+
+.year-box {
+    height: 26px;
+    width: 26px;
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+    margin: 1px;
+}
+
+.year-box-empty {
+    background-color: #ebedf0;
+    border: none;
+}
+
+.year-labels {
+    display: table-row;
+    text-align: center;
+    font-size: 0.7rem;
+}
+
+.year-digit {
+    display: table-cell;
+    padding: 0.1rem 0;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    width: 24px;
+    vertical-align: bottom;
+    white-space: nowrap;
+    line-height: 1;
+    font-size: 0.7rem;
+}
+
+.digit-row {
+    display: table-row;
+}
+
+.year-digit-spacer {
+    display: table-cell;
+    border-right: 1px solid var(--border-color);
+}
+
+.activity-segment {
+    position: absolute;
+    width: 100%;
+}
+
+/* Activity type colors */
+.activity-movie {
+    background-color: rgba(0, 123, 255, 0.5);
+}
+
+.activity-movie.high {
+    background-color: rgba(0, 123, 255, 0.9);
+}
+
+.activity-tv {
+    background-color: rgba(40, 167, 69, 0.5);
+}
+
+.activity-tv.high {
+    background-color: rgba(40, 167, 69, 0.9);
+}
+
+.activity-stage {
+    background-color: rgba(255, 193, 7, 0.5);
+}
+
+.activity-stage.high {
+    background-color: rgba(255, 193, 7, 0.9);
+}
+
+.activity-book {
+    background-color: rgba(255, 120, 0, 0.5);
+}
+
+.activity-book.high {
+    background-color: rgba(255, 120, 0, 0.9);
+}
+
+.activity-other {
+    background-color: rgba(111, 66, 193, 0.5);
+}
+
+.activity-other.high {
+    background-color: rgba(111, 66, 193, 0.9);
+}
+
+.activity-voice {
+    background-color: rgba(255, 105, 180, 0.5);
+}
+
+.activity-voice.high {
+    background-color: rgba(255, 105, 180, 0.9);
+}
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+    gap: 1rem;
+    justify-content: center;
+    background-color: var(--background);
+    border-radius: 12px;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-right: 1rem;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    margin-right: 0.5rem;
+    border-radius: 3px;
+}
+
+/* Dark mode styles - only include necessary color adjustments */
+@media (prefers-color-scheme: dark) {
+    .year-box-empty {
+        background-color: #1f2428;
+        border: none;
+    }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .month-label {
+        min-width: 40px;
+        font-size: 0.8rem;
+    }
+
+    .year-container {
+        width: 24px;
+        padding-right: 1px;
+    }
+
+    .year-box {
+        height: 20px;
+        width: 20px;
+        margin: 1px;
+    }
+
+    .contribution-graph {
+        width: 98%;
+        padding: 0.75rem;
+        /* 不要在这里重新定义margin */
+    }
+
+    .legend {
+        gap: 0.5rem;
+    }
+
+    .legend-item {
+        margin-right: 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .legend-color {
+        width: 15px;
+        height: 15px;
+    }
+
+    .filter-item {
+        margin-right: 0.5rem;
+    }
+    
+    /* 在移动端隐藏种类筛选开关 */
+    #filter-row-1 {
+        display: none;
+    }
+    
+    /* 确保主演筛选开关在移动端正确显示 */
+    #filter-row-2 {
+        width: 100%;
+    }
+    
+    #filter-row-2 .filter-item {
+        margin: 0 auto;
+    }
+}
+
+/* 在桌面端隐藏元素 */
+.desktop-hidden {
+    display: none;
+}
+
+/* 在移动设备上显示 */
+@media (max-width: 767px) {
+    .desktop-hidden {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .legend {
+        padding: 0.5rem;
+        gap: 0.5rem;
+    }
+    
+    .legend-item {
+        margin: 0 0.3rem;
+        white-space: nowrap;
+        font-size: 0.8rem;
+    }
+    
+    .legend-color {
+        width: 15px;
+        height: 15px;
+        margin-right: 0.3rem;
+    }
+}
