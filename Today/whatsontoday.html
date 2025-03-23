@@ -4,15 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <script>
-        // 立即执行，在DOM渲染前设置正确的主题
         (function() {
             const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
             if (isDarkMode) {
                 document.documentElement.classList.add('dark-mode');
-                // 设置初始背景色，消除闪烁
                 document.write('<style>html{background-color:#121212!important;}body{visibility:hidden;}</style>');
             } else {
-                // 设置初始背景色，消除闪烁
                 document.write('<style>html{background-color:#f8f4ed!important;}body{visibility:hidden;}</style>');
             }
         })();
@@ -21,8 +18,8 @@
     <meta name="description" content="堺雅人の出演作品の「今日は何の日」。歴史上の今日に公開・放送された作品を紹介。 / What happened today in Sakai Masato's career. Check out works that were released or aired on this day in history.">
     <meta name="keywords" content="堺雅人, 今日は何の日, 出演作品, 記念日, Sakai Masato, This Day in History">
     <title>Sakai Masato Database</title>
-    <link rel="icon" href="../pic/favicon.png" type="image/png">
-    <link rel="icon" href="../pic/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" href="../favicon.png" type="image/png">
+    <link rel="icon" href="../favicon-32x32.png" sizes="32x32" />
     <link rel="apple-touch-icon" href="../pic/apple-touch-icon.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="../style.css">
