@@ -134,12 +134,25 @@ function renderEvents(calendarGrid, year, month, events) {
                 // 将星期日的0转换为7，使1-7分别对应周一到周日
                 const adjustedDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
                 
-                // 检查日期是否在事件范围内且是指定的星期几
-                // 注意：event.weekday可能是字符串，需要转换为数字
-                if (date >= startDate && date <= endDate && 
-                    (event.weekday.includes(String(adjustedDayOfWeek)) || 
-                     event.weekday === String(adjustedDayOfWeek))) {
-                    
+                // 检查是否为负数（排除模式）
+                const weekdayValue = parseInt(event.weekday);
+                const isExcludeMode = weekdayValue < 0;
+                const absWeekday = Math.abs(weekdayValue);
+                
+                // 判断是否应该显示事件
+                let shouldDisplay = false;
+                
+                if (isExcludeMode) {
+                    // 排除模式：如果当前星期不等于排除的星期，则显示
+                    shouldDisplay = adjustedDayOfWeek !== absWeekday;
+                } else {
+                    // 包含模式：如果当前星期等于指定的星期，或者weekday包含当前星期，则显示
+                    shouldDisplay = event.weekday.includes(String(adjustedDayOfWeek)) || 
+                                   event.weekday === String(adjustedDayOfWeek);
+                }
+                
+                // 检查日期是否在事件范围内且应该显示
+                if (date >= startDate && date <= endDate && shouldDisplay) {
                     const dayIndex = day + firstDayOfWeek - 1;
                     if (dayIndex >= 0 && dayIndex < dayElements.length) {
                         const dayElement = dayElements[dayIndex];
