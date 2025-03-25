@@ -20,7 +20,8 @@ async function parseCSV() {
                 endDate: eventData['DateEnd'] ? new Date(eventData['DateEnd']) : new Date(eventData['DateStart']),
                 title: eventData['Title'],
                 url: eventData['URL'] || '#',
-                id: Math.random().toString(36).substr(2, 9)
+                id: Math.random().toString(36).substr(2, 9),
+                weekday: eventData['Weekday'] || '' // 添加星期几属性
             };
         }).filter(event => !isNaN(event.startDate.getTime()) && event.title);
 
@@ -121,26 +122,68 @@ function renderEvents(calendarGrid, year, month, events) {
         const displayStart = new Date(Math.max(startDate, new Date(year, month, 1)));
         const displayEnd = new Date(Math.min(endDate, new Date(year, month + 1, 0)));
 
-        const startIndex = displayStart.getDate() + firstDayOfWeek - 1;
-        const endIndex = displayEnd.getDate() + firstDayOfWeek - 1;
+        // 如果有指定星期几，则只在特定星期几显示
+        if (event.weekday) {
+            // 获取当月的所有日期
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                // 获取星期几 (0-6，0是星期日)
+                const dayOfWeek = date.getDay();
+                // 将星期日的0转换为7，使1-7分别对应周一到周日
+                const adjustedDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
+                
+                // 检查日期是否在事件范围内且是指定的星期几
+                // 注意：event.weekday可能是字符串，需要转换为数字
+                if (date >= startDate && date <= endDate && 
+                    (event.weekday.includes(String(adjustedDayOfWeek)) || 
+                     event.weekday === String(adjustedDayOfWeek))) {
+                    
+                    const dayIndex = day + firstDayOfWeek - 1;
+                    if (dayIndex >= 0 && dayIndex < dayElements.length) {
+                        const dayElement = dayElements[dayIndex];
+                        
+                        // 创建 Bento 的包装容器
+                        const bentoContainer = document.createElement('a');
+                        bentoContainer.href = event.url;
+                        bentoContainer.target = '_blank';
+                        bentoContainer.classList.add('bento-container');
+                        
+                        // 创建 Bento 项目
+                        const bentoItem = document.createElement('div');
+                        bentoItem.classList.add('bento-item');
+                        bentoItem.textContent = event.title;
+                        bentoContainer.appendChild(bentoItem);
+                        
+                        // 将bento容器添加到日历
+                        dayElement.appendChild(bentoContainer);
+                    }
+                }
+            }
+        } else {
+            // 原有的处理逻辑，对于没有指定星期几的事件
+            const startIndex = displayStart.getDate() + firstDayOfWeek - 1;
+            const endIndex = displayEnd.getDate() + firstDayOfWeek - 1;
 
-        for (let i = startIndex; i <= endIndex && i < dayElements.length; i++) {
-            const dayElement = dayElements[i];
+            for (let i = startIndex; i <= endIndex && i < dayElements.length; i++) {
+                const dayElement = dayElements[i];
 
-            // 创建 Bento 的包装容器
-            const bentoContainer = document.createElement('a');
-            bentoContainer.href = event.url;
-            bentoContainer.target = '_blank';
-            bentoContainer.classList.add('bento-container');
+                // 创建 Bento 的包装容器
+                const bentoContainer = document.createElement('a');
+                bentoContainer.href = event.url;
+                bentoContainer.target = '_blank';
+                bentoContainer.classList.add('bento-container');
 
-            // 创建 Bento 项目
-            const bentoItem = document.createElement('div');
-            bentoItem.classList.add('bento-item');
-            bentoItem.textContent = event.title;
-            bentoContainer.appendChild(bentoItem);
+                // 创建 Bento 项目
+                const bentoItem = document.createElement('div');
+                bentoItem.classList.add('bento-item');
+                bentoItem.textContent = event.title;
+                bentoContainer.appendChild(bentoItem);
 
-            //将bento容器添加到日历
-            dayElement.appendChild(bentoContainer);
+                //将bento容器添加到日历
+                dayElement.appendChild(bentoContainer);
+            }
         }
     });
 }
