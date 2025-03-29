@@ -14,16 +14,29 @@ function highlightCurrentPage() {
         const href = link.getAttribute('href');
         
         // 检查链接是否匹配当前页面
-        if (currentPath.includes('works.html') && href.includes('works.html') ||
-            currentPath.includes('whatsontoday.html') && href.includes('whatsontoday.html') ||
-            currentPath.includes('activity.html') && href.includes('activity.html') ||
-            currentPath.includes('sakaical.html') && href.includes('sakaical.html') ||
-            currentPath.includes('about.html') && href.includes('about.html')||
-            currentPath.includes('streaming.html') && href.includes('streaming.html')) {
+        // 处理首页情况
+        if ((currentPath === '/' || currentPath === '/index.html' || currentPath.endsWith('/')) && 
+            (href === 'index.html' || href === './' || href === '../index.html' || href === '/')) {
+            link.classList.add('active');
+        }
+        // 处理其他页面
+        else if (
+            (currentPath.includes('works.html') && href.includes('works.html')) ||
+            (currentPath.includes('whatsontoday.html') && href.includes('whatsontoday.html')) ||
+            (currentPath.includes('activity.html') && href.includes('activity.html')) ||
+            (currentPath.includes('sakaical.html') && href.includes('sakaical.html')) ||
+            (currentPath.includes('about.html') && href.includes('about.html')) ||
+            (currentPath.includes('streaming.html') && href.includes('streaming.html'))) {
             link.classList.add('active');
         } else {
             link.classList.remove('active');
         }
+    });
+    
+    // 调试信息
+    console.log('当前路径:', currentPath);
+    navLinks.forEach(link => {
+        console.log('链接:', link.getAttribute('href'), '高亮状态:', link.classList.contains('active'));
     });
 }
 
