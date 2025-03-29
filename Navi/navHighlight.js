@@ -26,6 +26,7 @@ function highlightCurrentPage() {
             (currentPath.includes('activity.html') && href.includes('activity.html')) ||
             (currentPath.includes('sakaical.html') && href.includes('sakaical.html')) ||
             (currentPath.includes('about.html') && href.includes('about.html')) ||
+            (currentPath.includes('contact.html') && href.includes('contact.html')) ||
             (currentPath.includes('streaming.html') && href.includes('streaming.html'))) {
             link.classList.add('active');
         } else {
