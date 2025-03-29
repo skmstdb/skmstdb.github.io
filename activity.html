@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <script src="js/visibility.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="堺雅人の活動履歴をで視覚化。出演作品やその他の活動を月別、年別に確認できます。 / Visualize Sakai Masato's activity history in a graph format. Check his works and activities by month and year.">
+    <meta name="keywords" content="堺雅人, 活動履歴, 出演作品, 映画, , 舞台, Sakai Masato, Activity, History, Film, TV">
+    <title>Sakai Masato Database</title>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="icon" href=favicon-32x32.png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="../pic/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/activity.css">
+    <link rel="stylesheet" href="/Navi/navi.css">
+    <script src="/js/darkmode.js"></script>
+    <script src="/Navi/navHighlight.js"></script>
+    <script src="/js/activity.js"></script>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <!-- Navbar content will be loaded here -->
+    </aside>
+
+    <div class="main-content-wrapper">
+        <div class="main-content">
+            <div class="content-header">
+                <h1 class="title">ACTIVITY</h1>
+                <div class="filter-container">
+                    <div id="filter-row-1">
+                        <div class="filter-item">
+                            <label class="switch-label">映画</label>
+                            <div class="legend-color activity-movie"></div>
+                            <label class="switch">
+                                <input type="checkbox" class="type-filter" data-type="映画">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="filter-item">
+                            <label class="switch-label">TV</label>
+                            <div class="legend-color activity-tv"></div>
+                            <label class="switch">
+                                <input type="checkbox" class="type-filter" data-type="TV">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="filter-item">
+                            <label class="switch-label">舞台</label>
+                            <div class="legend-color activity-stage"></div>
+                            <label class="switch">
+                                <input type="checkbox" class="type-filter" data-type="舞台">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="filter-item">
+                            <label class="switch-label">その他</label>
+                            <div class="legend-color activity-other"></div>
+                            <label class="switch">
+                                <input type="checkbox" class="type-filter" data-type="その他">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="filter-item">
+                            <label class="switch-label">声の出演</label>
+                            <div class="legend-color activity-voice"></div>
+                            <label class="switch">
+                                <input type="checkbox" class="type-filter" data-type="声の出演">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="filter-item">
+                            <label class="switch-label">BOOK</label>
+                            <div class="legend-color activity-book"></div>
+                            <label class="switch">
+                                <input type="checkbox" class="type-filter" data-type="BOOK">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div id="filter-row-2">
+                        <div class="filter-item">
+                            <label class="switch-label">主演のみ</label>
+                            <label class="switch">
+                                <input type="checkbox" id="lead-role-filter">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 添加 desktop-hidden 类名，使其在桌面端隐藏 -->
+            <div class="legend desktop-hidden">
+                <div class="legend-item">
+                    <div class="legend-color activity-movie"></div>
+                    <span>映画</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color activity-tv"></div>
+                    <span>TV</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color activity-stage"></div>
+                    <span>舞台</span>
+                </div>
+                
+                <div class="legend-item">
+                    <div class="legend-color activity-other"></div>
+                    <span>その他</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color activity-voice"></div>
+                    <span>声の出演</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color activity-book"></div>
+                    <span>BOOK</span>
+                </div>
+            </div>
+
+            <div class="contribution-graph" id="contribution-graph">
+                <!-- Graph will be generated here -->
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

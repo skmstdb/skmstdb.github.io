@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <script src="js/visibility.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="堺雅人の出演作品カレンダー。過去の作品の放送・公開日を確認できます。 / Calendar of Sakai Masato's works. Check the broadcast and release dates of his past works.">
+    <meta name="keywords" content="堺雅人, カレンダー, 出演作品, 放送日, 公開日, Sakai Masato, Calendar, Works, Broadcast Date, Release Date">
+    <title>Sakai Masato Database</title>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="icon" href="favicon-32x32.png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="../pic/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="css/cal.css">
+    <link rel="stylesheet" href="/Navi/navi.css">
+    <script src="/js/darkmode.js"></script>
+    <script src="/Navi/navHighlight.js"></script>
+    <script src="/js/cal.js"></script>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <!-- Navbar content will be loaded here -->
+    </aside>
+
+    <div class="main-content-wrapper">
+        <div class="main-content">
+            <div class="content-header">
+                <h1 class="title">SAKAI CALENDAR</h1>
+            </div>
+
+            <!-- 添加移动设备提示 -->
+            <div class="mobile-notice">
+                <p>To get the best experience, we recommend accessing this page on a computer.</p>
+                <p>より良い体験を得るために、パソコンでのアクセスをお勧めします。</p>
+            </div>
+
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <div class="calendar-nav">
+                        <button id="prev-month"><i class="fas fa-chevron-left"></i></button>
+                        <div class="calendar-title" id="calendar-title">2024年5月</div>
+                        <button id="next-month"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div class="calendar-nav">
+                        <select id="year-select"></select>
+                        <select id="month-select"></select>
+                        <button id="today-button">Today</button>
+                    </div>
+                </div>
+
+                <div class="calendar-grid">
+                    <div class="calendar-day-header">月</div>
+                    <div class="calendar-day-header">火</div>
+                    <div class="calendar-day-header">水</div>
+                    <div class="calendar-day-header">木</div>
+                    <div class="calendar-day-header">金</div>
+                    <div class="calendar-day-header">土</div>
+                    <div class="calendar-day-header">日</div>
+                    <!-- Calendar days will be generated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
