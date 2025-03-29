@@ -22,7 +22,7 @@ function highlightCurrentPage() {
         // 处理其他页面
         else if (
             (currentPath.includes('works.html') && href.includes('works.html')) ||
-            (currentPath.includes('whatsontoday.html') && href.includes('whatsontoday.html')) ||
+            (currentPath.includes('today.html') && href.includes('today.html')) ||
             (currentPath.includes('activity.html') && href.includes('activity.html')) ||
             (currentPath.includes('sakaical.html') && href.includes('sakaical.html')) ||
             (currentPath.includes('about.html') && href.includes('about.html')) ||
