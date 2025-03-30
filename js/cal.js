@@ -95,7 +95,7 @@ function renderEvents(calendarGrid, year, month, events) {
             
             // 誕生日イベントのコンテナを作成
             const birthdayContainer = document.createElement('a');
-            birthdayContainer.href = 'https://h2col.notion.site/Sakai-Masato-Database-1a88a08476c78096abe6c40b9c9c9bb7'; // 添加Notion链接
+            birthdayContainer.href = 'https://sakai-masato.com/'; 
             birthdayContainer.target = '_blank'; // 在新标签页打开
             birthdayContainer.classList.add('bento-container');
             birthdayContainer.style.backgroundColor = 'rgba(46, 204, 113, 0.8)'; // 绿色背景
