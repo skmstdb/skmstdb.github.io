@@ -111,7 +111,7 @@ async function loadEventsForDate(selectedDate) {
     if (isBirthday) {
         const age = selectedDate.getFullYear() - 1973;
         const birthdayHTML = `
-        <div class="today-item" onclick="window.open('https://h2col.notion.site/Sakai-Masato-Database-1a88a08476c78096abe6c40b9c9c9bb7', '_blank')">
+        <div class="today-item" onclick="window.open('https://sakai-masato.com/', '_blank')">
             <div class="today-title">堺さん、${age}歳のお誕生日おめでとうございます！！</div>
         </div>
         `;
