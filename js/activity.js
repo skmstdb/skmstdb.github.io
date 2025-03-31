@@ -61,15 +61,15 @@ function highlightCurrentPage() {
     });
 }
 
-// Function to parse CSV data
+// Improved function to parse CSV data with quote handling
 function parseCSV(text) {
     const lines = text.split('\n');
-    const headers = lines[0].split(',');
+    const headers = processCSVLine(lines[0]);
     const result = [];
 
     for (let i = 1; i < lines.length; i++) {
         if (lines[i].trim() === '') continue;
-        const values = lines[i].split(',');
+        const values = processCSVLine(lines[i]);
         const entry = {};
 
         for (let j = 0; j < headers.length; j++) {
@@ -82,8 +82,55 @@ function parseCSV(text) {
     return result;
 }
 
+// Helper function to process CSV lines with quotes
+function processCSVLine(line) {
+    const result = [];
+    let inQuotes = false;
+    let currentValue = '';
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+            inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+            result.push(currentValue);
+            currentValue = '';
+        } else {
+            currentValue += char;
+        }
+    }
+    
+    // Push the last value
+    result.push(currentValue);
+    return result;
+}
+
+// Function to normalize worksType values
+function normalizeWorksType(worksType) {
+    if (!worksType) return 'その他';
+    
+    // Valid types in our application
+    const validTypes = ['映画', 'TV', '舞台', 'BOOK', 'その他', '声の出演'];
+    
+    // First trim whitespace
+    const trimmedType = worksType.trim();
+    
+    // Check if it's already a valid type (exact match)
+    if (validTypes.includes(trimmedType)) {
+        return trimmedType;
+    }
+        
+    // Default to "other" if no match
+    console.log('Unrecognized WorksType normalized to その他:', worksType);
+    return 'その他';
+}
+
 // Function to get activity type class
 function getActivityTypeClass(worksType) {
+    // Normalize the input worksType first
+    const normalizedType = normalizeWorksType(worksType);
+    
     const mapping = {
         '映画': 'activity-movie',
         'TV': 'activity-tv',
@@ -93,11 +140,14 @@ function getActivityTypeClass(worksType) {
         '声の出演': 'activity-voice'
     };
 
-    return mapping[worksType] || 'activity-other';
+    return mapping[normalizedType] || 'activity-other';
 }
 
 // Function to get activity order
 function getActivityOrder(worksType) {
+    // Normalize the input worksType first
+    const normalizedType = normalizeWorksType(worksType);
+    
     const mapping = {
         '映画': 1,
         'TV': 2,
@@ -107,7 +157,7 @@ function getActivityOrder(worksType) {
         '声の出演': 6
     };
 
-    return mapping[worksType] || 99;
+    return mapping[normalizedType] || 99;
 }
 
 // Function to create the contribution graph
@@ -121,6 +171,20 @@ function createContributionGraph(data, showLeadRoleOnly = false, selectedTypes =
     const activities = {};
     // 存储每个月份的详细作品信息
     const monthlyWorks = {};
+
+    // Normalize WorksType in data before processing
+    data.forEach(item => {
+        if (item.WorksType) {
+            const originalType = item.WorksType;
+            item.WorksType = normalizeWorksType(item.WorksType);
+            if (originalType !== item.WorksType) {
+                console.log(`Normalized WorksType for "${item.Title}": ${originalType} -> ${item.WorksType}`);
+            }
+        } else {
+            item.WorksType = 'その他';
+            console.log(`Missing WorksType for "${item.Title}", defaulting to その他`);
+        }
+    });
 
     // Find the earliest and latest years in the data
     let earliestYear = currentYear;
@@ -144,7 +208,7 @@ function createContributionGraph(data, showLeadRoleOnly = false, selectedTypes =
     // Ensure we include the current year if it's greater than the latest year in data
     latestYear = Math.max(latestYear, currentYear);
 
-    // 修复：改进活动数据处理逻辑
+    // 改进活动数据处理逻辑
     data.forEach(item => {
         // 应用过滤条件
         if (showLeadRoleOnly && item.Role !== '主演') {
@@ -156,7 +220,7 @@ function createContributionGraph(data, showLeadRoleOnly = false, selectedTypes =
         }
 
         const startDate = new Date(item.DateStart);
-        // 修复：确保结束日期有效，如果无效则使用开始日期
+        // 确保结束日期有效，如果无效则使用开始日期
         let endDate = startDate;
         if (item.DateEnd && item.DateEnd.trim() !== '') {
             const parsedEndDate = new Date(item.DateEnd);
@@ -168,7 +232,7 @@ function createContributionGraph(data, showLeadRoleOnly = false, selectedTypes =
         // 确保有效日期
         if (isNaN(startDate.getTime())) return;
 
-        // 修复：更精确地处理月份范围
+        // 更精确地处理月份范围
         let currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
         const lastDate = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0);
         
@@ -190,7 +254,7 @@ function createContributionGraph(data, showLeadRoleOnly = false, selectedTypes =
                 monthlyWorks[key].push(item);
             }
 
-            // 修复：改进活动类型检查和计数逻辑
+            // 改进活动类型检查和计数逻辑
             const existingActivity = activities[key].find(a => a.type === item.WorksType);
             if (!existingActivity) {
                 activities[key].push({
@@ -317,7 +381,7 @@ function createContributionGraph(data, showLeadRoleOnly = false, selectedTypes =
     }
 }
 
-// 新增函数：显示作品详情
+// 显示作品详情
 function showWorksDetail(key, monthlyWorks, monthNames) {
     const detailContainer = document.getElementById('works-detail-container');
     const detailContent = detailContainer.querySelector('.detail-content');
@@ -401,6 +465,9 @@ function showWorksDetail(key, monthlyWorks, monthNames) {
 
 // Load data and initialize graph
 document.addEventListener('DOMContentLoaded', function () {
+    // Log initialization
+    console.log('Activity visualization initializing...');
+    
     loadNavbar().then(() => {
         // 确保导航栏加载完成后手动调用高亮函数
         highlightCurrentPage();
@@ -415,6 +482,34 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(response => response.text())
         .then(data => {
             const worksData = parseCSV(data);
+            
+            // Log uniqueworksTypes for debugging
+            const uniqueTypes = new Set();
+            worksData.forEach(item => {
+                if (item.WorksType) uniqueTypes.add(item.WorksType);
+            });
+            console.log('Original WorksTypes in data:', [...uniqueTypes]);
+            
+            // Normalize worksTypes in the data
+            worksData.forEach(item => {
+                if (item.WorksType) {
+                    const original = item.WorksType;
+                    item.WorksType = normalizeWorksType(item.WorksType);
+                    if (original !== item.WorksType) {
+                        console.log(`Normalized: "${original}" -> "${item.WorksType}" for "${item.Title}"`);
+                    }
+                } else {
+                    item.WorksType = 'その他';
+                    console.log(`Missing WorksType for "${item.Title}", defaulted to その他`);
+                }
+            });
+            
+            // Log normalized types
+            const normalizedTypes = new Set();
+            worksData.forEach(item => {
+                if (item.WorksType) normalizedTypes.add(item.WorksType);
+            });
+            console.log('Normalized WorksTypes:', [...normalizedTypes]);
 
             // Initial graph creation
             createContributionGraph(worksData, false, []);
