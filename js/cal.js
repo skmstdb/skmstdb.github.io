@@ -220,8 +220,13 @@ function createDayElement(day, date, isOtherMonth, isToday = false) {
     if (isToday) {
         dayNumber.style.backgroundColor = 'red';
         dayNumber.style.color = 'white';
-        dayNumber.style.borderRadius = '50%';
+        dayNumber.style.borderRadius = '50%'; 
         dayNumber.style.padding = '5px';
+        dayNumber.style.width = '25px'; // 添加固定宽度
+        dayNumber.style.height = '25px'; // 添加固定高度
+        dayNumber.style.display = 'flex'; // 使用flex布局
+        dayNumber.style.justifyContent = 'center'; // 水平居中
+        dayNumber.style.alignItems = 'center'; // 垂直居中
     }
 
     dayElement.appendChild(dayNumber);
