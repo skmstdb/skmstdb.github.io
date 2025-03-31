@@ -1,3 +1,4 @@
+
 // 解析CSV数据
 async function parseCSV() {
     try {
@@ -8,18 +9,20 @@ async function parseCSV() {
         const dataStartIndex = 1; // 数据起始行索引
 
         const events = rows.slice(dataStartIndex).map(row => {
-            const columns = row.split(',').map(col => col.trim());
+            // 使用更可靠的方式来分割CSV行，考虑引号内的逗号
+            const columns = parseCSVRow(row);
+            
             // 使用表头作为键来解析数据
             const eventData = {};
-            for (let i = 0; i < header.length; i++) {
-                eventData[header[i]] = columns[i];
+            for (let i = 0; i < header.length && i < columns.length; i++) {
+                eventData[header[i]] = columns[i] ? columns[i].trim() : '';
             }
 
             return {
                 startDate: new Date(eventData['DateStart']),
                 endDate: eventData['DateEnd'] ? new Date(eventData['DateEnd']) : new Date(eventData['DateStart']),
-                title: eventData['Title'],
-                url: eventData['URL'] || '#',
+                title: eventData['Title'] || '',
+                url: eventData['URL'] ? eventData['URL'].trim() : '#', // 确保URL被正确处理
                 id: Math.random().toString(36).substr(2, 9),
                 weekday: eventData['Weekday'] || '' // 添加星期几属性
             };
@@ -30,6 +33,32 @@ async function parseCSV() {
         console.error('Error loading CSV data:', error);
         return [];
     }
+}
+
+// 更可靠的CSV行解析函数，考虑引号内的逗号
+function parseCSVRow(row) {
+    const result = [];
+    let insideQuotes = false;
+    let currentValue = '';
+    
+    for (let i = 0; i < row.length; i++) {
+        const char = row[i];
+        
+        if (char === '"') {
+            insideQuotes = !insideQuotes;
+        } else if (char === ',' && !insideQuotes) {
+            result.push(currentValue);
+            currentValue = '';
+        } else {
+            currentValue += char;
+        }
+    }
+    
+    // 添加最后一个值
+    result.push(currentValue);
+    
+    // 清理结果中的引号
+    return result.map(value => value.replace(/^"(.*)"$/, '$1'));
 }
 
 function generateCalendar(year, month, events) {
