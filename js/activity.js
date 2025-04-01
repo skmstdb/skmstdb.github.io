@@ -5,7 +5,8 @@ async function loadNavbar() {
         const navbarContent = await response.text();
         document.querySelector('.sidebar').innerHTML = navbarContent;
         initializeHamburger();
-        return true; // 返回成功标志
+        return true;
+        highlightCurrentPage();
     } catch (error) {
         console.error('Error loading navbar:', error);
         document.querySelector('.sidebar').innerHTML = '<p>Failed to load navigation.</p>';
