@@ -13,21 +13,60 @@ async function parseCSV() {
         const response = await fetch('/data/data.csv');
         const data = await response.text();
         
-        // 简单的CSV解析
+        // 使用更可靠的CSV解析方法
         const rows = data.split('\n').filter(row => row.trim());
-        return rows.map(row => {
-            const columns = row.split(',').map(col => col.trim());
+        const header = rows[0].split(',').map(col => col.trim()); // 获取表头
+        
+        return rows.slice(1).map(row => {
+            // 使用更可靠的方式来分割CSV行，考虑引号内的逗号
+            const columns = processCSVRow(row);
+            
+            // 使用表头作为键来解析数据
+            const eventData = {};
+            for (let i = 0; i < header.length && i < columns.length; i++) {
+                eventData[header[i]] = columns[i] ? columns[i].trim() : '';
+            }
+            
             return {
-                startDate: columns[0] ? new Date(columns[0]) : null,
-                endDate: columns[1] ? new Date(columns[1]) : null,
-                title: columns[2] || '',
-                url: columns[3] || '#'
+                startDate: eventData[header[0]] ? new Date(eventData[header[0]]) : null,
+                endDate: eventData[header[1]] ? new Date(eventData[header[1]]) : null,
+                title: eventData[header[2]] || '',
+                url: eventData[header[3]] || '#'
             };
-        });
+        }).filter(event => 
+            (event.startDate && !isNaN(event.startDate.getTime())) || 
+            (event.endDate && !isNaN(event.endDate.getTime()))
+        );
     } catch (error) {
         console.error('Error loading CSV data:', error);
         return [];
     }
+}
+
+// 处理CSV行，考虑引号内的逗号
+function processCSVRow(row) {
+    const result = [];
+    let insideQuotes = false;
+    let currentValue = '';
+    
+    for (let i = 0; i < row.length; i++) {
+        const char = row[i];
+        
+        if (char === '"') {
+            insideQuotes = !insideQuotes;
+        } else if (char === ',' && !insideQuotes) {
+            result.push(currentValue);
+            currentValue = '';
+        } else {
+            currentValue += char;
+        }
+    }
+    
+    // 添加最后一个值
+    result.push(currentValue);
+    
+    // 清理结果中的引号
+    return result.map(value => value.replace(/^"(.*)"$/, '$1'));
 }
 
 // 检查日期是否匹配今天（只比较月和日）
