@@ -71,3 +71,33 @@
         margin-bottom: 60px;
     }
 }
+
+
+/* 官方链接样式 */
+.official-link {
+    margin-top: 20px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60px; 
+}
+
+.official-link:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.official-link p {
+    color: black;
+    text-align: center;
+    text-decoration: none;
+    font-weight: bold;
+    margin: 0; 
+}
+
+/* 暗黑模式适配 */
+.dark-mode .official-link p {
+    color: white;
+}
