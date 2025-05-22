@@ -72,7 +72,7 @@
 .graph-container {
     display: table;
     border-collapse: separate;
-    border-spacing: 2px;
+    border-spacing: 3px; 
     width: max-content;
     background-color: transparent;
     border-radius: 0;
@@ -80,40 +80,51 @@
     box-shadow: none;
     border: none;
     table-layout: fixed;
+    /* Chrome特定修复 */
+    -webkit-border-horizontal-spacing: 3px; 
+    -webkit-border-vertical-spacing: 3px; 
 }
 
 .month-row {
     display: table-row;
-    height: 30px;
+    height: 28px; 
 }
 
 .month-label {
     display: table-cell;
-    padding: 0.25rem 0.5rem;
+    padding: 0.25rem 0.4rem 0.25rem 0.25rem; 
     vertical-align: middle;
     text-align: right;
     font-weight: bold;
-    min-width: 60px;
+    min-width: 48px; 
     border-right: 1px solid var(--border-color);
+    /* Chrome特定修复 */
+    box-sizing: border-box;
 }
 
 .year-container {
     display: table-cell;
     padding: 0;
     vertical-align: top;
-    width: 30px;
-    height: 30px;
-    border-spacing: 2px;
+    width: 28px; 
+    height: 28px; 
+    border-spacing: 2px; 
     padding-right: 2px;
+    /* Chrome特定修复 */
+    box-sizing: border-box;
+    position: relative;
 }
 
 .year-box {
-    height: 26px;
-    width: 26px;
+    height: 24px; 
+    width: 24px; 
     border-radius: 3px;
     position: relative;
     overflow: hidden;
     margin: 1px;
+    /* Chrome特定修复 */
+    box-sizing: border-box;
+    display: block;
 }
 
 .year-box-empty {
@@ -132,25 +143,36 @@
     padding: 0.1rem 0;
     text-align: center;
     border-bottom: 1px solid var(--border-color);
-    width: 24px;
+    width: 28px; 
     vertical-align: bottom;
     white-space: nowrap;
     line-height: 1;
     font-size: 0.7rem;
+    /* Chrome特定修复 */
+    box-sizing: border-box;
 }
 
 .digit-row {
     display: table-row;
+    /* Chrome特定修复 */
+    height: 16px;
 }
 
 .year-digit-spacer {
     display: table-cell;
     border-right: 1px solid var(--border-color);
+    /* Chrome特定修复 */
+    box-sizing: border-box;
+    width: 48px; 
+    min-width: 48px; 
 }
 
 .activity-segment {
     position: absolute;
     width: 100%;
+    /* Chrome特定修复 */
+    left: 0;
+    box-sizing: border-box;
 }
 
 /* Activity type colors */
@@ -227,6 +249,28 @@
     border-radius: 3px;
 }
 
+/* Chrome特定修复 - 添加媒体查询 */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+    .graph-container {
+        border-collapse: separate !important;
+        border-spacing: 3px !important; 
+    }
+    
+    .year-container {
+        width: 28px !important; 
+        height: 28px !important; 
+    }
+    
+    .month-label {
+        min-width: 48px !important; 
+    }
+    
+    .year-digit-spacer {
+        width: 48px !important; 
+        min-width: 48px !important; 
+    }
+}
+
 /* Dark mode styles - only include necessary color adjustments */
 @media (prefers-color-scheme: dark) {
     .year-box-empty {
@@ -238,19 +282,25 @@
 /* Mobile responsiveness */
 @media (max-width: 768px) {
     .month-label {
-        min-width: 40px;
+        min-width: 32px; 
         font-size: 0.8rem;
     }
 
     .year-container {
-        width: 24px;
+        width: 24px; 
         padding-right: 1px;
+        /* 移动端 year-container 高度将继承桌面端的 28px，或被Chrome特定规则覆盖 */
     }
 
     .year-box {
-        height: 20px;
-        width: 20px;
+        height: 20px; 
+        width: 20px; 
         margin: 1px;
+    }
+
+    /* 新增：确保移动端 year-digit 宽度与 year-container 匹配 */
+    .year-digit {
+        width: 24px; 
     }
 
     .contribution-graph {
@@ -290,6 +340,23 @@
     #filter-row-2 .filter-item {
         margin: 0 auto;
     }
+    
+    /* Chrome移动端特定修复 */
+    @media screen and (-webkit-min-device-pixel-ratio:0) {
+        .year-container {
+            width: 24px !important; /* 保持移动端Chrome特定宽度 */
+            /* 移动端Chrome year-container 高度将继承桌面Chrome的 28px !important */
+        }
+        
+        .month-label {
+            min-width: 32px !important; 
+        }
+        
+        .year-digit-spacer {
+            width: 32px !important; 
+            min-width: 32px !important; 
+        }
+    }
 }
 
 /* 在桌面端隐藏元素 */
@@ -323,7 +390,6 @@
     }
 }
 
-
 /* 可点击的年份盒子样式 */
 .year-box.clickable {
     cursor: pointer;
@@ -346,7 +412,7 @@
     position: relative;
     max-width: 100%;
     overflow: hidden;
-    font-family: "ヒラギノ明朝 ProN", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+    font-family: "ヒiragano Mincho ProN", "Hiragino Mincho ProN", "Yu MinCho", "YuMincho", serif;
 }
 
 .detail-header {
@@ -430,12 +496,12 @@
     min-width: 200px;
     max-width: 300px;
     color: var(--text-color);
-    font-family: "ヒラギノ明朝 ProN", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+    font-family: "ヒiragano Mincho ProN", "Hiragino Mincho ProN", "Yu MinCho", "YuMincho", serif;
 }
 
 /* 卡片内的标题、角色和日期文本 */
 .work-title, .work-role, .work-date {
-    font-family: "ヒラギノ明朝 ProN", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+    font-family: "ヒiragano Mincho ProN", "Hiragino Mincho ProN", "Yu MinCho", "YuMincho", serif;
 }
 
 .work-title {
