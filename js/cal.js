@@ -1,6 +1,7 @@
 // 解析CSV数据
 async function parseCSV() {
     try {
+        // 加载主数据文件
         const response = await fetch('../data/worksdata.csv');
         const data = await response.text();
         const rows = data.split('\n').filter(row => row.trim());
@@ -39,13 +40,57 @@ async function parseCSV() {
                 id: Math.random().toString(36).substr(2, 9),
                 weekday: eventData['Weekday'] || '', // 添加星期几属性
                 excludeDates: excludeDates, // 添加需要排除的日期
-                additionalDates: additionalDates // 添加Add列中的额外日期
+                additionalDates: additionalDates, // 添加Add列中的额外日期
+                source: 'main' // 标记数据来源
             };
         }).filter(event => !isNaN(event.startDate.getTime()) && event.title);
 
-        return events;
+        // 加载other.csv数据
+        const otherEvents = await parseOtherCSV();
+        
+        // 合并两个数据源的事件
+        return [...events, ...otherEvents];
     } catch (error) {
         console.error('Error loading CSV data:', error);
+        return [];
+    }
+}
+
+// 解析other.csv数据
+async function parseOtherCSV() {
+    try {
+        const response = await fetch('../data/other.csv');
+        const data = await response.text();
+        const rows = data.split('\n').filter(row => row.trim());
+        const header = rows[0].split(',').map(col => col.trim()); // 获取表头
+        const dataStartIndex = 1; // 数据起始行索引
+
+        const events = rows.slice(dataStartIndex).map(row => {
+            // 使用更可靠的方式来分割CSV行，考虑引号内的逗号
+            const columns = parseCSVRow(row);
+            
+            // 使用表头作为键来解析数据
+            const eventData = {};
+            for (let i = 0; i < header.length && i < columns.length; i++) {
+                eventData[header[i]] = columns[i] ? columns[i].trim() : '';
+            }
+
+            // 从Date字段获取日期
+            const date = eventData['Date'] ? new Date(eventData['Date']) : null;
+            
+            return {
+                startDate: date,
+                endDate: date, // 单日事件，开始和结束日期相同
+                title: eventData['Title'] || '',
+                url: eventData['URL'] ? eventData['URL'].trim() : '#',
+                id: Math.random().toString(36).substr(2, 9),
+                source: 'other' // 标记数据来源为other.csv
+            };
+        }).filter(event => event.startDate && !isNaN(event.startDate.getTime()) && event.title);
+
+        return events;
+    } catch (error) {
+        console.error('Error loading other CSV data:', error);
         return [];
     }
 }
@@ -124,6 +169,7 @@ function generateCalendar(year, month, events) {
     }
 }
 
+// 更新renderEvents函数，根据事件来源设置不同的背景色
 function renderEvents(calendarGrid, year, month, events) {
     const dayElements = Array.from(calendarGrid.querySelectorAll('.calendar-day'));
     const firstDay = new Date(year, month, 1);
@@ -196,6 +242,14 @@ function renderEvents(calendarGrid, year, month, events) {
         const displayStart = new Date(Math.max(startDate, new Date(year, month, 1)));
         const displayEnd = new Date(Math.min(endDate, new Date(year, month + 1, 0)));
 
+        // 设置事件背景色
+        let backgroundColor = 'rgba(52, 152, 219, 0.8)'; // 默认蓝色背景
+        
+        // 根据事件来源设置不同的背景色
+        if (event.source === 'other') {
+            backgroundColor = '#43AA8B'; 
+        }
+
         // 如果有指定星期几，则只在特定星期几显示
         if (event.weekday) {
             // 获取当月的所有日期
@@ -247,6 +301,7 @@ function renderEvents(calendarGrid, year, month, events) {
                         bentoContainer.href = event.url;
                         bentoContainer.target = '_blank';
                         bentoContainer.classList.add('bento-container');
+                        bentoContainer.style.backgroundColor = backgroundColor; // 使用根据来源设置的背景色
                         
                         // 创建 Bento 项目
                         const bentoItem = document.createElement('div');
@@ -286,6 +341,7 @@ function renderEvents(calendarGrid, year, month, events) {
                     bentoContainer.href = event.url;
                     bentoContainer.target = '_blank';
                     bentoContainer.classList.add('bento-container');
+                    bentoContainer.style.backgroundColor = backgroundColor; // 使用根据来源设置的背景色
 
                     // 创建 Bento 项目
                     const bentoItem = document.createElement('div');
