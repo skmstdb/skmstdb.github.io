@@ -23,6 +23,13 @@ async function parseCSV() {
                 excludeDates = eventData['Date'].split(',').map(date => date.trim());
                 console.log('Event:', eventData['Title'], 'Exclude dates:', excludeDates); // 调试信息
             }
+            
+            // 处理Add列的日期
+            let additionalDates = [];
+            if (eventData['Add'] && eventData['Add'].trim() !== '') {
+                additionalDates = eventData['Add'].split(',').map(date => date.trim());
+                console.log('Event:', eventData['Title'], 'Additional dates:', additionalDates); // 调试信息
+            }
 
             return {
                 startDate: new Date(eventData['DateStart']),
@@ -31,7 +38,8 @@ async function parseCSV() {
                 url: eventData['URL'] ? eventData['URL'].trim() : '#', // 确保URL被正确处理
                 id: Math.random().toString(36).substr(2, 9),
                 weekday: eventData['Weekday'] || '', // 添加星期几属性
-                excludeDates: excludeDates // 添加需要排除的日期
+                excludeDates: excludeDates, // 添加需要排除的日期
+                additionalDates: additionalDates // 添加Add列中的额外日期
             };
         }).filter(event => !isNaN(event.startDate.getTime()) && event.title);
 
@@ -150,6 +158,36 @@ function renderEvents(calendarGrid, year, month, events) {
     events.forEach(event => {
         const startDate = new Date(event.startDate);
         const endDate = new Date(event.endDate);
+
+        // 处理Add列中的额外日期
+        if (event.additionalDates && event.additionalDates.length > 0) {
+            event.additionalDates.forEach(dateStr => {
+                const additionalDate = new Date(dateStr);
+                // 检查额外日期是否在当前月份
+                if (additionalDate.getFullYear() === year && additionalDate.getMonth() === month) {
+                    const dayIndex = additionalDate.getDate() + firstDayOfWeek - 1;
+                    if (dayIndex >= 0 && dayIndex < dayElements.length) {
+                        const dayElement = dayElements[dayIndex];
+                        
+                        // 创建 Bento 的包装容器
+                        const bentoContainer = document.createElement('a');
+                        bentoContainer.href = event.url;
+                        bentoContainer.target = '_blank';
+                        bentoContainer.classList.add('bento-container');
+                        bentoContainer.style.backgroundColor = 'rgba(52, 152, 219, 0.8)'; // 蓝色背景，区分额外日期
+                        
+                        // 创建 Bento 项目
+                        const bentoItem = document.createElement('div');
+                        bentoItem.classList.add('bento-item');
+                        bentoItem.textContent = event.title;
+                        bentoContainer.appendChild(bentoItem);
+                        
+                        // 将bento容器添加到日历
+                        dayElement.appendChild(bentoContainer);
+                    }
+                }
+            });
+        }
 
         if (endDate < new Date(year, month, 1) || startDate > new Date(year, month + 1, 0)) {
             return;
