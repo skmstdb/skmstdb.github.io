@@ -43,6 +43,14 @@ function processCSVLine(line) {
     return result;
 }
 
+// 统一的日期格式化函数，确保格式一致
+function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 // Function to normalize worksType values
 function normalizeWorksType(worksType) {
     if (!worksType) return 'その他';
@@ -151,11 +159,11 @@ function createContributionGraph(data, showLeadRoleOnly = false, selectedTypes =
         if (showLeadRoleOnly && item.Role !== '主演') {
             return;
         }
-
+    
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) {
             return;
         }
-
+    
         const startDate = new Date(item.DateStart);
         // 确保结束日期有效，如果无效则使用开始日期
         let endDate = startDate;
@@ -165,47 +173,187 @@ function createContributionGraph(data, showLeadRoleOnly = false, selectedTypes =
                 endDate = parsedEndDate;
             }
         }
-
+    
         // 确保有效日期
         if (isNaN(startDate.getTime())) return;
-
-        // 更精确地处理月份范围
-        let currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-        const lastDate = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0);
+    
+        // 处理排除日期（Date列）
+        let excludeDates = [];
+        if (item.Date && item.Date.trim() !== '') {
+            excludeDates = item.Date.split(',').map(date => date.trim());
+            console.log('Event:', item.Title, 'Exclude dates:', excludeDates); // 调试信息
+        }
+    
+        // 处理额外日期（Add列）
+        let additionalDates = [];
+        if (item.Add && item.Add.trim() !== '') {
+            additionalDates = item.Add.split(',').map(date => date.trim());
+            console.log('Event:', item.Title, 'Additional dates:', additionalDates); // 调试信息
+        }
+    
+        // 如果有指定星期几（Weekday列），则根据星期几规则显示
+        if (item.Weekday && item.Weekday.trim() !== '') {
+        // 获取日期范围内的所有日期
+        const allDates = [];
+        let currentDate = new Date(startDate);
+        while (currentDate <= endDate) {
+            allDates.push(new Date(currentDate));
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+    
+        // 解析 weekday 值，确定是包含还是排除
+        const weekdayValue = parseInt(item.Weekday);
+        const isExclude = weekdayValue < 0;
+        const absWeekdayValue = Math.abs(weekdayValue);
+    
+        // 筛选符合条件的日期
+        const filteredDates = allDates.filter(date => {
+        // 获取星期几 (0-6，0是星期日)
+        const dayOfWeek = date.getDay();
+        // 将星期日的0转换为7，使1-7分别对应周一到周日
+        const adjustedDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
         
-        while (currentDate <= lastDate) {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
+        // 检查日期是否应该被排除
+        const dateStr = formatDate(date);
+        if (excludeDates.includes(dateStr)) {
+            return false;
+        }
+        
+        // 根据 weekday 值决定是包含还是排除该星期几
+        if (isExclude) {
+            // 负值：排除该星期几，包含其他日期
+            return adjustedDayOfWeek !== absWeekdayValue;
+        } else {
+            // 正值：只包含该星期几
+            return adjustedDayOfWeek === absWeekdayValue;
+        }
+        });
+    
+        // 只处理符合条件的日期，但确保每个事件只计算一次
+        if (filteredDates.length > 0) {
+        // 按月份分组处理日期
+        const datesByMonth = {};
+        
+        filteredDates.forEach(date => {
+            const year = date.getFullYear();
+            const month = date.getMonth();
             const key = `${year}-${month}`;
-
+            
+            if (!datesByMonth[key]) {
+                datesByMonth[key] = [];
+            }
+            datesByMonth[key].push(date);
+        });
+        
+        // 为每个月添加活动
+        Object.keys(datesByMonth).forEach(key => {
+            // 添加到活动列表（每个月只添加一次）
             if (!activities[key]) {
                 activities[key] = [];
             }
             
-            // 存储每个月份的作品详情
+            // 存储每个月份的作品详情（只添加一次）
             if (!monthlyWorks[key]) {
                 monthlyWorks[key] = [];
             }
+            
             // 避免重复添加同一作品
             if (!monthlyWorks[key].some(work => work.Title === item.Title)) {
-                monthlyWorks[key].push(item);
+                // 添加 weekdayDates 属性，存储该月符合条件的所有日期
+                const monthItem = {...item};
+                monthItem.weekdayDates = datesByMonth[key].map(date => formatDate(date));
+                monthlyWorks[key].push(monthItem);
             }
-
-            // 改进活动类型检查和计数逻辑
+            
+            // 改进活动类型检查和计数逻辑（只添加一次）
             const existingActivity = activities[key].find(a => a.type === item.WorksType);
             if (!existingActivity) {
                 activities[key].push({
                     type: item.WorksType,
                     count: 1,
-                    title: item.Title // 可选：添加标题以便调试
+                    title: item.Title
                 });
             } else {
                 existingActivity.count++;
             }
-
-            // 移动到下个月的第一天
-            currentDate.setMonth(currentDate.getMonth() + 1);
+        });
+    }
+        } else {
+            // 更精确地处理月份范围（没有指定星期几的情况）
+            let currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+            const lastDate = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0);
+            
+            while (currentDate <= lastDate) {
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+                const key = `${year}-${month}`;
+    
+                if (!activities[key]) {
+                    activities[key] = [];
+                }
+                
+                // 存储每个月份的作品详情
+                if (!monthlyWorks[key]) {
+                    monthlyWorks[key] = [];
+                }
+                // 避免重复添加同一作品
+                if (!monthlyWorks[key].some(work => work.Title === item.Title)) {
+                    monthlyWorks[key].push(item);
+                }
+    
+                // 改进活动类型检查和计数逻辑
+                const existingActivity = activities[key].find(a => a.type === item.WorksType);
+                if (!existingActivity) {
+                    activities[key].push({
+                        type: item.WorksType,
+                        count: 1,
+                        title: item.Title
+                    });
+                } else {
+                    existingActivity.count++;
+                }
+    
+                // 移动到下个月的第一天
+                currentDate.setMonth(currentDate.getMonth() + 1);
+            }
         }
+    
+        // 处理额外日期（Add列）
+        additionalDates.forEach(dateStr => {
+            const additionalDate = new Date(dateStr);
+            if (!isNaN(additionalDate.getTime())) {
+                const year = additionalDate.getFullYear();
+                const month = additionalDate.getMonth();
+                const key = `${year}-${month}`;
+    
+                if (!activities[key]) {
+                    activities[key] = [];
+                }
+                
+                // 存储每个月份的作品详情
+                if (!monthlyWorks[key]) {
+                    monthlyWorks[key] = [];
+                }
+                // 避免重复添加同一作品
+                if (!monthlyWorks[key].some(work => work.Title === item.Title)) {
+                    monthlyWorks[key].push(item);
+                }
+    
+                // 改进活动类型检查和计数逻辑
+                const existingActivity = activities[key].find(a => a.type === item.WorksType);
+                if (!existingActivity) {
+                    activities[key].push({
+                        type: item.WorksType,
+                        count: 1,
+                        title: item.Title,
+                        isAdditional: true // 标记为额外日期
+                    });
+                } else {
+                    existingActivity.count++;
+                    existingActivity.isAdditional = true; // 标记为额外日期
+                }
+            }
+        });
     });
 
     // Create graph container with table structure
