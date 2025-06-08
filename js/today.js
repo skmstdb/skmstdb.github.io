@@ -129,16 +129,21 @@ function changeDate(element) {
     loadEventsForDate(selectedDate);
 }
 
+// 检查两个日期是否是同一天
+function isSameDay(date1, date2) {
+    return date1.getFullYear() === date2.getFullYear() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getDate() === date2.getDate();
+}
+
 // 為指定日期加載事件
 async function loadEventsForDate(selectedDate) {
     const container = document.getElementById('today-container');
     const currentDateElement = document.getElementById('current-date');
+    const today = new Date(); // 获取真正的今天
     
     // 顯示選中日期
     currentDateElement.textContent = formatDate(selectedDate);
-    
-    // 檢查是否是堺雅人的生日（10月14日）
-    const isBirthday = selectedDate.getMonth() === 9 && selectedDate.getDate() === 14; // 月份從0開始，所以10月是9
     
     const events = await parseCSV();
     const dateEvents = events.filter(event => 
@@ -146,49 +151,47 @@ async function loadEventsForDate(selectedDate) {
         isDateMatchingToday(event.endDate, selectedDate)
     );
     
-    // 如果是生日，添加生日祝福
-    if (isBirthday) {
-        const age = selectedDate.getFullYear() - 1973;
-        const birthdayHTML = `
-        <div class="today-item" onclick="window.open('https://sakai-masato.com/', '_blank')">
-            <div class="today-title">堺さん、${age}歳のお誕生日おめでとうございます！！</div>
-        </div>
-        `;
+    let htmlContent = '';
+    
+    // 只在今天（真正的当前日期）显示生日检查和即将开始/结束的事件
+    if (isSameDay(selectedDate, today)) {
+        // 檢查是否是堺雅人的生日（10月14日）
+        const isBirthday = selectedDate.getMonth() === 9 && selectedDate.getDate() === 14; // 月份從0開始，所以10月是9
+        
+        // 如果是生日，添加生日祝福
+        if (isBirthday) {
+            const age = selectedDate.getFullYear() - 1973;
+            htmlContent += `
+            <div class="today-item" onclick="window.open('https://sakai-masato.com/', '_blank')">
+                <div class="today-title">堺さん、${age}歳のお誕生日おめでとうございます！！</div>
+            </div>
+            `;
+        } else {
+            // 計算距離下一個生日的天數
+            const nextBirthday = new Date(selectedDate.getFullYear(), 9, 14); // 10月14日
+            if (selectedDate > nextBirthday) {
+                nextBirthday.setFullYear(nextBirthday.getFullYear() + 1);
+            }
+            const daysUntilBirthday = Math.ceil((nextBirthday - selectedDate) / (1000 * 60 * 60 * 24));
+            const nextAge = nextBirthday.getFullYear() - 1973;
+            
+            htmlContent += `
+            <div class="today-item" onclick="window.open('https://sakai-masato.com/', '_blank')">
+                <div class="today-title">${nextAge}歳の誕生日まであと${daysUntilBirthday}日</div>
+            </div>
+            `;
+        }
         
         // 查找即将开始或结束的事件
-        const upcomingEventsHTML = getUpcomingEventsHTML(events, selectedDate);
-        
-        if (dateEvents.length === 0) {
-            container.innerHTML = birthdayHTML + upcomingEventsHTML;
-        } else {
-            container.innerHTML = birthdayHTML + upcomingEventsHTML + createEventsHTML(dateEvents, selectedDate);
-        }
-        return;
+        htmlContent += getUpcomingEventsHTML(events, selectedDate);
     }
     
-    // 計算距離下一個生日的天數
-    const nextBirthday = new Date(selectedDate.getFullYear(), 9, 14); // 10月14日
-    if (selectedDate > nextBirthday) {
-        nextBirthday.setFullYear(nextBirthday.getFullYear() + 1);
-    }
-    const daysUntilBirthday = Math.ceil((nextBirthday - selectedDate) / (1000 * 60 * 60 * 24));
-    const nextAge = nextBirthday.getFullYear() - 1973;
-    
-    const birthdayCountdownHTML = `
-    <div class="today-item" onclick="window.open('https://sakai-masato.com/', '_blank')">
-        <div class="today-title">${nextAge}歳の誕生日まであと${daysUntilBirthday}日</div>
-    </div>
-    `;
-    
-    // 查找即将开始或结束的事件
-    const upcomingEventsHTML = getUpcomingEventsHTML(events, selectedDate);
-    
-    if (dateEvents.length === 0) {
-        container.innerHTML = birthdayCountdownHTML + upcomingEventsHTML;
-        return;
+    // 添加当天的事件
+    if (dateEvents.length > 0) {
+        htmlContent += createEventsHTML(dateEvents, selectedDate);
     }
     
-    container.innerHTML = birthdayCountdownHTML + upcomingEventsHTML + createEventsHTML(dateEvents, selectedDate);
+    container.innerHTML = htmlContent;
 }
 
 // 获取即将开始或结束的事件HTML
@@ -241,7 +244,7 @@ function getUpcomingEventsHTML(events, selectedDate) {
             const daysUntilEnd = Math.ceil((event.endDate - selectedDate) / (1000 * 60 * 60 * 24));
             upcomingHTML += `
             <div class="today-item" onclick="window.open('${event.url}', '_blank')">
-                <div class="today-title">『 ${event.title} 』の終了まであと${daysUntilEnd}日</div>
+                <div class="today-title">『 ${event.title} 』の完結まであと${daysUntilEnd}日</div>
             </div>
             `;
         }
@@ -304,4 +307,3 @@ document.addEventListener('DOMContentLoaded', function () {
     
     loadTodayEvents();
 });
-
