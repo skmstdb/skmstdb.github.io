@@ -129,16 +129,16 @@ function changeDate(element) {
     loadEventsForDate(selectedDate);
 }
 
-// 为指定日期加载事件
+// 為指定日期加載事件
 async function loadEventsForDate(selectedDate) {
     const container = document.getElementById('today-container');
     const currentDateElement = document.getElementById('current-date');
     
-    // 显示选中日期
+    // 顯示選中日期
     currentDateElement.textContent = formatDate(selectedDate);
     
-    // 检查是否是堺雅人的生日（10月14日）
-    const isBirthday = selectedDate.getMonth() === 9 && selectedDate.getDate() === 14; // 月份从0开始，所以10月是9
+    // 檢查是否是堺雅人的生日（10月14日）
+    const isBirthday = selectedDate.getMonth() === 9 && selectedDate.getDate() === 14; // 月份從0開始，所以10月是9
     
     const events = await parseCSV();
     const dateEvents = events.filter(event => 
@@ -155,37 +155,104 @@ async function loadEventsForDate(selectedDate) {
         </div>
         `;
         
+        // 查找即将开始或结束的事件
+        const upcomingEventsHTML = getUpcomingEventsHTML(events, selectedDate);
+        
         if (dateEvents.length === 0) {
-            container.innerHTML = birthdayHTML;
+            container.innerHTML = birthdayHTML + upcomingEventsHTML;
         } else {
-            const eventsHTML = dateEvents.map(event => {
-                const isStartDate = isDateMatchingToday(event.startDate, selectedDate);
-                const date = isStartDate ? event.startDate : event.endDate;
-                const anniversary = calculateAnniversary(date, selectedDate);
-                const dateText = formatDate(date);
-                
-                const anniversaryText = anniversary === 0 ? 'Premiere' : `${anniversary}周年`;
-                
-                return `
-                <div class="today-item" onclick="window.open('${event.url}', '_blank')">
-                    <div class="today-title">${event.title}</div>
-                    <div class="today-anniversary">${anniversaryText}</div>
-                    <div class="today-date">${dateText} ${isStartDate ? '公開' : '終了'}</div>
-                </div>
-                `;
-            }).join('');
-            
-            container.innerHTML = birthdayHTML + eventsHTML;
+            container.innerHTML = birthdayHTML + upcomingEventsHTML + createEventsHTML(dateEvents, selectedDate);
         }
         return;
     }
     
+    // 計算距離下一個生日的天數
+    const nextBirthday = new Date(selectedDate.getFullYear(), 9, 14); // 10月14日
+    if (selectedDate > nextBirthday) {
+        nextBirthday.setFullYear(nextBirthday.getFullYear() + 1);
+    }
+    const daysUntilBirthday = Math.ceil((nextBirthday - selectedDate) / (1000 * 60 * 60 * 24));
+    const nextAge = nextBirthday.getFullYear() - 1973;
+    
+    const birthdayCountdownHTML = `
+    <div class="today-item" onclick="window.open('https://sakai-masato.com/', '_blank')">
+        <div class="today-title">${nextAge}歳の誕生日まであと${daysUntilBirthday}日</div>
+    </div>
+    `;
+    
+    // 查找即将开始或结束的事件
+    const upcomingEventsHTML = getUpcomingEventsHTML(events, selectedDate);
+    
     if (dateEvents.length === 0) {
-        container.innerHTML = ''; // イベントがない日は何も表示しない
+        container.innerHTML = birthdayCountdownHTML + upcomingEventsHTML;
         return;
     }
     
-    const eventsHTML = dateEvents.map(event => {
+    container.innerHTML = birthdayCountdownHTML + upcomingEventsHTML + createEventsHTML(dateEvents, selectedDate);
+}
+
+// 获取即将开始或结束的事件HTML
+function getUpcomingEventsHTML(events, selectedDate) {
+    let upcomingHTML = '';
+    
+    // 筛选出开始日期或结束日期在今天之后的事件
+    const upcomingEvents = events.filter(event => {
+        // 跳过没有日期的事件
+        if (!event.startDate || !event.endDate) return false;
+        
+        // 检查开始日期是否在今天之后
+        const isStartAfterToday = event.startDate > selectedDate;
+        
+        // 检查结束日期是否在今天之后且不是开始日期当天
+        const isEndAfterToday = event.endDate > selectedDate && 
+                               !isDateMatchingToday(event.startDate, selectedDate);
+        
+        return isStartAfterToday || isEndAfterToday;
+    });
+    
+    // 按日期排序（先显示最近的事件）
+    upcomingEvents.sort((a, b) => {
+        // 如果a的开始日期在今天之后，使用开始日期
+        const dateA = a.startDate > selectedDate ? a.startDate : a.endDate;
+        // 如果b的开始日期在今天之后，使用开始日期
+        const dateB = b.startDate > selectedDate ? b.startDate : b.endDate;
+        
+        return dateA - dateB;
+    });
+    
+    // 最多显示3个即将到来的事件
+    const eventsToShow = upcomingEvents.slice(0, 100);
+    
+    for (const event of eventsToShow) {
+        // 如果开始日期在今天之后且不是开始日期当天
+        if (event.startDate > selectedDate && !isDateMatchingToday(event.startDate, selectedDate)) {
+            // 计算距离开始日期的天数
+            const daysUntilStart = Math.ceil((event.startDate - selectedDate) / (1000 * 60 * 60 * 24));
+            upcomingHTML += `
+            <div class="today-item" onclick="window.open('${event.url}', '_blank')">
+                <div class="today-title">『 ${event.title} 』の公開まであと${daysUntilStart}日</div>
+            </div>
+            `;
+        }
+        // 如果今天在开始日期之后但在结束日期之前，且不是结束日期当天
+        else if (selectedDate >= event.startDate && event.endDate > selectedDate && 
+                !isDateMatchingToday(event.endDate, selectedDate)) {
+            // 计算距离结束日期的天数
+            const daysUntilEnd = Math.ceil((event.endDate - selectedDate) / (1000 * 60 * 60 * 24));
+            upcomingHTML += `
+            <div class="today-item" onclick="window.open('${event.url}', '_blank')">
+                <div class="today-title">『 ${event.title} 』の完結まであと${daysUntilEnd}日</div>
+            </div>
+            `;
+        }
+    }
+    
+    return upcomingHTML;
+}
+
+// 创建事件HTML的辅助函数
+function createEventsHTML(events, selectedDate) {
+    return events.map(event => {
         const isStartDate = isDateMatchingToday(event.startDate, selectedDate);
         const date = isStartDate ? event.startDate : event.endDate;
         const anniversary = calculateAnniversary(date, selectedDate);
@@ -201,8 +268,6 @@ async function loadEventsForDate(selectedDate) {
         </div>
         `;
     }).join('');
-    
-    container.innerHTML = eventsHTML;
 }
 
 // 加载今日事件
@@ -239,3 +304,4 @@ document.addEventListener('DOMContentLoaded', function () {
     
     loadTodayEvents();
 });
+
