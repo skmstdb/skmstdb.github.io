@@ -241,7 +241,7 @@ function getUpcomingEventsHTML(events, selectedDate) {
             const daysUntilEnd = Math.ceil((event.endDate - selectedDate) / (1000 * 60 * 60 * 24));
             upcomingHTML += `
             <div class="today-item" onclick="window.open('${event.url}', '_blank')">
-                <div class="today-title">『 ${event.title} 』の完結まであと${daysUntilEnd}日</div>
+                <div class="today-title">『 ${event.title} 』の終了まであと${daysUntilEnd}日</div>
             </div>
             `;
         }
