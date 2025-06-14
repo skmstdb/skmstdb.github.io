@@ -1,124 +1,291 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C7BJGKMFT"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-6C7BJGKMFT');
-</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sakai Masato Database</title>
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="icon" href="favicon-32x32.png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <script>
-        (function() {
-            const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (isDarkMode) {
-                document.documentElement.classList.add('dark-mode');
-                document.write('<style>html{background-color:#121212!important;}body{visibility:hidden;}</style>');
-            } else {
-                document.write('<style>html{background-color:#f8f4ed!important;}body{visibility:hidden;}</style>');
-            }
-        })();
-    </script>
-    
-    <meta name="theme-color" content="#f8f4ed" id="theme-color-meta">
-    
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
     <style>
-        html, body {
-            height: 100%;
+        :root {
+            --bg-color: #f6f4ef;
+            --border-color: #000000;
+            --text-color: #000000;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #121212;
+                --border-color: #333333;
+                --text-color: #f9f9f9;
+            }
+        }
+
+        * {
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #f8f4ed;
-            cursor: pointer;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        h1 {
-            font-family: 'Anton', sans-serif;
-            color: black;
-            margin: 0;
-            max-width: 70vw;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            font-size: calc(10vw + 10vh);
-            transition: color 0.3s ease;
-        }
-
-        @media screen and (max-width: 768px) {
-            h1 {
-                max-width: 90vw;
-                font-size: min(20vw, 20vh);
-            }
+            box-sizing: border-box;
         }
 
         body {
-            overflow: hidden;
+            font-family: "ヒラギノ明朝 ProN", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
-        
-        html.dark-mode,
-        html.dark-mode body {
-            background-color: #121212;
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: grid;
+            gap: 20px;
+            padding: 20px;
+            box-sizing: border-box;
         }
-        
-        html.dark-mode h1 {
-            color: #f8f4ed;
+
+        /* Desktop layout: 4 columns, 3 rows */
+        @media (min-width: 769px) {
+            .container {
+                grid-template-columns: repeat(4, 1fr);
+                grid-template-rows: repeat(3, 1fr);
+            }
+
+            .birthday-countdown {
+                grid-column: span 2;
+            }
+
+            .database {
+                grid-column: span 2;
+                grid-row: span 2;
+            }
+
+            .date-countdown {
+                grid-column: span 2;
+            }
+
+            .work1 {
+                grid-column: span 2;
+            }
+
+            .work2 {
+                grid-column: span 2;
+            }
         }
-        
-        /* 确保过渡平滑 */
-        .fade-in {
-            animation: fadeIn 0.5s ease forwards;
+
+        /* Mobile layout: only show database */
+        @media (max-width: 768px) {
+            .container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+            }
+            
+            .grid-item:not(.database) {
+                display: none;
+            }
+            
+            .grid-item.database {
+                width: 80%;
+                max-width: 400px;
+            }
         }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+
+        .grid-item {
+            background-color: var(--bg-color);
+            border: 4px solid var(--border-color);
+            border-radius: 20px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            transition: all 0.3s ease;
+            min-height: 150px;
+        }
+
+        .grid-item.hoverable:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+
+        .disclaimer {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            align-items: flex-start;
+            text-align: left;
+        }
+
+        .birthday-countdown .title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .birthday-countdown .days {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .birthday-special {
+            font-size: 2.5rem !important;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: rainbow 3s ease-in-out infinite;
+        }
+
+        @keyframes rainbow {
+            0%, 100% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(180deg); }
+        }
+
+        .database {
+            font-size: 2.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-align: left;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .database-text {
+            text-align: left;
+        }
+
+        .date-countdown {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .date-countdown .label {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            opacity: 0.8;
+        }
+
+        .date-countdown #dateCountdown {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
+        .work1, .work2 {
+            font-size: 1.8rem;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .grid-item {
+                padding: 20px;
+                min-height: 120px;
+            }
+
+            .birthday-countdown .days {
+                font-size: 2.5rem;
+            }
+
+            .date-countdown #dateCountdown {
+                font-size: 2.5rem;
+            }
+
+            .database {
+                font-size: 2rem;
+            }
+
+            .work1, .hwork2 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>SAKAI</h1>
-    
+    <div class="container">
+        <div class="grid-item database hoverable" onclick="window.location.href='works.html'">
+            <div class="database-text">
+                <div>SAKAI MASATO</div>
+                <div>DATABASE</div>
+            </div>
+        </div>
+
+        <div class="grid-item birthday-countdown">
+            <div class="title" id="birthdayTitle">Until His Birthday</div>
+            <div class="days" id="birthdayDays"> </div>
+        </div>
+
+        <div class="grid-item date-countdown">
+            <div class="label">平場の月 11月14日 (金) 公開</div>
+            <div id="dateCountdown"> </div>
+        </div>
+
+        <div class="grid-item work1">
+            VIVANT in 2026
+        </div>
+
+        <div class="grid-item work2">
+            平場の月 in 2025
+        </div>
+    </div>
+
     <script>
-        // 更新主题色元标签
-        function updateThemeColor(isDark) {
-            const metaThemeColor = document.getElementById('theme-color-meta');
-            if (metaThemeColor) {
-                metaThemeColor.setAttribute('content', isDark ? '#121212' : '#f8f4ed');
+        function updateCountdowns() {
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            
+            // Birthday countdown (October 14)
+            const birthdayTitle = document.getElementById('birthdayTitle');
+            const birthdayDays = document.getElementById('birthdayDays');
+            
+            // Check if today is the birthday (October 14th)
+            const todayMonth = today.getMonth();
+            const todayDate = today.getDate();
+            
+            if (todayMonth === 9 && todayDate === 14) {
+                // Today is October 14th - birthday!
+                birthdayTitle.textContent = '';
+                birthdayDays.textContent = '堺さん お誕生日おめでとうございます！';
+                birthdayDays.classList.add('birthday-special');
+            } else {
+                // Calculate next birthday
+                let nextBirthday = new Date(currentYear, 9, 14); // Month is 0-indexed
+                if (today > nextBirthday) {
+                    nextBirthday = new Date(currentYear + 1, 9, 14);
+                }
+                const birthdayDiff = Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24));
+                birthdayTitle.textContent = 'Until His Birthday';
+                birthdayDays.textContent = `D-${birthdayDiff}`;
+                birthdayDays.classList.remove('birthday-special');
+            }
+            
+            // Date countdown (November 14, 2025)
+            const targetDate = new Date(2025, 10, 14); // Month is 0-indexed
+            const dateDiff = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
+            const dateCountdown = document.getElementById('dateCountdown');
+            
+            if (dateDiff === 0) {
+                dateCountdown.textContent = 'D-Day';
+            } else if (dateDiff > 0) {
+                dateCountdown.textContent = `D-${dateDiff}`;
+            } else {
+                const daysPast = Math.abs(dateDiff);
+                dateCountdown.textContent = `${daysPast} Days ago`;
             }
         }
         
-        // 页面内容完全加载后
-        window.addEventListener('load', function() {
-            // 确认深色模式状态
-            const isDarkMode = document.documentElement.classList.contains('dark-mode');
-            updateThemeColor(isDarkMode);
-            
-            // 移除隐藏并添加淡入效果
-            document.body.style.visibility = 'visible';
-            document.body.classList.add('fade-in');
-            
-            // 点击跳转
-            document.addEventListener('click', function() {
-                window.location.href = 'works.html';
-            });
-        });
+        // Update countdowns immediately and then every hour
+        updateCountdowns();
+        setInterval(updateCountdowns, 3600000); // Update every hour
+        
+        // Update every minute for more accuracy when close to dates
+        setInterval(updateCountdowns, 60000); // Update every minute
     </script>
-    
-    <!-- 加载darkmode.js来处理主题变化 -->
-    <script src="js/darkmode.js"></script>
 </body>
 </html>
