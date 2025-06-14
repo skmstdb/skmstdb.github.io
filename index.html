@@ -217,7 +217,7 @@
         </div>
 
         <div class="grid-item birthday-countdown hoverable" onclick="window.open('https://sakai-masato.com/', '_blank')">
-            <div class="title" id="birthdayTitle">Until His Birthday</div>
+            <div class="title" id="birthdayTitle">His Birthday</div>
             <div class="days" id="birthdayDays"> </div>
         </div>
 
@@ -260,7 +260,7 @@
                     nextBirthday = new Date(currentYear + 1, 9, 14);
                 }
                 const birthdayDiff = Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24));
-                birthdayTitle.textContent = 'Until His Birthday';
+                birthdayTitle.textContent = 'His Birthday';
                 birthdayDays.textContent = `D-${birthdayDiff}`;
                 birthdayDays.classList.remove('birthday-special');
             }
