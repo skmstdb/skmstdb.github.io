@@ -56,7 +56,7 @@
 
 /* 为贡献图添加边框并保持滚动功能 */
 .contribution-graph {
-    border: 1px solid #ffffff; /* 浅色模式下的边框颜色为白色 */
+    border: 1px solid #444; /* 浅色模式下的边框颜色为白色 */
     border-radius: 8px;
     padding: 15px;
     margin-top: 20px;
