@@ -1,3 +1,16 @@
+/* 默认深色模式（保持原样） */
+:root {
+    --sidebar-bg-color: #1a1a1a; /* 原深色背景，保持不变 */
+    /* 其他颜色变量... */
+}
+
+/* 浅色模式 */
+@media (prefers-color-scheme: light) {
+    :root {
+        --sidebar-bg-color: #f6f4ef;
+    }
+}
+
 /* 导航栏样式 */
 .sidebar {
     position: fixed;
