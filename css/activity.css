@@ -23,6 +23,8 @@
 #filter-row-2 {
     display: flex;
     justify-content: center;
+    flex-wrap: wrap; /* Allow wrapping for filters */
+    gap: 0.5rem; /* Space between filter items */
 }
 
 .filter-item {
@@ -600,5 +602,110 @@
 @media (min-width: 769px) and (max-width: 1024px) {
     .work-card {
         flex: 0 0 calc(50% - 15px);
+    }
+}
+
+/* New styles for Year/Age View graphs */
+.year-view-row, .age-view-row {
+    display: table-row;
+    height: 28px; 
+}
+
+.year-view-label, .age-view-label {
+    display: table-cell;
+    padding: 0.25rem 0.4rem 0.25rem 0.25rem; 
+    vertical-align: middle;
+    text-align: right;
+    font-weight: bold;
+    min-width: 48px; 
+    border-right: 1px solid var(--border-color);
+    box-sizing: border-box;
+}
+
+.year-view-cell, .age-view-cell {
+    display: table-cell;
+    padding: 0;
+    vertical-align: top;
+    width: 28px; 
+    height: 28px; 
+    border-spacing: 2px; 
+    padding-right: 2px;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.year-box-year-view, .year-box-age-view {
+    height: 24px; 
+    width: 24px; 
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+    margin: 1px;
+    box-sizing: border-box;
+    display: block;
+}
+
+.year-box-year-view.clickable, .year-box-age-view.clickable {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.year-box-year-view.clickable:hover, .year-box-age-view.clickable:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Year/Age Digit Labels (0-9) */
+.digit-label-row {
+    display: table-row;
+    height: 16px;
+}
+
+.digit-label-spacer {
+    display: table-cell;
+    border-right: 1px solid var(--border-color);
+    box-sizing: border-box;
+    width: 48px; 
+    min-width: 48px; 
+}
+
+.digit-label-cell {
+    display: table-cell;
+    padding: 0.1rem 0;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    width: 28px; 
+    vertical-align: bottom;
+    white-space: nowrap;
+    line-height: 1;
+    font-size: 0.7rem;
+    box-sizing: border-box;
+}
+
+/* Mobile responsiveness for new views */
+@media (max-width: 768px) {
+    .year-view-label, .age-view-label {
+        min-width: 32px; 
+        font-size: 0.8rem;
+    }
+
+    .year-view-cell, .age-view-cell {
+        width: 24px; 
+        padding-right: 1px;
+    }
+
+    .year-box-year-view, .year-box-age-view {
+        height: 20px; 
+        width: 20px; 
+        margin: 1px;
+    }
+
+    .digit-label-cell {
+        width: 24px; 
+    }
+
+    .digit-label-spacer {
+        width: 32px !important; 
+        min-width: 32px !important; 
     }
 }
