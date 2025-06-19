@@ -105,67 +105,201 @@ function getActivityOrder(worksType) {
     return mapping[normalizedType] || 99;
 }
 
-// Function to create the contribution graph
-function createContributionGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
-    const graphContainer = document.getElementById('contribution-graph');
-    const currentYear = new Date().getFullYear();
-    const startYear = 1992;
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '🎂', 'Nov', 'Dec'];
+// --- Constants for Graph Generation ---
+const BIRTH_DATE = new Date('1973-10-14');
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '🎂', 'Nov', 'Dec'];
+const CURRENT_YEAR = new Date().getFullYear();
+const START_YEAR_MONTH_VIEW = 1992;
+const START_YEAR_GLOBAL = 1970; // For Year View
+const AGE_START = 0; // For Age View
 
-    // Process data
-    const activities = {};
-    // 存储每个月份的详细作品信息
-    const monthlyWorks = {};
+// --- Helper to get age at a specific date ---
+function getAgeAtDate(birthDate, targetDate) {
+    let age = targetDate.getFullYear() - birthDate.getFullYear();
+    const m = targetDate.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && targetDate.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    return age;
+}
 
-    // Normalize WorksType in data before processing
-    data.forEach(item => {
-        if (item.WorksType) {
-            const originalType = item.WorksType;
-            item.WorksType = normalizeWorksType(item.WorksType);
-            if (originalType !== item.WorksType) {
-                console.log(`Normalized WorksType for "${item.Title}": ${originalType} -> ${item.WorksType}`);
+// --- Common function to render graph HTML structure ---
+function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRoleOnly, selectedTypes) {
+    const graphContainer = document.getElementById(containerId);
+    if (!graphContainer) return;
+
+    graphContainer.innerHTML = ''; // Clear previous graph
+
+    const graphHTML = document.createElement('div');
+    graphHTML.className = 'graph-container';
+
+    let rowLabels = [];
+    let columnLabels = [];
+    let startColumn = 0;
+
+    if (type === 'month') {
+        // Month view (existing logic)
+        const latestYear = Math.max(CURRENT_YEAR, ...Object.keys(labelMap).map(key => parseInt(key.split('-')[0])));
+        const years = [];
+        for (let year = latestYear; year >= START_YEAR_MONTH_VIEW; year--) {
+            years.push(year);
+        }
+        columnLabels = years;
+        rowLabels = MONTH_NAMES;
+        startColumn = 48; // Spacer width for month labels
+        
+        // Create year headers - each digit of the year on a separate row
+        for (let digitPosition = 0; digitPosition < 4; digitPosition++) {
+            const digitRow = document.createElement('div');
+            digitRow.className = 'digit-row';
+
+            const emptySpacer = document.createElement('div');
+            emptySpacer.className = 'year-digit-spacer';
+            digitRow.appendChild(emptySpacer);
+
+            years.forEach(year => {
+                const digit = document.createElement('div');
+                digit.className = 'year-digit';
+                digit.textContent = String(year)[digitPosition];
+                digitRow.appendChild(digit);
+            });
+            graphHTML.appendChild(digitRow);
+        }
+
+        // Create month rows
+        for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
+            const monthRow = document.createElement('div');
+            monthRow.className = 'month-row';
+
+            const monthLabel = document.createElement('div');
+            monthLabel.className = 'month-label';
+            monthLabel.textContent = MONTH_NAMES[monthIndex];
+            monthRow.appendChild(monthLabel);
+
+            years.forEach(year => {
+                const key = `${year}-${monthIndex}`;
+                const yearCell = document.createElement('div');
+                yearCell.className = 'year-container';
+
+                const yearBox = document.createElement('div');
+                yearBox.className = 'year-box';
+                
+                const activitiesForKey = dataMap[key]; // This now holds distinct works for the month
+
+                if (activitiesForKey && activitiesForKey.length > 0) {
+                    activitiesForKey.sort((a, b) => getActivityOrder(a.type) - getActivityOrder(b.type));
+                    const totalActivities = activitiesForKey.length;
+                    let heightPerActivity = 100 / totalActivities;
+
+                    activitiesForKey.forEach((activity, index) => {
+                        const activitySegment = document.createElement('div');
+                        activitySegment.className = `activity-segment ${getActivityTypeClass(activity.type)} ${activity.count >= 2 ? 'high' : ''}`;
+                        activitySegment.style.height = `${heightPerActivity}%`;
+                        activitySegment.style.top = `${index * heightPerActivity}%`;
+                        yearBox.appendChild(activitySegment);
+                    });
+                    
+                    yearBox.classList.add('clickable');
+                    yearBox.setAttribute('data-key', key);
+                    yearBox.addEventListener('click', function() {
+                        showWorksDetail(this.getAttribute('data-key'), labelMap, type);
+                    });
+                } else {
+                    yearBox.classList.add('year-box-empty');
+                }
+                yearCell.appendChild(yearBox);
+                monthRow.appendChild(yearCell);
+            });
+            graphHTML.appendChild(monthRow);
+        }
+
+    } else if (type === 'year' || type === 'age') {
+        const currentYearOrAge = type === 'year' ? CURRENT_YEAR : getAgeAtDate(BIRTH_DATE, new Date());
+        const startValue = type === 'year' ? START_YEAR_GLOBAL : AGE_START;
+        
+        // Decade labels (0-9)
+        const digitLabelRow = document.createElement('div');
+        digitLabelRow.className = 'digit-label-row';
+
+        const digitSpacer = document.createElement('div');
+        digitSpacer.className = 'digit-label-spacer';
+        digitLabelRow.appendChild(digitSpacer);
+
+        for (let i = 0; i < 10; i++) {
+            const digitCell = document.createElement('div');
+            digitCell.className = 'digit-label-cell';
+            digitCell.textContent = i;
+            digitLabelRow.appendChild(digitCell);
+        }
+        graphHTML.appendChild(digitLabelRow);
+
+        // Rows for decades
+        let currentDecadeStart = Math.floor(startValue / 10) * 10;
+        const lastRelevantValue = type === 'year' ? CURRENT_YEAR : getAgeAtDate(BIRTH_DATE, new Date());
+        const lastDecadeStart = Math.floor(lastRelevantValue / 10) * 10;
+
+        for (let decadeStart = currentDecadeStart; decadeStart <= lastDecadeStart; decadeStart += 10) {
+            const decadeRow = document.createElement('div');
+            decadeRow.className = `${type}-view-row`;
+
+            const decadeLabel = document.createElement('div');
+            decadeLabel.className = `${type}-view-label`;
+            decadeLabel.textContent = type === 'year' ? `${decadeStart}s` : `${decadeStart}s`; // e.g., 1970s, 0s
+            decadeRow.appendChild(decadeLabel);
+
+            for (let i = 0; i < 10; i++) {
+                const value = decadeStart + i;
+                const yearOrAgeCell = document.createElement('div');
+                yearOrAgeCell.className = `${type}-view-cell`;
+
+                const yearOrAgeBox = document.createElement('div');
+                yearOrAgeBox.className = `${type === 'year' ? 'year-box-year-view' : 'year-box-age-view'}`; // Re-using for consistent styling
+                
+                const activitiesForKey = dataMap[value];
+
+                if (activitiesForKey && activitiesForKey.length > 0) {
+                    activitiesForKey.sort((a, b) => getActivityOrder(a.type) - getActivityOrder(b.type));
+                    const totalActivities = activitiesForKey.length;
+                    let heightPerActivity = 100 / totalActivities;
+
+                    activitiesForKey.forEach((activity, index) => {
+                        const activitySegment = document.createElement('div');
+                        activitySegment.className = `activity-segment ${getActivityTypeClass(activity.type)} ${activity.count >= 2 ? 'high' : ''}`;
+                        activitySegment.style.height = `${heightPerActivity}%`;
+                        activitySegment.style.top = `${index * heightPerActivity}%`;
+                        yearOrAgeBox.appendChild(activitySegment);
+                    });
+
+                    yearOrAgeBox.classList.add('clickable');
+                    yearOrAgeBox.setAttribute('data-key', value);
+                    yearOrAgeBox.addEventListener('click', function() {
+                        showWorksDetail(this.getAttribute('data-key'), labelMap, type);
+                    });
+                } else {
+                    yearOrAgeBox.classList.add('year-box-empty');
+                }
+                yearOrAgeCell.appendChild(yearOrAgeBox);
+                decadeRow.appendChild(yearOrAgeCell);
             }
-        } else {
-            item.WorksType = 'その他';
-            console.log(`Missing WorksType for "${item.Title}", defaulting to その他`);
+            graphHTML.appendChild(decadeRow);
         }
-    });
+    }
 
-    // Find the earliest and latest years in the data
-    let earliestYear = currentYear;
-    let latestYear = startYear;
+    graphContainer.appendChild(graphHTML);
+}
+
+
+// Function to create the contribution graph (Month View)
+function createMonthGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
+    console.log('Creating Month Graph...');
+    const activities = {}; // Stores activity counts per type per month, counts should now be distinct works
+    const monthlyWorks = {}; // Stores detailed works for each month
 
     data.forEach(item => {
+        if (showLeadRoleOnly && item.Role !== '主演') return;
+        if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
+
         const startDate = new Date(item.DateStart);
-        if (!isNaN(startDate.getTime())) {
-            const year = startDate.getFullYear();
-            earliestYear = Math.min(earliestYear, year);
-            latestYear = Math.max(latestYear, year);
-        }
-
-        const endDate = item.DateEnd ? new Date(item.DateEnd) : null;
-        if (endDate && !isNaN(endDate.getTime())) {
-            const year = endDate.getFullYear();
-            latestYear = Math.max(latestYear, year);
-        }
-    });
-
-    // Ensure we include the current year if it's greater than the latest year in data
-    latestYear = Math.max(latestYear, currentYear);
-
-    // 改进活动数据处理逻辑
-    data.forEach(item => {
-        // 应用过滤条件
-        if (showLeadRoleOnly && item.Role !== '主演') {
-            return;
-        }
-    
-        if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) {
-            return;
-        }
-    
-        const startDate = new Date(item.DateStart);
-        // 确保结束日期有效，如果无效则使用开始日期
         let endDate = startDate;
         if (item.DateEnd && item.DateEnd.trim() !== '') {
             const parsedEndDate = new Date(item.DateEnd);
@@ -173,346 +307,334 @@ function createContributionGraph(data, showLeadRoleOnly = false, selectedTypes =
                 endDate = parsedEndDate;
             }
         }
-    
-        // 确保有效日期
         if (isNaN(startDate.getTime())) return;
-    
-        // 处理排除日期（Date列）
-        let excludeDates = [];
-        if (item.Date && item.Date.trim() !== '') {
-            excludeDates = item.Date.split(',').map(date => date.trim());
-            console.log('Event:', item.Title, 'Exclude dates:', excludeDates); // 调试信息
-        }
-    
-        // 处理额外日期（Add列）
-        let additionalDates = [];
-        if (item.Add && item.Add.trim() !== '') {
-            additionalDates = item.Add.split(',').map(date => date.trim());
-            console.log('Event:', item.Title, 'Additional dates:', additionalDates); // 调试信息
-        }
-    
-        // 如果有指定星期几（Weekday列），则根据星期几规则显示
-        if (item.Weekday && item.Weekday.trim() !== '') {
-        // 获取日期范围内的所有日期
-        const allDates = [];
-        let currentDate = new Date(startDate);
-        while (currentDate <= endDate) {
-            allDates.push(new Date(currentDate));
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-    
-        // 解析 weekday 值，确定是包含还是排除
-        const weekdayValue = parseInt(item.Weekday);
-        const isExclude = weekdayValue < 0;
-        const absWeekdayValue = Math.abs(weekdayValue);
-    
-        // 筛选符合条件的日期
-        const filteredDates = allDates.filter(date => {
-        // 获取星期几 (0-6，0是星期日)
-        const dayOfWeek = date.getDay();
-        // 将星期日的0转换为7，使1-7分别对应周一到周日
-        const adjustedDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
-        
-        // 检查日期是否应该被排除
-        const dateStr = formatDate(date);
-        if (excludeDates.includes(dateStr)) {
-            return false;
-        }
-        
-        // 根据 weekday 值决定是包含还是排除该星期几
-        if (isExclude) {
-            // 负值：排除该星期几，包含其他日期
-            return adjustedDayOfWeek !== absWeekdayValue;
-        } else {
-            // 正值：只包含该星期几
-            return adjustedDayOfWeek === absWeekdayValue;
-        }
-        });
-    
-        // 只处理符合条件的日期，但确保每个事件只计算一次
-        if (filteredDates.length > 0) {
-        // 按月份分组处理日期
-        const datesByMonth = {};
-        
-        filteredDates.forEach(date => {
-            const year = date.getFullYear();
-            const month = date.getMonth();
-            const key = `${year}-${month}`;
+
+        const excludeDates = item.Date ? item.Date.split(',').map(d => d.trim()) : [];
+        const additionalDates = item.Add ? item.Add.split(',').map(d => d.trim()) : [];
+
+        // Logic for continuous periods (DateStart to DateEnd)
+        let currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+        // Ensure endDate is at least the start of the month, or actual end if within the same month
+        let effectiveEndDate = new Date(endDate.getFullYear(), endDate.getMonth(), new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0).getDate());
+
+        while (currentDate.getFullYear() < effectiveEndDate.getFullYear() || 
+               (currentDate.getFullYear() === effectiveEndDate.getFullYear() && currentDate.getMonth() <= effectiveEndDate.getMonth())) {
             
-            if (!datesByMonth[key]) {
-                datesByMonth[key] = [];
-            }
-            datesByMonth[key].push(date);
-        });
-        
-        // 为每个月添加活动
-        Object.keys(datesByMonth).forEach(key => {
-            // 添加到活动列表（每个月只添加一次）
-            if (!activities[key]) {
-                activities[key] = [];
-            }
-            
-            // 存储每个月份的作品详情（只添加一次）
-            if (!monthlyWorks[key]) {
-                monthlyWorks[key] = [];
-            }
-            
-            // 避免重复添加同一作品
-            if (!monthlyWorks[key].some(work => work.Title === item.Title)) {
-                // 添加 weekdayDates 属性，存储该月符合条件的所有日期
-                const monthItem = {...item};
-                monthItem.weekdayDates = datesByMonth[key].map(date => formatDate(date));
-                monthlyWorks[key].push(monthItem);
-            }
-            
-            // 改进活动类型检查和计数逻辑（只添加一次）
-            const existingActivity = activities[key].find(a => a.type === item.WorksType);
-            if (!existingActivity) {
-                activities[key].push({
-                    type: item.WorksType,
-                    count: 1,
-                    title: item.Title
-                });
-            } else {
-                existingActivity.count++;
-            }
-        });
-    }
-        } else {
-            // 更精确地处理月份范围（没有指定星期几的情况）
-            let currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-            const lastDate = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0);
-            
-            while (currentDate <= lastDate) {
-                const year = currentDate.getFullYear();
-                const month = currentDate.getMonth();
-                const key = `${year}-${month}`;
-    
-                if (!activities[key]) {
-                    activities[key] = [];
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const key = `${year}-${month}`; // e.g., "2016-0" for Jan 2016
+
+            // Check if this specific month is explicitly excluded by a date within excludeDates
+            let isMonthExcluded = false;
+            for (const excludedDateStr of excludeDates) {
+                const excludedDate = new Date(excludedDateStr);
+                if (excludedDate.getFullYear() === year && excludedDate.getMonth() === month) {
+                    isMonthExcluded = true;
+                    break;
                 }
-                
-                // 存储每个月份的作品详情
-                if (!monthlyWorks[key]) {
-                    monthlyWorks[key] = [];
-                }
-                // 避免重复添加同一作品
+            }
+
+            if (!isMonthExcluded) {
+                // Initialize if not present
+                if (!monthlyWorks[key]) monthlyWorks[key] = [];
+                if (!activities[key]) activities[key] = [];
+
+                // Add work to monthlyWorks if not already present for this month
+                // This ensures each unique work is counted only once per month for detail view
                 if (!monthlyWorks[key].some(work => work.Title === item.Title)) {
                     monthlyWorks[key].push(item);
                 }
-    
-                // 改进活动类型检查和计数逻辑
-                const existingActivity = activities[key].find(a => a.type === item.WorksType);
-                if (!existingActivity) {
-                    activities[key].push({
-                        type: item.WorksType,
-                        count: 1,
-                        title: item.Title
-                    });
+
+                // For activities, we want to count unique *types* of works within this month
+                // This will determine the segments and color intensity
+                const existingActivityType = activities[key].find(a => a.type === item.WorksType);
+                if (!existingActivityType) {
+                    // If this work type is not yet registered for this month, add it
+                    activities[key].push({ type: item.WorksType, count: 1 });
                 } else {
-                    existingActivity.count++;
+                    // If the type already exists, increment its count (for intensity, if needed, though totalActivities handles this)
+                    existingActivityType.count++;
                 }
-    
-                // 移动到下个月的第一天
-                currentDate.setMonth(currentDate.getMonth() + 1);
             }
+            
+            // Move to the next month
+            currentDate.setMonth(currentDate.getMonth() + 1);
         }
-    
-        // 处理额外日期（Add列）
+
+        // Logic for additional specific dates
         additionalDates.forEach(dateStr => {
             const additionalDate = new Date(dateStr);
-            if (!isNaN(additionalDate.getTime())) {
+            if (!isNaN(additionalDate.getTime()) && !excludeDates.includes(dateStr)) {
                 const year = additionalDate.getFullYear();
                 const month = additionalDate.getMonth();
                 const key = `${year}-${month}`;
-    
-                if (!activities[key]) {
-                    activities[key] = [];
-                }
-                
-                // 存储每个月份的作品详情
-                if (!monthlyWorks[key]) {
-                    monthlyWorks[key] = [];
-                }
-                // 避免重复添加同一作品
+
+                if (!monthlyWorks[key]) monthlyWorks[key] = [];
+                if (!activities[key]) activities[key] = [];
+
                 if (!monthlyWorks[key].some(work => work.Title === item.Title)) {
                     monthlyWorks[key].push(item);
                 }
-    
-                // 改进活动类型检查和计数逻辑
-                const existingActivity = activities[key].find(a => a.type === item.WorksType);
-                if (!existingActivity) {
-                    activities[key].push({
-                        type: item.WorksType,
-                        count: 1,
-                        title: item.Title,
-                        isAdditional: true // 标记为额外日期
-                    });
+
+                const existingActivityType = activities[key].find(a => a.type === item.WorksType);
+                if (!existingActivityType) {
+                    activities[key].push({ type: item.WorksType, count: 1, isAdditional: true });
                 } else {
-                    existingActivity.count++;
-                    existingActivity.isAdditional = true; // 标记为额外日期
+                    existingActivityType.count++;
+                    existingActivityType.isAdditional = true;
                 }
             }
         });
     });
 
-    // Create graph container with table structure
-    const graphHTML = document.createElement('div');
-    graphHTML.className = 'graph-container';
-
-    // 创建一个容器用于显示详细信息
-    const detailContainer = document.createElement('div');
-    detailContainer.id = 'works-detail-container';
-    detailContainer.className = 'works-detail-container';
-    detailContainer.style.display = 'none';
-    detailContainer.innerHTML = '<div class="detail-header"><h3>出演</h3><button class="close-detail">×</button></div><div class="detail-content"></div>';
-
-    // Get years in descending order
-    const years = [];
-    for (let year = latestYear; year >= startYear; year--) {
-        years.push(year);
-    }
-
-    // Create year headers - each digit of the year on a separate row
-    for (let digitPosition = 0; digitPosition < 4; digitPosition++) {
-        const digitRow = document.createElement('div');
-        digitRow.className = 'digit-row';
-
-        // Add empty cell for alignment with month labels
-        const emptySpacer = document.createElement('div');
-        emptySpacer.className = 'year-digit-spacer';
-        digitRow.appendChild(emptySpacer);
-
-        // Add year digits
-        years.forEach(year => {
-            const digit = document.createElement('div');
-            digit.className = 'year-digit';
-            digit.textContent = String(year)[digitPosition];
-            digit.style.height = '16px';
-            digit.style.lineHeight = '1';
-            digit.style.fontSize = '0.7rem';
-            digitRow.appendChild(digit);
-        });
-
-        graphHTML.appendChild(digitRow);
-    }
-
-    // Create month rows
-    for (let month = 0; month < 12; month++) {
-        const monthRow = document.createElement('div');
-        monthRow.className = 'month-row';
-
-        // Add month label
-        const monthLabel = document.createElement('div');
-        monthLabel.className = 'month-label';
-        monthLabel.textContent = monthNames[month];
-        monthRow.appendChild(monthLabel);
-
-        // Add year cells for this month
-        years.forEach(year => {
-            const key = `${year}-${month}`;
-            const yearCell = document.createElement('div');
-            yearCell.className = 'year-container';
-
-            const yearBox = document.createElement('div');
-            yearBox.className = 'year-box';
-            
-            // 如果有活动，添加点击事件
-            if (activities[key] && activities[key].length > 0) {
-                // Sort activities by type order
-                activities[key].sort((a, b) => getActivityOrder(a.type) - getActivityOrder(b.type));
-
-                const totalActivities = activities[key].length;
-                let heightPerActivity = 100 / totalActivities;
-
-                activities[key].forEach((activity, index) => {
-                    const activitySegment = document.createElement('div');
-                    activitySegment.className = `activity-segment ${getActivityTypeClass(activity.type)} ${activity.count >= 2 ? 'high' : ''}`;
-                    activitySegment.style.height = `${heightPerActivity}%`;
-                    activitySegment.style.top = `${index * heightPerActivity}%`;
-                    yearBox.appendChild(activitySegment);
-                });
-                
-                // 添加可点击的样式和事件
-                yearBox.classList.add('clickable');
-                yearBox.setAttribute('data-year', year);
-                yearBox.setAttribute('data-month', month);
-                yearBox.setAttribute('data-key', key);
-                
-                yearBox.addEventListener('click', function() {
-                    showWorksDetail(this.getAttribute('data-key'), monthlyWorks, monthNames);
-                });
-            } else {
-                yearBox.classList.add('year-box-empty');
-            }
-
-            yearCell.appendChild(yearBox);
-            monthRow.appendChild(yearCell);
-        });
-
-        graphHTML.appendChild(monthRow);
-    }
-
-    graphContainer.innerHTML = '';
-    graphContainer.appendChild(graphHTML);
-    graphContainer.appendChild(detailContainer);
-    
-    // 添加关闭详情按钮的事件
-    const closeButton = detailContainer.querySelector('.close-detail');
-    if (closeButton) {
-        closeButton.addEventListener('click', function() {
-            detailContainer.style.display = 'none';
-        });
-    }
+    renderGraphStructure('contribution-graph', activities, monthlyWorks, 'month', showLeadRoleOnly, selectedTypes);
 }
 
-// 显示作品详情
-function showWorksDetail(key, monthlyWorks, monthNames) {
+// Function to create the Year View graph
+function createYearGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
+    console.log('Creating Year Graph...');
+    const yearlyActivities = {};
+    const yearlyWorks = {}; // Stores detailed works for each year
+
+    data.forEach(item => {
+        if (showLeadRoleOnly && item.Role !== '主演') return;
+        if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
+
+        const startDate = new Date(item.DateStart);
+        let endDate = startDate;
+        if (item.DateEnd && item.DateEnd.trim() !== '') {
+            const parsedEndDate = new Date(item.DateEnd);
+            if (!isNaN(parsedEndDate.getTime())) {
+                endDate = parsedEndDate;
+            }
+        }
+        if (isNaN(startDate.getTime())) return;
+
+        const excludeDates = item.Date ? item.Date.split(',').map(d => d.trim()) : [];
+        const additionalDates = item.Add ? item.Add.split(',').map(d => d.trim()) : [];
+
+        let yearsToProcess = new Set();
+        let currentYearIterate = startDate.getFullYear();
+        const endYearIterate = endDate.getFullYear();
+        
+        for (let year = currentYearIterate; year <= endYearIterate; year++) {
+            yearsToProcess.add(year);
+        }
+
+        yearsToProcess.forEach(year => {
+            // Check if any date within the year is excluded
+            let isYearExcluded = false;
+            for (let i = 0; i < excludeDates.length; i++) {
+                const excludedDate = new Date(excludeDates[i]);
+                if (excludedDate.getFullYear() === year) {
+                    isYearExcluded = true;
+                    break;
+                }
+            }
+
+            if (!isYearExcluded) {
+                if (!yearlyActivities[year]) yearlyActivities[year] = [];
+                if (!yearlyWorks[year]) yearlyWorks[year] = [];
+
+                if (!yearlyWorks[year].some(work => work.Title === item.Title)) {
+                    yearlyWorks[year].push(item);
+                }
+                const existingActivity = yearlyActivities[year].find(a => a.type === item.WorksType);
+                if (!existingActivity) {
+                    yearlyActivities[year].push({ type: item.WorksType, count: 1, title: item.Title });
+                } else {
+                    existingActivity.count++;
+                }
+            }
+        });
+
+        // Handle additional dates separately to ensure they are always added if not excluded
+        additionalDates.forEach(dateStr => {
+            const additionalDate = new Date(dateStr);
+            if (!isNaN(additionalDate.getTime()) && !excludeDates.includes(dateStr)) {
+                const year = additionalDate.getFullYear();
+                if (!yearlyActivities[year]) yearlyActivities[year] = [];
+                if (!yearlyWorks[year]) yearlyWorks[year] = [];
+                if (!yearlyWorks[year].some(work => work.Title === item.Title)) {
+                    yearlyWorks[year].push(item);
+                }
+                const existingActivity = yearlyActivities[year].find(a => a.type === item.WorksType);
+                if (!existingActivity) {
+                    yearlyActivities[year].push({ type: item.WorksType, count: 1, title: item.Title, isAdditional: true });
+                } else {
+                    existingActivity.count++;
+                    existingActivity.isAdditional = true;
+                }
+            }
+        });
+    });
+    renderGraphStructure('year-graph-container', yearlyActivities, yearlyWorks, 'year', showLeadRoleOnly, selectedTypes);
+}
+
+// Function to create the Age View graph
+function createAgeGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
+    console.log('Creating Age Graph...');
+    const ageActivities = {};
+    const ageWorks = {}; // Stores detailed works for each age
+
+    data.forEach(item => {
+        if (showLeadRoleOnly && item.Role !== '主演') return;
+        if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
+
+        const startDate = new Date(item.DateStart);
+        let endDate = startDate;
+        if (item.DateEnd && item.DateEnd.trim() !== '') {
+            const parsedEndDate = new Date(item.DateEnd);
+            if (!isNaN(parsedEndDate.getTime())) {
+                endDate = parsedEndDate;
+            }
+        }
+        if (isNaN(startDate.getTime())) return;
+
+        const excludeDates = item.Date ? item.Date.split(',').map(d => d.trim()) : [];
+        const additionalDates = item.Add ? item.Add.split(',').map(d => d.trim()) : [];
+
+        let agesToProcess = new Set();
+        let currentIterateDate = new Date(startDate);
+        while (currentIterateDate <= endDate) {
+            const age = getAgeAtDate(BIRTH_DATE, currentIterateDate);
+            agesToProcess.add(age);
+            // Increment by a fixed interval, e.g., 1 day, to ensure all ages covered
+            // For monthly granularity, maybe iterate month by month
+            currentIterateDate.setDate(currentIterateDate.getDate() + 1); 
+            // Prevent infinite loops if dates are somehow invalid
+            if (currentIterateDate.getTime() === new Date(currentIterateDate.getFullYear(), currentIterateDate.getMonth(), 1).getTime() && 
+                currentIterateDate.getMonth() === startDate.getMonth() && 
+                currentIterateDate.getFullYear() === startDate.getFullYear() && 
+                currentIterateDate.getDate() === startDate.getDate() &&
+                (endDate - startDate > 0)
+            ) {
+                 // Break if we've looped back to the start date for a range. This is a failsafe.
+                console.warn("Infinite loop detected in age calculation for item:", item.Title);
+                break;
+            }
+            if (currentIterateDate > new Date(endDate.getFullYear() + 2, 0, 1)) { // Safety break if endDate is far future
+                console.warn("Age calculation exceeding reasonable bounds for item:", item.Title);
+                break;
+            }
+        }
+
+        agesToProcess.forEach(age => {
+            let isAgeExcluded = false;
+            // For simplicity, if any excluded date falls in this age, we mark as excluded.
+            // A precise solution would require iterating days within the age range.
+            for (let i = 0; i < excludeDates.length; i++) {
+                const excludedDate = new Date(excludeDates[i]);
+                if (getAgeAtDate(BIRTH_DATE, excludedDate) === age) {
+                    isAgeExcluded = true;
+                    break;
+                }
+            }
+
+            if (!isAgeExcluded) {
+                if (!ageActivities[age]) ageActivities[age] = [];
+                if (!ageWorks[age]) ageWorks[age] = [];
+
+                if (!ageWorks[age].some(work => work.Title === item.Title)) {
+                    ageWorks[age].push(item);
+                }
+                const existingActivity = ageActivities[age].find(a => a.type === item.WorksType);
+                if (!existingActivity) {
+                    ageActivities[age].push({ type: item.WorksType, count: 1, title: item.Title });
+                } else {
+                    existingActivity.count++;
+                }
+            }
+        });
+
+        // Handle additional dates
+        additionalDates.forEach(dateStr => {
+            const additionalDate = new Date(dateStr);
+            if (!isNaN(additionalDate.getTime()) && !excludeDates.includes(dateStr)) {
+                const age = getAgeAtDate(BIRTH_DATE, additionalDate);
+                if (!ageActivities[age]) ageActivities[age] = [];
+                if (!ageWorks[age]) ageWorks[age] = [];
+                if (!ageWorks[age].some(work => work.Title === item.Title)) {
+                    ageWorks[age].push(item);
+                }
+                const existingActivity = ageActivities[age].find(a => a.type === item.WorksType);
+                if (!existingActivity) {
+                    ageActivities[age].push({ type: item.WorksType, count: 1, title: item.Title, isAdditional: true });
+                } else {
+                    existingActivity.count++;
+                    existingActivity.isAdditional = true;
+                }
+            }
+        });
+    });
+
+    renderGraphStructure('age-graph-container', ageActivities, ageWorks, 'age', showLeadRoleOnly, selectedTypes);
+}
+
+
+// Display Works Detail (Updated to handle different key types)
+function showWorksDetail(key, worksDataMap, viewType) {
     const detailContainer = document.getElementById('works-detail-container');
     const detailContent = detailContainer.querySelector('.detail-content');
     
     if (!detailContainer || !detailContent) return;
     
-    // 解析年月
-    const [year, month] = key.split('-');
-    const monthName = monthNames[parseInt(month)];
-    
-    // 获取该月的作品
-    const works = monthlyWorks[key] || [];
-    
+    let works = [];
+    let title = '';
+
+    if (viewType === 'month') {
+        works = worksDataMap[key] || [];
+        const [year, month] = key.split('-');
+        title = `${year} ${MONTH_NAMES[parseInt(month)]}`;
+    } else if (viewType === 'year') {
+        works = worksDataMap[parseInt(key)] || [];
+        title = `Year: ${key}`;
+    } else if (viewType === 'age') {
+        works = worksDataMap[parseInt(key)] || [];
+        title = `公開時年齢: ${key}`;
+    }
+
     if (works.length === 0) {
-        detailContent.innerHTML = '<p>该月份没有作品记录</p>';
+        detailContent.innerHTML = `<p>No works found for ${title}.</p>`;
     } else {
-        // 按作品类型分组
         const worksByType = {};
         works.forEach(work => {
-            if (!worksByType[work.WorksType]) {
-                worksByType[work.WorksType] = [];
+            // Normalize WorksType before grouping
+            const normalizedType = normalizeWorksType(work.WorksType); 
+            if (!worksByType[normalizedType]) {
+                worksByType[normalizedType] = [];
             }
-            worksByType[work.WorksType].push(work);
+            worksByType[normalizedType].push(work);
         });
         
-        // 构建HTML
-        let html = `<h4>${year} ${monthName}</h4>`;
+        let html = `<h4>${title}</h4>`;
         
-        // 按类型顺序排序
         const typeOrder = {
-            '映画': 1,
-            'TV': 2,
-            '舞台': 3,
-            'BOOK': 4,
-            'その他': 5,
-            '声の出演': 6
+            '映画': 1, 'TV': 2, '舞台': 3, 'BOOK': 4, 'その他': 5, '声の出演': 6
         };
         
-        // 排序类型
         const sortedTypes = Object.keys(worksByType).sort((a, b) => 
             (typeOrder[a] || 99) - (typeOrder[b] || 99)
         );
         
-        // 生成每种类型的作品卡片
         sortedTypes.forEach(type => {
-            const typeWorks = worksByType[type];
+            let typeWorks = worksByType[type]; // Use let here as we'll reassign after sort
+
+            // ------ 新增的排序逻辑开始 ------
+            typeWorks.sort((a, b) => {
+                const dateA = new Date(a.DateStart);
+                const dateB = new Date(b.DateStart);
+
+                // 按 DateStart 升序排序
+                if (dateA.getTime() !== dateB.getTime()) {
+                    return dateA.getTime() - dateB.getTime();
+                }
+
+                // 如果 DateStart 相同，则按 Title 字母顺序升序排序
+                return a.Title.localeCompare(b.Title);
+            });
+            // ------ 新增的排序逻辑结束 ------
+
             const typeClass = getActivityTypeClass(type);
             
             html += `<div class="works-type-group">
@@ -520,7 +642,6 @@ function showWorksDetail(key, monthlyWorks, monthNames) {
                 <div class="works-row ${typeClass}-row">`;
             
             typeWorks.forEach(work => {
-                // 判断开始日期和结束日期是否相同
                 let dateDisplay = work.DateStart;
                 if (work.DateEnd && work.DateEnd !== work.DateStart) {
                     dateDisplay += ` ~ ${work.DateEnd}`;
@@ -541,81 +662,111 @@ function showWorksDetail(key, monthlyWorks, monthNames) {
         detailContent.innerHTML = html;
     }
     
-    // 显示详情容器
     detailContainer.style.display = 'block';
-    
-    // 滚动到详情区域
     detailContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// Load data and initialize graph
+
+// --- Main Logic for Loading and Filtering ---
 document.addEventListener('DOMContentLoaded', function () {
-    // Log initialization
     console.log('Activity visualization initializing...');
     
     loadNavbar().then(() => {
-        // 确保导航栏加载完成后手动调用高亮函数
         highlightCurrentPage();
     });
 
-    // Get the lead role filter
     const leadRoleFilter = document.getElementById('lead-role-filter');
     const typeFilters = document.querySelectorAll('.type-filter');
+    const viewFilters = document.querySelectorAll('.view-filter'); // New: Year/Age view filters
+
+    let worksData = []; // Store fetched data globally
+
+    // Function to update the graph based on current filter selections
+    function updateGraphView() {
+        const showLeadRoleOnly = leadRoleFilter.checked;
+        const selectedTypes = Array.from(typeFilters)
+            .filter(input => input.checked)
+            .map(input => input.dataset.type);
+        
+        const monthGraph = document.getElementById('contribution-graph');
+        const yearGraph = document.getElementById('year-graph-container');
+        const ageGraph = document.getElementById('age-graph-container');
+
+        const yearViewActive = document.getElementById('year-view-filter').checked;
+        const ageViewActive = document.getElementById('age-view-filter').checked;
+
+        if (yearViewActive) {
+            monthGraph.style.display = 'none';
+            ageGraph.style.display = 'none';
+            yearGraph.style.display = 'block';
+            createYearGraph(worksData, showLeadRoleOnly, selectedTypes);
+        } else if (ageViewActive) {
+            monthGraph.style.display = 'none';
+            yearGraph.style.display = 'none';
+            ageGraph.style.display = 'block';
+            createAgeGraph(worksData, showLeadRoleOnly, selectedTypes);
+        } else {
+            // Default to month view
+            yearGraph.style.display = 'none';
+            ageGraph.style.display = 'none';
+            monthGraph.style.display = 'block';
+            createMonthGraph(worksData, showLeadRoleOnly, selectedTypes);
+        }
+    }
 
     // Fetch CSV data
     fetch('../data/worksdata.csv')
         .then(response => response.text())
         .then(data => {
-            const worksData = parseCSV(data);
-            
-            // Log uniqueworksTypes for debugging
-            const uniqueTypes = new Set();
-            worksData.forEach(item => {
-                if (item.WorksType) uniqueTypes.add(item.WorksType);
-            });
-            console.log('Original WorksTypes in data:', [...uniqueTypes]);
-            
-            // Normalize worksTypes in the data
+            worksData = parseCSV(data); // Store data
+
+            // Normalize WorksType in the data
             worksData.forEach(item => {
                 if (item.WorksType) {
-                    const original = item.WorksType;
                     item.WorksType = normalizeWorksType(item.WorksType);
-                    if (original !== item.WorksType) {
-                        console.log(`Normalized: "${original}" -> "${item.WorksType}" for "${item.Title}"`);
-                    }
                 } else {
                     item.WorksType = 'その他';
-                    console.log(`Missing WorksType for "${item.Title}", defaulted to その他`);
                 }
             });
             
-            // Log normalized types
-            const normalizedTypes = new Set();
-            worksData.forEach(item => {
-                if (item.WorksType) normalizedTypes.add(item.WorksType);
-            });
-            console.log('Normalized WorksTypes:', [...normalizedTypes]);
-
-            // Initial graph creation
-            createContributionGraph(worksData, false, []);
+            // Initial graph creation (default to month view)
+            updateGraphView();
 
             // Add event listener for lead role filter
-            leadRoleFilter.addEventListener('change', function () {
-                const selectedTypes = Array.from(typeFilters)
-                    .filter(input => input.checked)
-                    .map(input => input.dataset.type);
-                createContributionGraph(worksData, this.checked, selectedTypes);
-            });
+            leadRoleFilter.addEventListener('change', updateGraphView);
 
             // Add event listener for type filters
             typeFilters.forEach(filter => {
-                filter.addEventListener('change', function () {
-                    const selectedTypes = Array.from(typeFilters)
-                        .filter(input => input.checked)
-                        .map(input => input.dataset.type);
-                    createContributionGraph(worksData, leadRoleFilter.checked, selectedTypes);
+                filter.addEventListener('change', updateGraphView);
+            });
+
+            // Add event listener for new view filters (Year/Age)
+            viewFilters.forEach(filter => {
+                filter.addEventListener('change', function() {
+                    // Ensure only one view filter is checked at a time
+                    viewFilters.forEach(otherFilter => {
+                        if (otherFilter !== this) {
+                            otherFilter.checked = false;
+                        }
+                    });
+                    // If no view filter is selected, default to month view
+                    if (!this.checked) {
+                        // This handles unchecking the current view filter and reverts to month view
+                        // If both Year and Age are unchecked, `updateGraphView` will show month.
+                        // No explicit need to check the month filter, as it's the default display.
+                    }
+                    updateGraphView();
                 });
             });
+
+            // Add closing event for detail container
+            const closeButton = document.querySelector('#works-detail-container .close-detail');
+            if (closeButton) {
+                closeButton.addEventListener('click', function() {
+                    document.getElementById('works-detail-container').style.display = 'none';
+                });
+            }
+
         })
         .catch(error => {
             console.error('Error loading works data:', error);
