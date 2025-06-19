@@ -2,8 +2,7 @@
 <html lang="ja">
 
 <head>
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C7BJGKMFT"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6C7BJGKMFT"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -29,8 +28,7 @@
 
 <body>
     <aside class="sidebar">
-        <!-- Navbar content will be loaded here -->
-    </aside>
+        </aside>
 
     <div class="main-content-wrapper">
         <div class="main-content">
@@ -96,11 +94,24 @@
                                 <span class="slider round"></span>
                             </label>
                         </div>
+                        <div class="filter-item">
+                            <label class="switch-label">Year View</label>
+                            <label class="switch">
+                                <input type="checkbox" id="year-view-filter" class="view-filter" data-view="year">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="filter-item">
+                            <label class="switch-label">Age View</label>
+                            <label class="switch">
+                                <input type="checkbox" id="age-view-filter" class="view-filter" data-view="age">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 添加 desktop-hidden 类名，使其在桌面端隐藏 -->
             <div class="legend desktop-hidden">
                 <div class="legend-item">
                     <div class="legend-color activity-movie"></div>
@@ -130,7 +141,17 @@
             </div>
 
             <div class="contribution-graph" id="contribution-graph">
-                <!-- Graph will be generated here -->
+                </div>
+            
+            <div class="contribution-graph" id="year-graph-container" style="display: none;">
+                </div>
+
+            <div class="contribution-graph" id="age-graph-container" style="display: none;">
+                </div>
+
+            <div id="works-detail-container" class="works-detail-container" style="display: none;">
+                <div class="detail-header"><h3>出演</h3><button class="close-detail">×</button></div>
+                <div class="detail-content"></div>
             </div>
         </div>
     </div>
