@@ -43,13 +43,27 @@ function processCSVLine(line) {
     return result;
 }
 
-// 统一的日期格式化函数，确保格式一致
+// 统一的日期格式化函数，确保格式一致YYYY-MM-DD
 function formatDate(date) {
+    if (!(date instanceof Date) || isNaN(date.getTime())) {
+        return null; // Invalid date
+    }
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
 }
+
+// Helper function to parse and format a list of date strings (e.g., from 'Add' or 'Date' columns)
+// This ensures that all dates from CSV are consistentlyYYYY-MM-DD
+function parseAndFormatDates(dateStringList) {
+    if (!dateStringList) return [];
+    return dateStringList.split(',').map(dateStr => {
+        const dateObj = new Date(dateStr.trim());
+        return formatDate(dateObj); // Use our consistent formatDate
+    }).filter(d => d !== null); // Filter out any invalid or null formatted dates
+}
+
 
 // Function to normalize worksType values
 function normalizeWorksType(worksType) {
@@ -67,7 +81,7 @@ function normalizeWorksType(worksType) {
     }
         
     // Default to "other" if no match
-    console.log('Unrecognized WorksType normalized to その他:', worksType);
+    // console.warn('Unrecognized WorksType normalized to その他:', worksType); // Only warn if necessary
     return 'その他';
 }
 
@@ -133,20 +147,12 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
     const graphHTML = document.createElement('div');
     graphHTML.className = 'graph-container';
 
-    let rowLabels = [];
-    let columnLabels = [];
-    let startColumn = 0;
-
     if (type === 'month') {
-        // Month view (existing logic)
-        const latestYear = Math.max(CURRENT_YEAR, ...Object.keys(labelMap).map(key => parseInt(key.split('-')[0])));
+        const latestYear = Math.max(CURRENT_YEAR, ...Object.keys(labelMap).map(key => parseInt(key.split('-')[0]) || 0));
         const years = [];
         for (let year = latestYear; year >= START_YEAR_MONTH_VIEW; year--) {
             years.push(year);
         }
-        columnLabels = years;
-        rowLabels = MONTH_NAMES;
-        startColumn = 48; // Spacer width for month labels
         
         // Create year headers - each digit of the year on a separate row
         for (let digitPosition = 0; digitPosition < 4; digitPosition++) {
@@ -184,18 +190,48 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
                 const yearBox = document.createElement('div');
                 yearBox.className = 'year-box';
                 
-                const activitiesForKey = dataMap[key]; // This now holds distinct works for the month
+                // worksForKey now directly holds the list of work items for this month
+                const worksForKey = dataMap[key]; 
 
-                if (activitiesForKey && activitiesForKey.length > 0) {
-                    activitiesForKey.sort((a, b) => getActivityOrder(a.type) - getActivityOrder(b.type));
-                    const totalActivities = activitiesForKey.length;
-                    let heightPerActivity = 100 / totalActivities;
+                if (worksForKey && worksForKey.length > 0) {
+                    const totalWorksInCell = worksForKey.length; // 总作品数，用于格子背景颜色变化
+                    yearBox.setAttribute('data-total-works', totalWorksInCell);
 
-                    activitiesForKey.forEach((activity, index) => {
+                    // NEW LOGIC: Group works by type and determine segment height based on distinct types
+                    const groupedWorksByType = {};
+                    worksForKey.forEach(work => {
+                        const normalizedType = normalizeWorksType(work.WorksType);
+                        if (!groupedWorksByType[normalizedType]) {
+                            groupedWorksByType[normalizedType] = [];
+                        }
+                        groupedWorksByType[normalizedType].push(work);
+                    });
+
+                    // Get distinct types and sort them for consistent order
+                    const distinctTypes = Object.keys(groupedWorksByType).sort((a, b) => 
+                        getActivityOrder(a) - getActivityOrder(b)
+                    );
+                    
+                    // Calculate height per distinct type segment
+                    const heightPerTypeSegment = 100 / distinctTypes.length;
+
+                    // Create segments based on types
+                    distinctTypes.forEach((type, index) => {
+                        const worksOfType = groupedWorksByType[type];
+                        const typeCount = worksOfType.length; // Count of works for this specific type
+
                         const activitySegment = document.createElement('div');
-                        activitySegment.className = `activity-segment ${getActivityTypeClass(activity.type)} ${activity.count >= 2 ? 'high' : ''}`;
-                        activitySegment.style.height = `${heightPerActivity}%`;
-                        activitySegment.style.top = `${index * heightPerActivity}%`;
+                        const typeClass = getActivityTypeClass(type);
+                        
+                        let highClass = '';
+                        if (typeCount >= 2) { // Apply 'high' class if this type has 2 or more works
+                            highClass = 'high';
+                        }
+
+                        activitySegment.className = `activity-segment ${typeClass} ${highClass}`;
+                        activitySegment.style.height = `${heightPerTypeSegment}%`;
+                        activitySegment.style.top = `${index * heightPerTypeSegment}%`;
+                        
                         yearBox.appendChild(activitySegment);
                     });
                     
@@ -206,6 +242,7 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
                     });
                 } else {
                     yearBox.classList.add('year-box-empty');
+                    yearBox.setAttribute('data-total-works', 0); // Explicitly mark empty
                 }
                 yearCell.appendChild(yearBox);
                 monthRow.appendChild(yearCell);
@@ -248,25 +285,54 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
             decadeRow.appendChild(decadeLabel);
 
             for (let i = 0; i < 10; i++) {
-                const value = decadeStart + i;
+                const value = decadeStart + i; // This is the year or age
                 const yearOrAgeCell = document.createElement('div');
                 yearOrAgeCell.className = `${type}-view-cell`;
 
                 const yearOrAgeBox = document.createElement('div');
-                yearOrAgeBox.className = `${type === 'year' ? 'year-box-year-view' : 'year-box-age-view'}`; // Re-using for consistent styling
+                yearOrAgeBox.className = `${type === 'year' ? 'year-box-year-view' : 'year-box-age-view'}`;
                 
-                const activitiesForKey = dataMap[value];
+                // worksForKey now directly holds the list of work items for this year/age
+                const worksForKey = dataMap[value];
 
-                if (activitiesForKey && activitiesForKey.length > 0) {
-                    activitiesForKey.sort((a, b) => getActivityOrder(a.type) - getActivityOrder(b.type));
-                    const totalActivities = activitiesForKey.length;
-                    let heightPerActivity = 100 / totalActivities;
+                if (worksForKey && worksForKey.length > 0) {
+                    const totalWorksInCell = worksForKey.length; // 总作品数，用于格子背景颜色变化
+                    yearOrAgeBox.setAttribute('data-total-works', totalWorksInCell);
 
-                    activitiesForKey.forEach((activity, index) => {
+                    // NEW LOGIC: Group works by type and determine segment height based on distinct types
+                    const groupedWorksByType = {};
+                    worksForKey.forEach(work => {
+                        const normalizedType = normalizeWorksType(work.WorksType);
+                        if (!groupedWorksByType[normalizedType]) {
+                            groupedWorksByType[normalizedType] = [];
+                        }
+                        groupedWorksByType[normalizedType].push(work);
+                    });
+
+                    // Get distinct types and sort them for consistent order
+                    const distinctTypes = Object.keys(groupedWorksByType).sort((a, b) => 
+                        getActivityOrder(a) - getActivityOrder(b)
+                    );
+                    
+                    // Calculate height per distinct type segment
+                    const heightPerTypeSegment = 100 / distinctTypes.length;
+
+                    // Create segments based on types
+                    distinctTypes.forEach((type, index) => {
+                        const worksOfType = groupedWorksByType[type];
+                        const typeCount = worksOfType.length; // Count of works for this specific type
+
                         const activitySegment = document.createElement('div');
-                        activitySegment.className = `activity-segment ${getActivityTypeClass(activity.type)} ${activity.count >= 2 ? 'high' : ''}`;
-                        activitySegment.style.height = `${heightPerActivity}%`;
-                        activitySegment.style.top = `${index * heightPerActivity}%`;
+                        const typeClass = getActivityTypeClass(type);
+                        
+                        let highClass = '';
+                        if (typeCount >= 2) { // Apply 'high' class if this type has 2 or more works
+                            highClass = 'high';
+                        }
+                        
+                        activitySegment.className = `activity-segment ${typeClass} ${highClass}`;
+                        activitySegment.style.height = `${heightPerTypeSegment}%`;
+                        activitySegment.style.top = `${index * heightPerTypeSegment}%`;
                         yearOrAgeBox.appendChild(activitySegment);
                     });
 
@@ -277,6 +343,7 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
                     });
                 } else {
                     yearOrAgeBox.classList.add('year-box-empty');
+                    yearOrAgeBox.setAttribute('data-total-works', 0); // Explicitly mark empty
                 }
                 yearOrAgeCell.appendChild(yearOrAgeBox);
                 decadeRow.appendChild(yearOrAgeCell);
@@ -289,286 +356,171 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
 }
 
 
+// --- Unified Function to Process Relevant Dates for a Single Item ---
+function getFilteredActivityDates(item) {
+    const startDate = new Date(item.DateStart);
+    let endDate = startDate;
+    if (item.DateEnd && item.DateEnd.trim() !== '') {
+        const parsedEndDate = new Date(item.DateEnd);
+        if (!isNaN(parsedEndDate.getTime())) {
+            endDate = parsedEndDate;
+        }
+    }
+    // If DateStart is invalid, return empty set as no range can be established
+    if (isNaN(startDate.getTime())) {
+        console.warn('Invalid DateStart for item:', item.Title, item.DateStart);
+        return new Set();
+    }
+
+    // Parse Weekday filter: 1=Mon, 7=Sun. Can be comma-separated.
+    // If empty/invalid, assume no weekday filter.
+    const weekdayFilterRaw = item.Weekday ? item.Weekday.trim() : '';
+    let weekdayFilterSet = null; // Will store a Set of allowed weekdays (1-7) or null if no filter
+
+    if (weekdayFilterRaw !== '') {
+        const parsedWeekdays = weekdayFilterRaw.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n >= 1 && n <= 7);
+        if (parsedWeekdays.length > 0) {
+            weekdayFilterSet = new Set(parsedWeekdays);
+        } else {
+            // Only warn if the entire string was non-empty but parsed to no valid weekdays
+            console.warn('Invalid or empty Weekday values for item (after parsing):', item.Title, item.Weekday);
+        }
+    }
+
+    // Dates to be unconditionally excluded (highest priority)
+    const excludeDates = new Set(parseAndFormatDates(item.Date)); 
+    // Dates to be unconditionally added (after range, before final exclusion)
+    const additionalDates = parseAndFormatDates(item.Add);
+
+    const relevantDates = new Set(); // Stores 'YYYY-MM-DD' strings
+
+    // 1. Process dates from DateStart to DateEnd, applying Weekday filter
+    let currentIterateDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    let safetyCounter = 0;
+    const MAX_ITERATIONS = 366 * 100; // Max 100 years to prevent infinite loops
+
+    while (currentIterateDate <= endDate && safetyCounter < MAX_ITERATIONS) {
+        // Get day of the week: 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+        let dayOfWeek = currentIterateDate.getDay(); 
+        // Convert to 1=Monday, ..., 7=Sunday to match CSV Weekday column
+        let csvDayOfWeek = (dayOfWeek === 0) ? 7 : dayOfWeek;
+
+        // Check if the current day passes the weekday filter
+        // If weekdayFilterSet is null, no restriction. Otherwise, check if csvDayOfWeek is in the set.
+        const passesWeekdayFilter = (weekdayFilterSet === null || weekdayFilterSet.has(csvDayOfWeek));
+
+        if (passesWeekdayFilter) {
+            const formattedDate = formatDate(currentIterateDate);
+            if (formattedDate) { // Make sure date is validly formatted
+                relevantDates.add(formattedDate);
+            }
+        }
+        currentIterateDate.setDate(currentIterateDate.getDate() + 1); // Move to next day
+        safetyCounter++;
+    }
+
+    // 2. Add dates from 'Add' column (independent of Weekday, but will be subject to final 'Date' exclusion)
+    additionalDates.forEach(dateStr => {
+        relevantDates.add(dateStr);
+    });
+
+    // 3. Remove dates specified in 'Date' column (highest priority exclusion)
+    excludeDates.forEach(dateStr => {
+        relevantDates.delete(dateStr);
+    });
+
+    return relevantDates;
+}
+
+
 // Function to create the contribution graph (Month View)
 function createMonthGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
-    console.log('Creating Month Graph...');
-    const activities = {}; // Stores activity counts per type per month, counts should now be distinct works
-    const monthlyWorks = {}; // Stores detailed works for each month
+    // console.log('Creating Month Graph...');
+    const monthlyWorksMap = {}; // Stores detailed works for each month (key: "YYYY-M")
 
     data.forEach(item => {
         if (showLeadRoleOnly && item.Role !== '主演') return;
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
 
-        const startDate = new Date(item.DateStart);
-        let endDate = startDate;
-        if (item.DateEnd && item.DateEnd.trim() !== '') {
-            const parsedEndDate = new Date(item.DateEnd);
-            if (!isNaN(parsedEndDate.getTime())) {
-                endDate = parsedEndDate;
-            }
-        }
-        if (isNaN(startDate.getTime())) return;
+        const filteredActivityDates = getFilteredActivityDates(item); // Get all active dates for this item
 
-        const excludeDates = item.Date ? item.Date.split(',').map(d => d.trim()) : [];
-        const additionalDates = item.Add ? item.Add.split(',').map(d => d.trim()) : [];
+        filteredActivityDates.forEach(dateStr => {
+            const dateObj = new Date(dateStr); // Convert back to Date object for month/year extraction
+            const year = dateObj.getFullYear();
+            const month = dateObj.getMonth();
+            const key = `${year}-${month}`; // Key for month view
 
-        // Logic for continuous periods (DateStart to DateEnd)
-        let currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-        // Ensure endDate is at least the start of the month, or actual end if within the same month
-        let effectiveEndDate = new Date(endDate.getFullYear(), endDate.getMonth(), new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0).getDate());
-
-        while (currentDate.getFullYear() < effectiveEndDate.getFullYear() || 
-               (currentDate.getFullYear() === effectiveEndDate.getFullYear() && currentDate.getMonth() <= effectiveEndDate.getMonth())) {
-            
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            const key = `${year}-${month}`; // e.g., "2016-0" for Jan 2016
-
-            // Check if this specific month is explicitly excluded by a date within excludeDates
-            let isMonthExcluded = false;
-            for (const excludedDateStr of excludeDates) {
-                const excludedDate = new Date(excludedDateStr);
-                if (excludedDate.getFullYear() === year && excludedDate.getMonth() === month) {
-                    isMonthExcluded = true;
-                    break;
-                }
-            }
-
-            if (!isMonthExcluded) {
-                // Initialize if not present
-                if (!monthlyWorks[key]) monthlyWorks[key] = [];
-                if (!activities[key]) activities[key] = [];
-
-                // Add work to monthlyWorks if not already present for this month
-                // This ensures each unique work is counted only once per month for detail view
-                if (!monthlyWorks[key].some(work => work.Title === item.Title)) {
-                    monthlyWorks[key].push(item);
-                }
-
-                // For activities, we want to count unique *types* of works within this month
-                // This will determine the segments and color intensity
-                const existingActivityType = activities[key].find(a => a.type === item.WorksType);
-                if (!existingActivityType) {
-                    // If this work type is not yet registered for this month, add it
-                    activities[key].push({ type: item.WorksType, count: 1 });
-                } else {
-                    // If the type already exists, increment its count (for intensity, if needed, though totalActivities handles this)
-                    existingActivityType.count++;
-                }
-            }
-            
-            // Move to the next month
-            currentDate.setMonth(currentDate.getMonth() + 1);
-        }
-
-        // Logic for additional specific dates
-        additionalDates.forEach(dateStr => {
-            const additionalDate = new Date(dateStr);
-            if (!isNaN(additionalDate.getTime()) && !excludeDates.includes(dateStr)) {
-                const year = additionalDate.getFullYear();
-                const month = additionalDate.getMonth();
-                const key = `${year}-${month}`;
-
-                if (!monthlyWorks[key]) monthlyWorks[key] = [];
-                if (!activities[key]) activities[key] = [];
-
-                if (!monthlyWorks[key].some(work => work.Title === item.Title)) {
-                    monthlyWorks[key].push(item);
-                }
-
-                const existingActivityType = activities[key].find(a => a.type === item.WorksType);
-                if (!existingActivityType) {
-                    activities[key].push({ type: item.WorksType, count: 1, isAdditional: true });
-                } else {
-                    existingActivityType.count++;
-                    existingActivityType.isAdditional = true;
-                }
+            if (!monthlyWorksMap[key]) monthlyWorksMap[key] = [];
+            // Ensure unique work item per month. If a work spans multiple days within a month, it should only be counted once for that month.
+            // Check if a work with the same title already exists for this month to prevent duplicates
+            if (!monthlyWorksMap[key].some(work => work.Title === item.Title)) {
+                monthlyWorksMap[key].push(item);
             }
         });
     });
 
-    renderGraphStructure('contribution-graph', activities, monthlyWorks, 'month', showLeadRoleOnly, selectedTypes);
+    // Pass the same map for both dataMap and labelMap
+    renderGraphStructure('contribution-graph', monthlyWorksMap, monthlyWorksMap, 'month', showLeadRoleOnly, selectedTypes);
 }
 
 // Function to create the Year View graph
 function createYearGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
-    console.log('Creating Year Graph...');
-    const yearlyActivities = {};
-    const yearlyWorks = {}; // Stores detailed works for each year
+    // console.log('Creating Year Graph...');
+    const yearlyWorksMap = {}; // Stores detailed works for each year (key: "YYYY")
 
     data.forEach(item => {
         if (showLeadRoleOnly && item.Role !== '主演') return;
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
 
-        const startDate = new Date(item.DateStart);
-        let endDate = startDate;
-        if (item.DateEnd && item.DateEnd.trim() !== '') {
-            const parsedEndDate = new Date(item.DateEnd);
-            if (!isNaN(parsedEndDate.getTime())) {
-                endDate = parsedEndDate;
-            }
-        }
-        if (isNaN(startDate.getTime())) return;
+        const filteredActivityDates = getFilteredActivityDates(item); // Get all active dates for this item
 
-        const excludeDates = item.Date ? item.Date.split(',').map(d => d.trim()) : [];
-        const additionalDates = item.Add ? item.Add.split(',').map(d => d.trim()) : [];
-
-        let yearsToProcess = new Set();
-        let currentYearIterate = startDate.getFullYear();
-        const endYearIterate = endDate.getFullYear();
-        
-        for (let year = currentYearIterate; year <= endYearIterate; year++) {
-            yearsToProcess.add(year);
-        }
-
-        yearsToProcess.forEach(year => {
-            // Check if any date within the year is excluded
-            let isYearExcluded = false;
-            for (let i = 0; i < excludeDates.length; i++) {
-                const excludedDate = new Date(excludeDates[i]);
-                if (excludedDate.getFullYear() === year) {
-                    isYearExcluded = true;
-                    break;
-                }
-            }
-
-            if (!isYearExcluded) {
-                if (!yearlyActivities[year]) yearlyActivities[year] = [];
-                if (!yearlyWorks[year]) yearlyWorks[year] = [];
-
-                if (!yearlyWorks[year].some(work => work.Title === item.Title)) {
-                    yearlyWorks[year].push(item);
-                }
-                const existingActivity = yearlyActivities[year].find(a => a.type === item.WorksType);
-                if (!existingActivity) {
-                    yearlyActivities[year].push({ type: item.WorksType, count: 1, title: item.Title });
-                } else {
-                    existingActivity.count++;
-                }
-            }
+        // Process unique years from filtered dates
+        const yearsWithActivity = new Set();
+        filteredActivityDates.forEach(dateStr => {
+            const dateObj = new Date(dateStr);
+            yearsWithActivity.add(dateObj.getFullYear());
         });
 
-        // Handle additional dates separately to ensure they are always added if not excluded
-        additionalDates.forEach(dateStr => {
-            const additionalDate = new Date(dateStr);
-            if (!isNaN(additionalDate.getTime()) && !excludeDates.includes(dateStr)) {
-                const year = additionalDate.getFullYear();
-                if (!yearlyActivities[year]) yearlyActivities[year] = [];
-                if (!yearlyWorks[year]) yearlyWorks[year] = [];
-                if (!yearlyWorks[year].some(work => work.Title === item.Title)) {
-                    yearlyWorks[year].push(item);
-                }
-                const existingActivity = yearlyActivities[year].find(a => a.type === item.WorksType);
-                if (!existingActivity) {
-                    yearlyActivities[year].push({ type: item.WorksType, count: 1, title: item.Title, isAdditional: true });
-                } else {
-                    existingActivity.count++;
-                    existingActivity.isAdditional = true;
-                }
+        yearsWithActivity.forEach(year => {
+            if (!yearlyWorksMap[year]) yearlyWorksMap[year] = [];
+            // Ensure unique work item per year
+            if (!yearlyWorksMap[year].some(work => work.Title === item.Title)) {
+                yearlyWorksMap[year].push(item);
             }
         });
     });
-    renderGraphStructure('year-graph-container', yearlyActivities, yearlyWorks, 'year', showLeadRoleOnly, selectedTypes);
+    // Pass the same map for both dataMap and labelMap
+    renderGraphStructure('year-graph-container', yearlyWorksMap, yearlyWorksMap, 'year', showLeadRoleOnly, selectedTypes);
 }
 
 // Function to create the Age View graph
 function createAgeGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
-    console.log('Creating Age Graph...');
-    const ageActivities = {};
-    const ageWorks = {}; // Stores detailed works for each age
+    // console.log('Creating Age Graph...');
+    const ageWorksMap = {}; // Stores detailed works for each age (key: "age")
 
     data.forEach(item => {
         if (showLeadRoleOnly && item.Role !== '主演') return;
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
 
-        const startDate = new Date(item.DateStart);
-        let endDate = startDate;
-        if (item.DateEnd && item.DateEnd.trim() !== '') {
-            const parsedEndDate = new Date(item.DateEnd);
-            if (!isNaN(parsedEndDate.getTime())) {
-                endDate = parsedEndDate;
-            }
-        }
-        if (isNaN(startDate.getTime())) return;
+        const filteredActivityDates = getFilteredActivityDates(item); // Get all active dates for this item
 
-        const excludeDates = item.Date ? item.Date.split(',').map(d => d.trim()) : [];
-        const additionalDates = item.Add ? item.Add.split(',').map(d => d.trim()) : [];
-
-        let agesToProcess = new Set();
-        let currentIterateDate = new Date(startDate);
-        while (currentIterateDate <= endDate) {
-            const age = getAgeAtDate(BIRTH_DATE, currentIterateDate);
-            agesToProcess.add(age);
-            // Increment by a fixed interval, e.g., 1 day, to ensure all ages covered
-            // For monthly granularity, maybe iterate month by month
-            currentIterateDate.setDate(currentIterateDate.getDate() + 1); 
-            // Prevent infinite loops if dates are somehow invalid
-            if (currentIterateDate.getTime() === new Date(currentIterateDate.getFullYear(), currentIterateDate.getMonth(), 1).getTime() && 
-                currentIterateDate.getMonth() === startDate.getMonth() && 
-                currentIterateDate.getFullYear() === startDate.getFullYear() && 
-                currentIterateDate.getDate() === startDate.getDate() &&
-                (endDate - startDate > 0)
-            ) {
-                 // Break if we've looped back to the start date for a range. This is a failsafe.
-                console.warn("Infinite loop detected in age calculation for item:", item.Title);
-                break;
-            }
-            if (currentIterateDate > new Date(endDate.getFullYear() + 2, 0, 1)) { // Safety break if endDate is far future
-                console.warn("Age calculation exceeding reasonable bounds for item:", item.Title);
-                break;
-            }
-        }
-
-        agesToProcess.forEach(age => {
-            let isAgeExcluded = false;
-            // For simplicity, if any excluded date falls in this age, we mark as excluded.
-            // A precise solution would require iterating days within the age range.
-            for (let i = 0; i < excludeDates.length; i++) {
-                const excludedDate = new Date(excludeDates[i]);
-                if (getAgeAtDate(BIRTH_DATE, excludedDate) === age) {
-                    isAgeExcluded = true;
-                    break;
-                }
-            }
-
-            if (!isAgeExcluded) {
-                if (!ageActivities[age]) ageActivities[age] = [];
-                if (!ageWorks[age]) ageWorks[age] = [];
-
-                if (!ageWorks[age].some(work => work.Title === item.Title)) {
-                    ageWorks[age].push(item);
-                }
-                const existingActivity = ageActivities[age].find(a => a.type === item.WorksType);
-                if (!existingActivity) {
-                    ageActivities[age].push({ type: item.WorksType, count: 1, title: item.Title });
-                } else {
-                    existingActivity.count++;
-                }
-            }
+        // Process unique ages from filtered dates
+        const agesWithActivity = new Set();
+        filteredActivityDates.forEach(dateStr => {
+            const dateObj = new Date(dateStr);
+            agesWithActivity.add(getAgeAtDate(BIRTH_DATE, dateObj));
         });
 
-        // Handle additional dates
-        additionalDates.forEach(dateStr => {
-            const additionalDate = new Date(dateStr);
-            if (!isNaN(additionalDate.getTime()) && !excludeDates.includes(dateStr)) {
-                const age = getAgeAtDate(BIRTH_DATE, additionalDate);
-                if (!ageActivities[age]) ageActivities[age] = [];
-                if (!ageWorks[age]) ageWorks[age] = [];
-                if (!ageWorks[age].some(work => work.Title === item.Title)) {
-                    ageWorks[age].push(item);
-                }
-                const existingActivity = ageActivities[age].find(a => a.type === item.WorksType);
-                if (!existingActivity) {
-                    ageActivities[age].push({ type: item.WorksType, count: 1, title: item.Title, isAdditional: true });
-                } else {
-                    existingActivity.count++;
-                    existingActivity.isAdditional = true;
-                }
+        agesWithActivity.forEach(age => {
+            if (!ageWorksMap[age]) ageWorksMap[age] = [];
+            // Ensure unique work item per age
+            if (!ageWorksMap[age].some(work => work.Title === item.Title)) {
+                ageWorksMap[age].push(item);
             }
         });
     });
-
-    renderGraphStructure('age-graph-container', ageActivities, ageWorks, 'age', showLeadRoleOnly, selectedTypes);
+    // Pass the same map for both dataMap and labelMap
+    renderGraphStructure('age-graph-container', ageWorksMap, ageWorksMap, 'age', showLeadRoleOnly, selectedTypes);
 }
 
 
@@ -620,20 +572,19 @@ function showWorksDetail(key, worksDataMap, viewType) {
         sortedTypes.forEach(type => {
             let typeWorks = worksByType[type]; // Use let here as we'll reassign after sort
 
-            // ------ 新增的排序逻辑开始 ------
+            // Sort works within each type by DateStart ascending, then by Title ascending
             typeWorks.sort((a, b) => {
                 const dateA = new Date(a.DateStart);
                 const dateB = new Date(b.DateStart);
 
-                // 按 DateStart 升序排序
+                // Sort by DateStart ascending
                 if (dateA.getTime() !== dateB.getTime()) {
                     return dateA.getTime() - dateB.getTime();
                 }
 
-                // 如果 DateStart 相同，则按 Title 字母顺序升序排序
+                // If DateStart is the same, sort by Title ascending
                 return a.Title.localeCompare(b.Title);
             });
-            // ------ 新增的排序逻辑结束 ------
 
             const typeClass = getActivityTypeClass(type);
             
@@ -669,11 +620,16 @@ function showWorksDetail(key, worksDataMap, viewType) {
 
 // --- Main Logic for Loading and Filtering ---
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('Activity visualization initializing...');
+    // console.log('Activity visualization initializing...');
     
-    loadNavbar().then(() => {
-        highlightCurrentPage();
-    });
+    // Assuming loadNavbar and highlightCurrentPage are defined elsewhere
+    if (typeof loadNavbar === 'function') {
+        loadNavbar().then(() => {
+            if (typeof highlightCurrentPage === 'function') {
+                highlightCurrentPage();
+            }
+        });
+    }
 
     const leadRoleFilter = document.getElementById('lead-role-filter');
     const typeFilters = document.querySelectorAll('.type-filter');
@@ -749,12 +705,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             otherFilter.checked = false;
                         }
                     });
-                    // If no view filter is selected, default to month view
-                    if (!this.checked) {
-                        // This handles unchecking the current view filter and reverts to month view
-                        // If both Year and Age are unchecked, `updateGraphView` will show month.
-                        // No explicit need to check the month filter, as it's the default display.
-                    }
                     updateGraphView();
                 });
             });
