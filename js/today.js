@@ -31,7 +31,8 @@ async function parseCSV() {
                 startDate: eventData[header[0]] ? new Date(eventData[header[0]]) : null,
                 endDate: eventData[header[1]] ? new Date(eventData[header[1]]) : null,
                 title: eventData[header[2]] || '',
-                url: eventData[header[3]] || '#'
+                url: eventData[header[3]] || '#',
+                weekday: eventData[header[4]] ? eventData[header[4]].trim() : ''
             };
         }).filter(event => 
             (event.startDate && !isNaN(event.startDate.getTime())) || 
@@ -85,6 +86,51 @@ function calculateAnniversary(date, today) {
 function getJapaneseWeekday(date) {
     const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
     return weekdays[date.getDay()];
+}
+
+// 获取英文星期对应的数字 (0-6, Sunday-Saturday)
+function getWeekdayNumber(weekdayName) {
+    const weekdays = {
+        'sunday': 0,
+        'monday': 1,
+        'tuesday': 2,
+        'wednesday': 3,
+        'thursday': 4,
+        'friday': 5,
+        'saturday': 6
+    };
+    return weekdays[weekdayName.toLowerCase()];
+}
+
+// 检查日期是否匹配weekday
+function isMatchingWeekday(date, weekdayName) {
+    const weekdayNum = getWeekdayNumber(weekdayName);
+    return weekdayNum !== undefined && date.getDay() === weekdayNum;
+}
+
+// 计算两个日期之间的天数差
+function getDaysDifference(date1, date2) {
+    const timeDiff = Math.abs(date2 - date1);
+    return Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+}
+
+// 获取合适的整数倍（100/1000/10000）
+function getMilestoneInterval(days) {
+    if (days >= 10000) return 10000;
+    if (days >= 1000) return 1000;
+    return 100;
+}
+
+// 检查是否是整数倍纪念日
+function checkMilestone(date, selectedDate) {
+    const days = getDaysDifference(date, selectedDate);
+    if (days === 0) return null;
+    
+    const interval = getMilestoneInterval(days);
+    if (days % interval === 0) {
+        return { days, interval };
+    }
+    return null;
 }
 
 // 创建日期导航
@@ -146,10 +192,67 @@ async function loadEventsForDate(selectedDate) {
     currentDateElement.textContent = formatDate(selectedDate);
     
     const events = await parseCSV();
-    const dateEvents = events.filter(event => 
-        isDateMatchingToday(event.startDate, selectedDate) || 
-        isDateMatchingToday(event.endDate, selectedDate)
-    );
+    
+    // 筛选匹配的事件
+    const dateEvents = [];
+    
+    for (const event of events) {
+        let matchType = null;
+        let milestone = null;
+        
+        // 1. 检查是否是开始或结束日期当天
+        if (isDateMatchingToday(event.startDate, selectedDate)) {
+            matchType = 'start';
+        } else if (isDateMatchingToday(event.endDate, selectedDate)) {
+            matchType = 'end';
+        }
+        // 2. 检查weekday规则
+        else if (event.weekday) {
+            const weekdayLower = event.weekday.toLowerCase();
+            
+            // 2.1 weekday为Film的情况
+            if (weekdayLower === 'film') {
+                // 检查是否在开始后60天内
+                if (event.startDate && selectedDate >= event.startDate) {
+                    const daysSinceStart = getDaysDifference(event.startDate, selectedDate);
+                    if (daysSinceStart <= 60) {
+                        matchType = 'film';
+                    }
+                }
+            }
+            // 2.2 weekday为星期名称的情况
+            else if (getWeekdayNumber(weekdayLower) !== undefined) {
+                // 只在DateStart到DateEnd范围内的对应星期数显示
+                if (event.startDate && event.endDate && 
+                    selectedDate >= event.startDate && 
+                    selectedDate <= event.endDate &&
+                    isMatchingWeekday(selectedDate, weekdayLower)) {
+                    matchType = 'weekday';
+                }
+            }
+        }
+        // 3. 检查整数倍天数纪念日
+        if (!matchType) {
+            if (event.startDate) {
+                const startMilestone = checkMilestone(event.startDate, selectedDate);
+                if (startMilestone && selectedDate > event.startDate) {
+                    matchType = 'milestone-start';
+                    milestone = startMilestone;
+                }
+            }
+            if (!matchType && event.endDate) {
+                const endMilestone = checkMilestone(event.endDate, selectedDate);
+                if (endMilestone && selectedDate > event.endDate) {
+                    matchType = 'milestone-end';
+                    milestone = endMilestone;
+                }
+            }
+        }
+        
+        if (matchType) {
+            dateEvents.push({ ...event, matchType, milestone });
+        }
+    }
     
     let htmlContent = '';
     
@@ -223,7 +326,7 @@ function getUpcomingEventsHTML(events, selectedDate) {
         return dateA - dateB;
     });
     
-    // 最多显示3个即将到来的事件
+    // 最多显示100个即将到来的事件
     const eventsToShow = upcomingEvents.slice(0, 100);
     
     for (const event of eventsToShow) {
@@ -240,13 +343,27 @@ function getUpcomingEventsHTML(events, selectedDate) {
         // 如果今天在开始日期之后但在结束日期之前，且不是结束日期当天
         else if (selectedDate >= event.startDate && event.endDate > selectedDate && 
                 !isDateMatchingToday(event.endDate, selectedDate)) {
-            // 计算距离结束日期的天数
-            const daysUntilEnd = Math.ceil((event.endDate - selectedDate) / (1000 * 60 * 60 * 24));
-            upcomingHTML += `
-            <div class="today-item" onclick="window.open('${event.url}', '_blank')">
-                <div class="today-title">『 ${event.title} 』の完結まであと${daysUntilEnd}日</div>
-            </div>
-            `;
+            // 检查是否需要跳过显示：如果weekday是星期名称且今天是放送日
+            let shouldSkip = false;
+            if (event.weekday) {
+                const weekdayLower = event.weekday.toLowerCase();
+                // 如果weekday是星期名称且今天匹配该星期
+                if (getWeekdayNumber(weekdayLower) !== undefined && 
+                    isMatchingWeekday(selectedDate, weekdayLower)) {
+                    shouldSkip = true;
+                }
+            }
+            
+            // 只有在不需要跳过时才显示
+            if (!shouldSkip) {
+                // 计算距离结束日期的天数
+                const daysUntilEnd = Math.ceil((event.endDate - selectedDate) / (1000 * 60 * 60 * 24));
+                upcomingHTML += `
+                <div class="today-item" onclick="window.open('${event.url}', '_blank')">
+                    <div class="today-title">『 ${event.title} 』の完結まであと${daysUntilEnd}日</div>
+                </div>
+                `;
+            }
         }
     }
     
@@ -256,18 +373,54 @@ function getUpcomingEventsHTML(events, selectedDate) {
 // 创建事件HTML的辅助函数
 function createEventsHTML(events, selectedDate) {
     return events.map(event => {
-        const isStartDate = isDateMatchingToday(event.startDate, selectedDate);
-        const date = isStartDate ? event.startDate : event.endDate;
-        const anniversary = calculateAnniversary(date, selectedDate);
-        const dateText = formatDate(date);
+        let anniversaryText = '';
+        let dateText = '';
         
-        const anniversaryText = anniversary === 0 ? 'Premiere' : `${anniversary}周年`;
+        switch (event.matchType) {
+            case 'start':
+                // 开始日期当天
+                const startAnniversary = calculateAnniversary(event.startDate, selectedDate);
+                anniversaryText = startAnniversary === 0 ? 'Premiere' : `${startAnniversary}周年`;
+                dateText = `${formatDate(event.startDate)} 公開`;
+                break;
+                
+            case 'end':
+                // 结束日期当天
+                const endAnniversary = calculateAnniversary(event.endDate, selectedDate);
+                anniversaryText = endAnniversary === 0 ? 'Finale' : `${endAnniversary}周年`;
+                dateText = `${formatDate(event.endDate)} 終了`;
+                break;
+                
+            case 'film':
+                // weekday为Film
+                anniversaryText = '公開中';
+                dateText = `${formatDate(event.startDate)} 公開`;
+                break;
+                
+            case 'weekday':
+                // 特定星期显示
+                anniversaryText = '放送中';
+                dateText = `${formatDate(event.startDate)} - ${formatDate(event.endDate)}`;
+                break;
+                
+            case 'milestone-start':
+                // 开始日期的整数倍纪念日
+                anniversaryText = `${event.milestone.days} Days Ago`;
+                dateText = `${formatDate(event.startDate)} 公開`;
+                break;
+                
+            case 'milestone-end':
+                // 结束日期的整数倍纪念日
+                anniversaryText = `${event.milestone.days} Days Ago`;
+                dateText = `${formatDate(event.endDate)} 終了`;
+                break;
+        }
         
         return `
         <div class="today-item" onclick="window.open('${event.url}', '_blank')">
             <div class="today-title">${event.title}</div>
             <div class="today-anniversary">${anniversaryText}</div>
-            <div class="today-date">${dateText} ${isStartDate ? '公開' : '終了'}</div>
+            <div class="today-date">${dateText}</div>
         </div>
         `;
     }).join('');
