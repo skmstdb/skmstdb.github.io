@@ -11,7 +11,7 @@ async function parseCSV() {
         const events = rows.slice(dataStartIndex).map(row => {
             // 使用更可靠的方式来分割CSV行，考虑引号内的逗号
             const columns = parseCSVRow(row);
-            
+
             // 使用表头作为键来解析数据
             const eventData = {};
             for (let i = 0; i < header.length && i < columns.length; i++) {
@@ -24,7 +24,7 @@ async function parseCSV() {
                 excludeDates = eventData['Date'].split(',').map(date => date.trim());
                 console.log('Event:', eventData['Title'], 'Exclude dates:', excludeDates); // 调试信息
             }
-            
+
             // 处理Add列的日期
             let additionalDates = [];
             if (eventData['Add'] && eventData['Add'].trim() !== '') {
@@ -47,7 +47,7 @@ async function parseCSV() {
 
         // 加载other.csv数据
         const otherEvents = await parseOtherCSV();
-        
+
         // 合并两个数据源的事件
         return [...events, ...otherEvents];
     } catch (error) {
@@ -68,7 +68,7 @@ async function parseOtherCSV() {
         const events = rows.slice(dataStartIndex).map(row => {
             // 使用更可靠的方式来分割CSV行，考虑引号内的逗号
             const columns = parseCSVRow(row);
-            
+
             // 使用表头作为键来解析数据
             const eventData = {};
             for (let i = 0; i < header.length && i < columns.length; i++) {
@@ -77,7 +77,7 @@ async function parseOtherCSV() {
 
             // 从Date字段获取日期
             const date = eventData['Date'] ? new Date(eventData['Date']) : null;
-            
+
             return {
                 startDate: date,
                 endDate: date, // 单日事件，开始和结束日期相同
@@ -100,10 +100,10 @@ function parseCSVRow(row) {
     const result = [];
     let insideQuotes = false;
     let currentValue = '';
-    
+
     for (let i = 0; i < row.length; i++) {
         const char = row[i];
-        
+
         if (char === '"') {
             insideQuotes = !insideQuotes;
         } else if (char === ',' && !insideQuotes) {
@@ -113,10 +113,10 @@ function parseCSVRow(row) {
             currentValue += char;
         }
     }
-    
+
     // 添加最后一个值
     result.push(currentValue);
-    
+
     // 清理结果中的引号
     return result.map(value => value.replace(/^"(.*)"$/, '$1'));
 }
@@ -179,23 +179,23 @@ function renderEvents(calendarGrid, year, month, events) {
     if (month === 9) { // JavaScriptでは月は0から始まるため、10月は9
         const birthdayDate = 14;
         const birthdayIndex = birthdayDate + firstDayOfWeek - 1;
-        
+
         if (birthdayIndex >= 0 && birthdayIndex < dayElements.length) {
             const dayElement = dayElements[birthdayIndex];
-            
+
             // 誕生日イベントのコンテナを作成
             const birthdayContainer = document.createElement('a');
-            birthdayContainer.href = 'https://sakai-masato.com/'; 
+            birthdayContainer.href = 'https://sakai-masato.com/';
             birthdayContainer.target = '_blank'; // 在新标签页打开
             birthdayContainer.classList.add('bento-container');
             birthdayContainer.style.backgroundColor = 'rgba(46, 204, 113, 0.8)'; // 绿色背景
-            
+
             // 誕生日イベントの内容
             const birthdayItem = document.createElement('div');
             birthdayItem.classList.add('bento-item');
             birthdayItem.textContent = '堺さんの誕生日 🎂';
             birthdayContainer.appendChild(birthdayItem);
-            
+
             // カレンダーに追加
             dayElement.appendChild(birthdayContainer);
         }
@@ -214,20 +214,20 @@ function renderEvents(calendarGrid, year, month, events) {
                     const dayIndex = additionalDate.getDate() + firstDayOfWeek - 1;
                     if (dayIndex >= 0 && dayIndex < dayElements.length) {
                         const dayElement = dayElements[dayIndex];
-                        
+
                         // 创建 Bento 的包装容器
                         const bentoContainer = document.createElement('a');
                         bentoContainer.href = event.url;
                         bentoContainer.target = '_blank';
                         bentoContainer.classList.add('bento-container');
                         bentoContainer.style.backgroundColor = 'rgba(52, 152, 219, 0.8)'; // 蓝色背景，区分额外日期
-                        
+
                         // 创建 Bento 项目
                         const bentoItem = document.createElement('div');
                         bentoItem.classList.add('bento-item');
                         bentoItem.textContent = event.title;
                         bentoContainer.appendChild(bentoItem);
-                        
+
                         // 将bento容器添加到日历
                         dayElement.appendChild(bentoContainer);
                     }
@@ -244,71 +244,71 @@ function renderEvents(calendarGrid, year, month, events) {
 
         // 设置事件背景色
         let backgroundColor = 'rgba(52, 152, 219, 0.8)'; // 默认蓝色背景
-        
+
         // 根据事件来源设置不同的背景色
         if (event.source === 'other') {
-            backgroundColor = '#43AA8B'; 
+            backgroundColor = '#43AA8B';
         }
 
         // 如果有指定星期几，则只在特定星期几显示
         if (event.weekday) {
             // 获取当月的所有日期
             const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
+
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(year, month, day);
                 // 获取星期几 (0-6，0是星期日)
                 const dayOfWeek = date.getDay();
                 // 将星期日的0转换为7，使1-7分别对应周一到周日
                 const adjustedDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
-                
+
                 // 检查是否为负数（排除模式）
                 const weekdayValue = parseInt(event.weekday);
                 const isExcludeMode = weekdayValue < 0;
                 const absWeekday = Math.abs(weekdayValue);
-                
+
                 // 判断是否应该显示事件
                 let shouldDisplay = false;
-                
+
                 if (isExcludeMode) {
                     // 排除模式：如果当前星期不等于排除的星期，则显示
                     shouldDisplay = adjustedDayOfWeek !== absWeekday;
                 } else {
                     // 包含模式：如果当前星期等于指定的星期，或者weekday包含当前星期，则显示
-                    shouldDisplay = event.weekday.includes(String(adjustedDayOfWeek)) || 
-                                   event.weekday === String(adjustedDayOfWeek);
+                    shouldDisplay = event.weekday.includes(String(adjustedDayOfWeek)) ||
+                        event.weekday === String(adjustedDayOfWeek);
                 }
-                
+
                 // 检查当前日期是否在排除列表中
                 const dateString = formatDate(date); // 使用统一的日期格式化函数
-                const isExcludedDate = event.excludeDates && event.excludeDates.length > 0 && 
-                                      event.excludeDates.some(excludeDate => {
-                    if (dateString === excludeDate) {
-                        console.log('排除日期匹配:', dateString, '事件:', event.title); // 调试信息
-                        return true;
-                    }
-                    return false;
-                });
-                
+                const isExcludedDate = event.excludeDates && event.excludeDates.length > 0 &&
+                    event.excludeDates.some(excludeDate => {
+                        if (dateString === excludeDate) {
+                            console.log('排除日期匹配:', dateString, '事件:', event.title); // 调试信息
+                            return true;
+                        }
+                        return false;
+                    });
+
                 // 检查日期是否在事件范围内且应该显示且不在排除列表中
                 if (date >= startDate && date <= endDate && shouldDisplay && !isExcludedDate) {
                     const dayIndex = day + firstDayOfWeek - 1;
                     if (dayIndex >= 0 && dayIndex < dayElements.length) {
                         const dayElement = dayElements[dayIndex];
-                        
+
                         // 创建 Bento 的包装容器
                         const bentoContainer = document.createElement('a');
                         bentoContainer.href = event.url;
                         bentoContainer.target = '_blank';
                         bentoContainer.classList.add('bento-container');
                         bentoContainer.style.backgroundColor = backgroundColor; // 使用根据来源设置的背景色
-                        
+
                         // 创建 Bento 项目
                         const bentoItem = document.createElement('div');
                         bentoItem.classList.add('bento-item');
                         bentoItem.textContent = event.title;
                         bentoContainer.appendChild(bentoItem);
-                        
+
                         // 将bento容器添加到日历
                         dayElement.appendChild(bentoContainer);
                     }
@@ -323,17 +323,17 @@ function renderEvents(calendarGrid, year, month, events) {
                 const dayElement = dayElements[i];
                 const currentDate = new Date(year, month, i - firstDayOfWeek + 1);
                 const dateString = formatDate(currentDate); // 使用统一的日期格式化函数
-                
+
                 // 检查当前日期是否在排除列表中
-                const isExcludedDate = event.excludeDates && event.excludeDates.length > 0 && 
-                                      event.excludeDates.some(excludeDate => {
-                    if (dateString === excludeDate) {
-                        console.log('排除日期匹配:', dateString, '事件:', event.title); // 调试信息
-                        return true;
-                    }
-                    return false;
-                });
-                
+                const isExcludedDate = event.excludeDates && event.excludeDates.length > 0 &&
+                    event.excludeDates.some(excludeDate => {
+                        if (dateString === excludeDate) {
+                            console.log('排除日期匹配:', dateString, '事件:', event.title); // 调试信息
+                            return true;
+                        }
+                        return false;
+                    });
+
                 // 如果当前日期不在排除列表中，则显示事件
                 if (!isExcludedDate) {
                     // 创建 Bento 的包装容器
@@ -384,7 +384,7 @@ function createDayElement(day, date, isOtherMonth, isToday = false) {
     if (isToday) {
         dayNumber.style.backgroundColor = 'red';
         dayNumber.style.color = 'white';
-        dayNumber.style.borderRadius = '50%'; 
+        dayNumber.style.borderRadius = '50%';
         dayNumber.style.padding = '5px';
         dayNumber.style.width = '25px'; // 添加固定宽度
         dayNumber.style.height = '25px'; // 添加固定高度
@@ -434,6 +434,37 @@ async function updateCalendar() {
 
     const events = await parseCSV();
     generateCalendar(year, month, events);
+    updateNavigationButtons(year, month);
+}
+
+function updateNavigationButtons(year, month) {
+    const prevButton = document.getElementById('prev-month');
+    const nextButton = document.getElementById('next-month');
+    const currentYear = new Date().getFullYear();
+    const minYear = 1992;
+    const maxYear = currentYear + 3;
+
+    // Check bounds for Previous button
+    if (year <= minYear && month <= 0) {
+        prevButton.disabled = true;
+        prevButton.style.opacity = '0.5';
+        prevButton.style.cursor = 'not-allowed';
+    } else {
+        prevButton.disabled = false;
+        prevButton.style.opacity = '1';
+        prevButton.style.cursor = 'pointer';
+    }
+
+    // Check bounds for Next button
+    if (year >= maxYear && month >= 11) {
+        nextButton.disabled = true;
+        nextButton.style.opacity = '0.5';
+        nextButton.style.cursor = 'not-allowed';
+    } else {
+        nextButton.disabled = false;
+        nextButton.style.opacity = '1';
+        nextButton.style.cursor = 'pointer';
+    }
 }
 
 async function initializeCalendar() {
@@ -472,7 +503,7 @@ function navigateMonth(direction) {
 function applyDarkModeToCalendar() {
     const isDarkMode = document.body.classList.contains('dark-mode');
     const root = document.documentElement;
-    
+
     if (isDarkMode) {
         root.style.setProperty('--other-month-bg-color', '#333');
         root.style.setProperty('--other-month-text-color', '#666');
@@ -487,7 +518,7 @@ function applyDarkModeToCalendar() {
 }
 
 // 在文件末尾添加以下代码
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // 恢复body可见性
     document.body.style.visibility = 'visible';
 });
@@ -495,19 +526,19 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', async function () {
     // 使用 navHighlight.js 中的函数加载导航栏
     await initializeCalendar();
-    
+
     // 添加深色模式适配代码
     applyDarkModeToCalendar();
-    
+
     // 监听深色模式变化
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
+    const observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
             if (mutation.attributeName === 'class') {
                 applyDarkModeToCalendar();
             }
         });
     });
-    
+
     observer.observe(document.body, { attributes: true });
 
     document.getElementById('prev-month').addEventListener('click', () => navigateMonth('prev'));
@@ -520,3 +551,4 @@ document.addEventListener('DOMContentLoaded', async function () {
         updateCalendar();
     });
 });
+
