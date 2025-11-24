@@ -24,10 +24,10 @@ function processCSVLine(line) {
     const result = [];
     let inQuotes = false;
     let currentValue = '';
-    
+
     for (let i = 0; i < line.length; i++) {
         const char = line[i];
-        
+
         if (char === '"') {
             inQuotes = !inQuotes;
         } else if (char === ',' && !inQuotes) {
@@ -37,7 +37,7 @@ function processCSVLine(line) {
             currentValue += char;
         }
     }
-    
+
     // Push the last value
     result.push(currentValue);
     return result;
@@ -68,18 +68,18 @@ function parseAndFormatDates(dateStringList) {
 // Function to normalize worksType values
 function normalizeWorksType(worksType) {
     if (!worksType) return 'その他';
-    
+
     // Valid types in our application
     const validTypes = ['映画', 'TV', '舞台', 'BOOK', 'その他', '声の出演'];
-    
+
     // First trim whitespace
     const trimmedType = worksType.trim();
-    
+
     // Check if it's already a valid type (exact match)
     if (validTypes.includes(trimmedType)) {
         return trimmedType;
     }
-        
+
     // Default to "other" if no match
     // console.warn('Unrecognized WorksType normalized to その他:', worksType); // Only warn if necessary
     return 'その他';
@@ -89,7 +89,7 @@ function normalizeWorksType(worksType) {
 function getActivityTypeClass(worksType) {
     // Normalize the input worksType first
     const normalizedType = normalizeWorksType(worksType);
-    
+
     const mapping = {
         '映画': 'activity-movie',
         'TV': 'activity-tv',
@@ -106,7 +106,7 @@ function getActivityTypeClass(worksType) {
 function getActivityOrder(worksType) {
     // Normalize the input worksType first
     const normalizedType = normalizeWorksType(worksType);
-    
+
     const mapping = {
         '映画': 1,
         'TV': 2,
@@ -153,24 +153,26 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
         for (let year = latestYear; year >= START_YEAR_MONTH_VIEW; year--) {
             years.push(year);
         }
-        
+
         // Create year headers - each digit of the year on a separate row
-        for (let digitPosition = 0; digitPosition < 4; digitPosition++) {
-            const digitRow = document.createElement('div');
-            digitRow.className = 'digit-row';
+        // Create year headers - single row with vertical text
+        const yearHeaderRow = document.createElement('div');
+        yearHeaderRow.className = 'year-header-row';
 
-            const emptySpacer = document.createElement('div');
-            emptySpacer.className = 'year-digit-spacer';
-            digitRow.appendChild(emptySpacer);
+        const emptySpacer = document.createElement('div');
+        emptySpacer.className = 'year-header-spacer';
+        yearHeaderRow.appendChild(emptySpacer);
 
-            years.forEach(year => {
-                const digit = document.createElement('div');
-                digit.className = 'year-digit';
-                digit.textContent = String(year)[digitPosition];
-                digitRow.appendChild(digit);
-            });
-            graphHTML.appendChild(digitRow);
-        }
+        years.forEach(year => {
+            const yearCell = document.createElement('div');
+            yearCell.className = 'year-header-cell';
+            const yearSpan = document.createElement('span');
+            yearSpan.className = 'year-text';
+            yearSpan.textContent = String(year);
+            yearCell.appendChild(yearSpan);
+            yearHeaderRow.appendChild(yearCell);
+        });
+        graphHTML.appendChild(yearHeaderRow);
 
         // Create month rows
         for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
@@ -189,9 +191,9 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
 
                 const yearBox = document.createElement('div');
                 yearBox.className = 'year-box';
-                
+
                 // worksForKey now directly holds the list of work items for this month
-                const worksForKey = dataMap[key]; 
+                const worksForKey = dataMap[key];
 
                 if (worksForKey && worksForKey.length > 0) {
                     const totalWorksInCell = worksForKey.length; // 总作品数，用于格子背景颜色变化
@@ -208,10 +210,10 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
                     });
 
                     // Get distinct types and sort them for consistent order
-                    const distinctTypes = Object.keys(groupedWorksByType).sort((a, b) => 
+                    const distinctTypes = Object.keys(groupedWorksByType).sort((a, b) =>
                         getActivityOrder(a) - getActivityOrder(b)
                     );
-                    
+
                     // Calculate height per distinct type segment
                     const heightPerTypeSegment = 100 / distinctTypes.length;
 
@@ -222,7 +224,7 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
 
                         const activitySegment = document.createElement('div');
                         const typeClass = getActivityTypeClass(type);
-                        
+
                         let highClass = '';
                         if (typeCount >= 2) { // Apply 'high' class if this type has 2 or more works
                             highClass = 'high';
@@ -231,13 +233,13 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
                         activitySegment.className = `activity-segment ${typeClass} ${highClass}`;
                         activitySegment.style.height = `${heightPerTypeSegment}%`;
                         activitySegment.style.top = `${index * heightPerTypeSegment}%`;
-                        
+
                         yearBox.appendChild(activitySegment);
                     });
-                    
+
                     yearBox.classList.add('clickable');
                     yearBox.setAttribute('data-key', key);
-                    yearBox.addEventListener('click', function() {
+                    yearBox.addEventListener('click', function () {
                         showWorksDetail(this.getAttribute('data-key'), labelMap, type);
                     });
                 } else {
@@ -253,7 +255,7 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
     } else if (type === 'year' || type === 'age') {
         const currentYearOrAge = type === 'year' ? CURRENT_YEAR : getAgeAtDate(BIRTH_DATE, new Date());
         const startValue = type === 'year' ? START_YEAR_GLOBAL : AGE_START;
-        
+
         // Decade labels (0-9)
         const digitLabelRow = document.createElement('div');
         digitLabelRow.className = 'digit-label-row';
@@ -291,7 +293,7 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
 
                 const yearOrAgeBox = document.createElement('div');
                 yearOrAgeBox.className = `${type === 'year' ? 'year-box-year-view' : 'year-box-age-view'}`;
-                
+
                 // worksForKey now directly holds the list of work items for this year/age
                 const worksForKey = dataMap[value];
 
@@ -310,10 +312,10 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
                     });
 
                     // Get distinct types and sort them for consistent order
-                    const distinctTypes = Object.keys(groupedWorksByType).sort((a, b) => 
+                    const distinctTypes = Object.keys(groupedWorksByType).sort((a, b) =>
                         getActivityOrder(a) - getActivityOrder(b)
                     );
-                    
+
                     // Calculate height per distinct type segment
                     const heightPerTypeSegment = 100 / distinctTypes.length;
 
@@ -324,12 +326,12 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
 
                         const activitySegment = document.createElement('div');
                         const typeClass = getActivityTypeClass(type);
-                        
+
                         let highClass = '';
                         if (typeCount >= 2) { // Apply 'high' class if this type has 2 or more works
                             highClass = 'high';
                         }
-                        
+
                         activitySegment.className = `activity-segment ${typeClass} ${highClass}`;
                         activitySegment.style.height = `${heightPerTypeSegment}%`;
                         activitySegment.style.top = `${index * heightPerTypeSegment}%`;
@@ -338,7 +340,7 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
 
                     yearOrAgeBox.classList.add('clickable');
                     yearOrAgeBox.setAttribute('data-key', value);
-                    yearOrAgeBox.addEventListener('click', function() {
+                    yearOrAgeBox.addEventListener('click', function () {
                         showWorksDetail(this.getAttribute('data-key'), labelMap, type);
                     });
                 } else {
@@ -388,7 +390,7 @@ function getFilteredActivityDates(item) {
     }
 
     // Dates to be unconditionally excluded (highest priority)
-    const excludeDates = new Set(parseAndFormatDates(item.Date)); 
+    const excludeDates = new Set(parseAndFormatDates(item.Date));
     // Dates to be unconditionally added (after range, before final exclusion)
     const additionalDates = parseAndFormatDates(item.Add);
 
@@ -401,7 +403,7 @@ function getFilteredActivityDates(item) {
 
     while (currentIterateDate <= endDate && safetyCounter < MAX_ITERATIONS) {
         // Get day of the week: 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-        let dayOfWeek = currentIterateDate.getDay(); 
+        let dayOfWeek = currentIterateDate.getDay();
         // Convert to 1=Monday, ..., 7=Sunday to match CSV Weekday column
         let csvDayOfWeek = (dayOfWeek === 0) ? 7 : dayOfWeek;
 
@@ -528,9 +530,9 @@ function createAgeGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
 function showWorksDetail(key, worksDataMap, viewType) {
     const detailContainer = document.getElementById('works-detail-container');
     const detailContent = detailContainer.querySelector('.detail-content');
-    
+
     if (!detailContainer || !detailContent) return;
-    
+
     let works = [];
     let title = '';
 
@@ -552,23 +554,23 @@ function showWorksDetail(key, worksDataMap, viewType) {
         const worksByType = {};
         works.forEach(work => {
             // Normalize WorksType before grouping
-            const normalizedType = normalizeWorksType(work.WorksType); 
+            const normalizedType = normalizeWorksType(work.WorksType);
             if (!worksByType[normalizedType]) {
                 worksByType[normalizedType] = [];
             }
             worksByType[normalizedType].push(work);
         });
-        
+
         let html = `<h4>${title}</h4>`;
-        
+
         const typeOrder = {
             '映画': 1, 'TV': 2, '舞台': 3, 'BOOK': 4, 'その他': 5, '声の出演': 6
         };
-        
-        const sortedTypes = Object.keys(worksByType).sort((a, b) => 
+
+        const sortedTypes = Object.keys(worksByType).sort((a, b) =>
             (typeOrder[a] || 99) - (typeOrder[b] || 99)
         );
-        
+
         sortedTypes.forEach(type => {
             let typeWorks = worksByType[type]; // Use let here as we'll reassign after sort
 
@@ -587,17 +589,17 @@ function showWorksDetail(key, worksDataMap, viewType) {
             });
 
             const typeClass = getActivityTypeClass(type);
-            
+
             html += `<div class="works-type-group">
                 <h5 class="${typeClass}-title">${type}</h5>
                 <div class="works-row ${typeClass}-row">`;
-            
+
             typeWorks.forEach(work => {
                 let dateDisplay = work.DateStart;
                 if (work.DateEnd && work.DateEnd !== work.DateStart) {
                     dateDisplay += ` ~ ${work.DateEnd}`;
                 }
-                
+
                 html += `
                 <div class="work-card ${typeClass}">
                     <div class="work-title">${work.Title}</div>
@@ -606,13 +608,13 @@ function showWorksDetail(key, worksDataMap, viewType) {
                 </div>
                 `;
             });
-            
+
             html += '</div></div>';
         });
-        
+
         detailContent.innerHTML = html;
     }
-    
+
     detailContainer.style.display = 'block';
     detailContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -621,7 +623,7 @@ function showWorksDetail(key, worksDataMap, viewType) {
 // --- Main Logic for Loading and Filtering ---
 document.addEventListener('DOMContentLoaded', function () {
     // console.log('Activity visualization initializing...');
-    
+
     // Assuming loadNavbar and highlightCurrentPage are defined elsewhere
     if (typeof loadNavbar === 'function') {
         loadNavbar().then(() => {
@@ -643,7 +645,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const selectedTypes = Array.from(typeFilters)
             .filter(input => input.checked)
             .map(input => input.dataset.type);
-        
+
         const monthGraph = document.getElementById('contribution-graph');
         const yearGraph = document.getElementById('year-graph-container');
         const ageGraph = document.getElementById('age-graph-container');
@@ -684,7 +686,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     item.WorksType = 'その他';
                 }
             });
-            
+
             // Initial graph creation (default to month view)
             updateGraphView();
 
@@ -698,7 +700,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Add event listener for new view filters (Year/Age)
             viewFilters.forEach(filter => {
-                filter.addEventListener('change', function() {
+                filter.addEventListener('change', function () {
                     // Ensure only one view filter is checked at a time
                     viewFilters.forEach(otherFilter => {
                         if (otherFilter !== this) {
@@ -712,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Add closing event for detail container
             const closeButton = document.querySelector('#works-detail-container .close-detail');
             if (closeButton) {
-                closeButton.addEventListener('click', function() {
+                closeButton.addEventListener('click', function () {
                     document.getElementById('works-detail-container').style.display = 'none';
                 });
             }
