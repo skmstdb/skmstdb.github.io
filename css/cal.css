@@ -1,18 +1,34 @@
 /* Calendar Styles */
+:root {
+    --border-color: #e0e0e0;
+    --other-month-bg-color: #f9f9f9;
+    --other-month-text-color: #ccc;
+}
+
+.dark-mode {
+    --border-color: #444;
+    --other-month-bg-color: #222;
+    --other-month-text-color: #555;
+}
+
 .calendar-container {
     width: 100%;
-    margin: -10px auto 0;
+    margin: 0 auto;
     padding: 20px;
     background-color: var(--bg-color);
-    border-radius: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border: 2px solid var(--calendar-border-color); /* 添加容器边框 */
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-weight: bold;
+    /* Make all text bold by default */
 }
+
 /* 从 style.css 移植的 main-content 样式 */
+/* 从 style.css 移植的 main-content 样式 - 覆盖为更宽的显示 */
 .main-content {
-    max-width: 950px;
+    max-width: 98%;
     width: 100%;
     margin: 0 auto;
+    padding: 10px;
 }
 
 /* 其他 calendar 页面特定样式 */
@@ -39,11 +55,13 @@
 .mobile-notice p:last-child {
     margin-bottom: 0;
 }
+
 /* 移动设备媒体查询 */
 @media (max-width: 768px) {
     .calendar-container {
         display: none;
     }
+
     .mobile-notice {
         display: block;
     }
@@ -60,99 +78,91 @@
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 0; /* 移除间隙 */
-    background-color: var(--calendar-border-color); /* 使用边框颜色作为背景 */
-    border: 2px solid var(--calendar-border-color); /* 为整个日历网格添加边框 */
-    border-radius: 10px;
-    overflow: hidden;
+    gap: 0;
+    background-color: transparent;
+    border-top: 1px solid var(--border-color);
+    border-left: 1px solid var(--border-color);
 }
 
 .calendar-day-header {
     text-align: center;
     font-weight: bold;
-    padding: 10px;
+    padding: 15px 0;
     color: var(--text-color);
-    background-color: var(--nav-item-bg-color);
-    border: 1px solid var(--calendar-border-color); /* 为表头添加边框 */
-}
-
-.calendar-day {
-    min-height: 120px;
-    background-color: var(--bg-color);
-    padding: 20px 8px 8px 8px;
-    position: relative;
-    border: 1px solid var(--calendar-border-color); /* 使用变量控制边框颜色 */
-    transition: background-color 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    box-sizing: border-box; /* 确保边框包含在元素尺寸内 */
-}
-
-.calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 2px;
-    background-color: var(--calendar-grid-gap-color); /* 使用变量替代固定颜色 */
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.calendar-day-header {
-    text-align: center;
-    font-weight: bold;
-    padding: 10px;
-    color: var(--text-color);
-    background-color: var(--nav-item-bg-color);
+    background-color: transparent;
     border-bottom: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    font-size: 0.9em;
+    letter-spacing: 1px;
 }
 
 .calendar-day {
-    min-height: 120px;
+    min-height: 12vh;
+    /* Use vh to fit in viewport */
     background-color: var(--bg-color);
-    padding: 20px 8px 8px 8px; /* 增加顶部内边距 */
+    padding: 25px 5px 5px 5px;
+    /* Increased top padding to avoid overlap with day number */
     position: relative;
-    border: 1px solid var(--border-color);
-    transition: background-color 0.3s ease;
+    border-bottom: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    transition: background-color 0.2s ease;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    box-sizing: border-box;
 }
+
+.calendar-day:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Removed duplicate calendar-grid definition */
+
+/* Removed duplicate calendar-day-header definition */
+
+/* Removed duplicate calendar-day definition */
 
 .calendar-nav button {
-    background-color: var(--nav-item-bg-color);
+    background-color: transparent;
     border: 1px solid var(--border-color);
-    border-radius: 5px;
-    padding: 5px 15px;
+    border-radius: 4px;
+    padding: 5px 10px;
     cursor: pointer;
     color: var(--text-color);
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    font-weight: bold;
 }
 
 .calendar-nav button:hover {
-    background-color: var(--nav-item-hover-bg-color);
-    transform: translateY(-2px);
+    background-color: rgba(0, 0, 0, 0.05);
 }
 
 .calendar-nav select {
-    background-color: var(--nav-item-bg-color);
+    background-color: transparent;
     border: 1px solid var(--border-color);
-    border-radius: 5px;
-    padding: 5px 10px;
+    border-radius: 4px;
+    padding: 5px 25px 5px 10px;
     color: var(--text-color);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    font-weight: bold;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7em top 50%;
+    background-size: 0.65em auto;
 }
 
 .calendar-nav select:hover {
-    background-color: var(--nav-item-hover-bg-color);
+    border-bottom-color: var(--text-color);
 }
 
 .calendar-title {
-    font-size: 1.5em;
+    font-size: 1.2em;
     font-weight: bold;
     color: var(--text-color);
+    letter-spacing: 1px;
 }
 
 .calendar-nav {
@@ -161,28 +171,9 @@
     align-items: center;
 }
 
-.calendar-nav button {
-    background-color: var(--nav-item-bg-color);
-    border: none;
-    border-radius: 5px;
-    padding: 5px 10px;
-    cursor: pointer;
-    color: var(--text-color);
-    transition: background-color 0.3s;
-}
+/* Removed duplicate button styles */
 
-.calendar-nav button:hover {
-    background-color: var(--nav-item-hover-bg-color);
-}
-
-.calendar-nav select {
-    background-color: var(--nav-item-bg-color);
-    border: none;
-    border-radius: 5px;
-    padding: 5px 10px;
-    color: var(--text-color);
-    cursor: pointer;
-}
+/* Removed duplicate select styles */
 
 .calendar-day-number {
     position: absolute;
@@ -192,44 +183,38 @@
     text-align: right;
 }
 
-.calendar-nav select,
-.calendar-nav #today-button {
-    background-color: #ffffff;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 8px 15px;
-    color: var(--text-color);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+/* Removed duplicate select/button styles */
 
 .calendar-nav select:hover,
 .calendar-nav #today-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: none;
+    background-color: rgba(0, 0, 0, 0.05);
+    box-shadow: none;
 }
 
 /* Bento Styles */
 .bento-container {
     display: block;
-    background-color: rgba(52, 152, 219, 0.8);
+    background-color: rgba(52, 152, 219, 0.1);
     color: white;
-    font-size: 0.8em;
+    border-left: 3px solid #3498db;
+    font-size: 0.75em;
+    font-weight: normal;
+    /* Keep event titles normal weight */
     text-align: left;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: 5px;
-    border-radius: 10px;
-    margin: 3px 5px;
+    padding: 4px 6px;
+    border-radius: 0 4px 4px 0;
+    margin: 2px 0;
     position: relative;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s ease;
+    box-shadow: none;
+    transition: background-color 0.2s ease;
     text-decoration: none;
-    min-height: 30px;
+    min-height: auto;
     height: auto;
-    line-height: 1.2em;
-    max-height: 3.6em;
+    line-height: 1.3em;
+    max-height: 3.9em;
     word-break: break-word;
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -240,7 +225,7 @@
 }
 
 .bento-container:hover {
-    background-color: rgba(41, 128, 185, 0.9);
+    background-color: rgba(52, 152, 219, 0.2);
 }
 
 .bento-item {
@@ -249,21 +234,13 @@
 
 /* Other Month Styles */
 .calendar-day.other-month {
-    background-color: var(--other-month-bg-color);  /* 使用变量替代固定颜色 */
-    color: var(--other-month-text-color);  /* 使用变量替代固定颜色 */
+    background-color: var(--other-month-bg-color);
+    /* 使用变量替代固定颜色 */
+    color: var(--other-month-text-color);
+    /* 使用变量替代固定颜色 */
 }
 
-.calendar-nav select,
-.calendar-nav #today-button {
-    background-color: var(--bg-color);  /* 使用变量替代固定颜色 */
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 8px 15px;
-    color: var(--text-color);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+/* Removed duplicate select/button styles */
 
 /* 添加深色模式特定样式 */
 body.dark-mode .calendar-day.other-month {
