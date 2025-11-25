@@ -3,8 +3,8 @@ let isAnniversaryMode = false;
 
 async function parseCSV() {
     try {
-        // 加载主数据文件
-        const response = await fetch('../data/worksdata.csv');
+        // 加载主数据文件 - 从 biography.csv 读取
+        const response = await fetch('../data/biography.csv');
         const data = await response.text();
         const rows = data.split('\n').filter(row => row.trim());
         const header = rows[0].split(',').map(col => col.trim()); // 获取表头
@@ -20,21 +20,22 @@ async function parseCSV() {
                 eventData[header[i]] = columns[i] ? columns[i].trim() : '';
             }
 
-            // 处理排除日期
+            // 处理排除日期 - 使用 DateDelete 列
             let excludeDates = [];
-            if (eventData['Date'] && eventData['Date'].trim() !== '') {
-                excludeDates = eventData['Date'].split(',').map(date => date.trim());
+            if (eventData['DateDelete'] && eventData['DateDelete'].trim() !== '') {
+                excludeDates = eventData['DateDelete'].split(',').map(date => date.trim());
                 console.log('Event:', eventData['Title'], 'Exclude dates:', excludeDates); // 调试信息
             }
 
-            // 处理Add列的日期
+            // 处理DateAdd列的日期
             let additionalDates = [];
-            if (eventData['Add'] && eventData['Add'].trim() !== '') {
-                additionalDates = eventData['Add'].split(',').map(date => date.trim());
+            if (eventData['DateAdd'] && eventData['DateAdd'].trim() !== '') {
+                additionalDates = eventData['DateAdd'].split(',').map(date => date.trim());
                 console.log('Event:', eventData['Title'], 'Additional dates:', additionalDates); // 调试信息
             }
 
             return {
+                pageCalendar: eventData['PageCalendar'] || '',
                 startDate: new Date(eventData['DateStart']),
                 endDate: eventData['DateEnd'] ? new Date(eventData['DateEnd']) : new Date(eventData['DateStart']),
                 title: eventData['Title'] || '',
@@ -42,10 +43,14 @@ async function parseCSV() {
                 id: Math.random().toString(36).substr(2, 9),
                 weekday: eventData['Weekday'] || '', // 添加星期几属性
                 excludeDates: excludeDates, // 添加需要排除的日期
-                additionalDates: additionalDates, // 添加Add列中的额外日期
+                additionalDates: additionalDates, // 添加DateAdd列中的额外日期
                 source: 'main' // 标记数据来源
             };
-        }).filter(event => !isNaN(event.startDate.getTime()) && event.title);
+        }).filter(event =>
+            // 只包含 PageCalendar 列不为空的数据
+            event.pageCalendar && event.pageCalendar.trim() !== '' &&
+            !isNaN(event.startDate.getTime()) && event.title
+        );
 
         // 加载other.csv数据
         const otherEvents = await parseOtherCSV();
@@ -58,10 +63,10 @@ async function parseCSV() {
     }
 }
 
-// 解析anndata.csv数据
+// 解析 biography.csv 中 PageAnn 不为空的数据
 async function parseAnniversaryCSV() {
     try {
-        const response = await fetch('../data/anndata.csv');
+        const response = await fetch('../data/biography.csv');
         const data = await response.text();
         const rows = data.split('\n').filter(row => row.trim());
         const header = rows[0].split(',').map(col => col.trim());
@@ -75,6 +80,7 @@ async function parseAnniversaryCSV() {
             }
 
             return {
+                pageAnn: eventData['PageAnn'] || '',
                 startDate: new Date(eventData['DateStart']),
                 endDate: eventData['DateEnd'] ? new Date(eventData['DateEnd']) : new Date(eventData['DateStart']),
                 title: eventData['Title'] || '',
@@ -82,7 +88,11 @@ async function parseAnniversaryCSV() {
                 id: Math.random().toString(36).substr(2, 9),
                 source: 'anniversary'
             };
-        }).filter(event => !isNaN(event.startDate.getTime()) && event.title);
+        }).filter(event =>
+            // 只包含 PageAnn 列不为空的数据
+            event.pageAnn && event.pageAnn.trim() !== '' &&
+            !isNaN(event.startDate.getTime()) && event.title
+        );
 
         return events;
     } catch (error) {
@@ -390,8 +400,13 @@ function renderEvents(calendarGrid, year, month, events) {
             }
         }
 
-        // 如果有指定星期几，则只在特定星期几显示
-        if (event.weekday) {
+        // 检查 weekday 是否为数字（包括负数）
+        const weekdayValue = parseInt(event.weekday);
+        const isNumericWeekday = event.weekday && !isNaN(weekdayValue) && event.weekday.trim() !== '';
+
+        // 如果有指定星期几且为数字，则只在特定星期几显示
+        if (isNumericWeekday) {
+            // weekday 是数字，执行星期过滤逻辑
             // 获取当月的所有日期
             const daysInMonth = new Date(year, month + 1, 0).getDate();
 
@@ -403,7 +418,6 @@ function renderEvents(calendarGrid, year, month, events) {
                 const adjustedDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
 
                 // 检查是否为负数（排除模式）
-                const weekdayValue = parseInt(event.weekday);
                 const isExcludeMode = weekdayValue < 0;
                 const absWeekday = Math.abs(weekdayValue);
 
@@ -456,7 +470,7 @@ function renderEvents(calendarGrid, year, month, events) {
                 }
             }
         } else {
-            // 原有的处理逻辑，对于没有指定星期几的事件
+            // weekday 不是数字或为空，按照没有指定星期几的逻辑处理
             const startIndex = displayStart.getDate() + firstDayOfWeek - 1;
             const endIndex = displayEnd.getDate() + firstDayOfWeek - 1;
 
