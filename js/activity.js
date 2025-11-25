@@ -390,9 +390,9 @@ function getFilteredActivityDates(item) {
     }
 
     // Dates to be unconditionally excluded (highest priority)
-    const excludeDates = new Set(parseAndFormatDates(item.Date));
+    const excludeDates = new Set(parseAndFormatDates(item.DateDelete));
     // Dates to be unconditionally added (after range, before final exclusion)
-    const additionalDates = parseAndFormatDates(item.Add);
+    const additionalDates = parseAndFormatDates(item.DateAdd);
 
     const relevantDates = new Set(); // Stores 'YYYY-MM-DD' strings
 
@@ -421,12 +421,12 @@ function getFilteredActivityDates(item) {
         safetyCounter++;
     }
 
-    // 2. Add dates from 'Add' column (independent of Weekday, but will be subject to final 'Date' exclusion)
+    // 2. Add dates from 'DateAdd' column (independent of Weekday, but will be subject to final 'DateDelete' exclusion)
     additionalDates.forEach(dateStr => {
         relevantDates.add(dateStr);
     });
 
-    // 3. Remove dates specified in 'Date' column (highest priority exclusion)
+    // 3. Remove dates specified in 'DateDelete' column (highest priority exclusion)
     excludeDates.forEach(dateStr => {
         relevantDates.delete(dateStr);
     });
@@ -673,10 +673,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Fetch CSV data
-    fetch('../data/worksdata.csv')
+    fetch('../data/biography.csv')
         .then(response => response.text())
         .then(data => {
-            worksData = parseCSV(data); // Store data
+            const allData = parseCSV(data); // Parse all data
+
+            // Filter data: only include rows where PageActivity is not empty
+            worksData = allData.filter(item => item.PageActivity && item.PageActivity.trim() !== '');
 
             // Normalize WorksType in the data
             worksData.forEach(item => {
