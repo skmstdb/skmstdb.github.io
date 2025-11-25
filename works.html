@@ -3,20 +3,21 @@
 
 <head>
     <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C7BJGKMFT"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6C7BJGKMFT"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-  gtag('config', 'G-6C7BJGKMFT');
-</script>
+        gtag('config', 'G-6C7BJGKMFT');
+    </script>
     <meta charset="UTF-8">
     <script src="js/visibility.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
         content="堺雅人の出演作品と、各動画配信サービスでの視聴方法を一覧で紹介。映画やドラマをどこでオンライン視聴できるか、詳細な情報をチェック！ / Explore Sakai Masato's works and where to watch them on streaming services. Find out where to watch his movies and dramas online.">
-    <meta name="keywords" content="堺雅人, 出演作品, 映画, テレビドラマ, 動画配信サービス, データベース, Sakai Masato, Film, Movie, TV, Shows, Series, Database">
+    <meta name="keywords"
+        content="堺雅人, 出演作品, 映画, テレビドラマ, 動画配信サービス, データベース, Sakai Masato, Film, Movie, TV, Shows, Series, Database">
     <title>Sakai Masato Database</title>
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="icon" href="favicon-32x32.png" sizes="32x32" />
@@ -65,42 +66,58 @@
         document.addEventListener('DOMContentLoaded', function () {
             // 恢复body可见性
             document.body.style.visibility = 'visible';
-            
+
             // loadNavbar() 已经在 navHighlight.js 中调用，这里不需要再调用
 
             const container = document.getElementById('works-container');
-            
-            fetch('/data/works-data.html')
+
+            fetch('/data/biography.csv')
                 .then(response => response.text())
                 .then(data => {
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = data;
+                    // Parse CSV
+                    const lines = data.split('\n');
+                    const headers = lines[0].split(',');
 
-                    const workItems = tempDiv.querySelectorAll('.work-item');
-                    const newContent = Array.from(workItems).map(item => {
-                        const category = item.dataset.category;
-                        const tags = Array.from(item.querySelectorAll('.work-tag'));
-                        const titleElement = item.querySelector('.work-title a');
+                    // Find column indices
+                    const pageWorksIdx = headers.findIndex(h => h.trim() === 'PageWorks');
+                    const yearIdx = headers.findIndex(h => h.trim() === 'Year');
+                    const titleIdx = headers.findIndex(h => h.trim() === 'Title');
+                    const roleIdx = headers.findIndex(h => h.trim() === 'Role');
+                    const worksTypeIdx = headers.findIndex(h => h.trim() === 'WorksType');
+                    const urlIdx = headers.findIndex(h => h.trim() === 'URL');
 
-                        const linkUrl = titleElement ? titleElement.getAttribute('href') : '#';
-                        const titleText = titleElement ? titleElement.textContent : '';
+                    // Parse and filter data
+                    const works = [];
+                    for (let i = 1; i < lines.length; i++) {
+                        if (!lines[i].trim()) continue;
 
-                        const tagsHtml = tags.map(tag => {
-                            const subtag = tag.dataset.subtag || '';
-                            return `<span class="work-tag" data-subtag="${subtag}">${tag.textContent}</span>`;
-                        }).join('');
+                        // Simple CSV parsing (handles basic cases)
+                        const cols = lines[i].split(',');
 
-                        const isLeadRole = tags.some(tag =>
-                            tag.dataset.subtag === 'role' &&
-                            tag.textContent.includes('主演')
-                        );
+                        // Only include rows where PageWorks is 'Y'
+                        if (cols[pageWorksIdx] && cols[pageWorksIdx].trim() === 'Y') {
+                            works.push({
+                                year: cols[yearIdx] ? cols[yearIdx].trim() : '',
+                                title: cols[titleIdx] ? cols[titleIdx].trim() : '',
+                                role: cols[roleIdx] ? cols[roleIdx].trim() : '',
+                                worksType: cols[worksTypeIdx] ? cols[worksTypeIdx].trim() : '',
+                                url: cols[urlIdx] ? cols[urlIdx].trim().replace(/\r$/, '') : ''
+                            });
+                        }
+                    }
+
+                    // Generate HTML
+                    const newContent = works.map(work => {
+                        const isLeadRole = work.role.includes('主演');
 
                         return `
-                        <div class="work-item" data-category="${category}" data-lead-role="${isLeadRole}" onclick="window.open('${linkUrl}', '_blank')">
+                        <div class="work-item" data-category="${work.worksType}" data-lead-role="${isLeadRole}" onclick="window.open('${work.url}', '_blank')">
                             <div class="tags-container">
-                                ${tagsHtml}
+                                <span class="work-tag" data-subtag="year">${work.year}</span>
+                                <span class="work-tag" data-subtag="role">${work.role}</span>
+                                <span class="work-tag" data-subtag="works">${work.worksType}</span>
                             </div>
-                            <div class="work-title">${titleText}</div>
+                            <div class="work-title">${work.title}</div>
                         </div>
                         `;
                     }).join('');
