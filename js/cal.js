@@ -1,4 +1,6 @@
 // 解析CSV数据
+let isAnniversaryMode = false;
+
 async function parseCSV() {
     try {
         // 加载主数据文件
@@ -55,6 +57,132 @@ async function parseCSV() {
         return [];
     }
 }
+
+// 解析anndata.csv数据
+async function parseAnniversaryCSV() {
+    try {
+        const response = await fetch('../data/anndata.csv');
+        const data = await response.text();
+        const rows = data.split('\n').filter(row => row.trim());
+        const header = rows[0].split(',').map(col => col.trim());
+        const dataStartIndex = 1;
+
+        const events = rows.slice(dataStartIndex).map(row => {
+            const columns = parseCSVRow(row);
+            const eventData = {};
+            for (let i = 0; i < header.length && i < columns.length; i++) {
+                eventData[header[i]] = columns[i] ? columns[i].trim() : '';
+            }
+
+            return {
+                startDate: new Date(eventData['DateStart']),
+                endDate: eventData['DateEnd'] ? new Date(eventData['DateEnd']) : new Date(eventData['DateStart']),
+                title: eventData['Title'] || '',
+                url: eventData['URL'] ? eventData['URL'].trim() : '#',
+                id: Math.random().toString(36).substr(2, 9),
+                source: 'anniversary'
+            };
+        }).filter(event => !isNaN(event.startDate.getTime()) && event.title);
+
+        return events;
+    } catch (error) {
+        console.error('Error loading Anniversary CSV data:', error);
+        return [];
+    }
+}
+
+function calculateAnniversaries(events, year, month) {
+    const anniversaryEvents = [];
+    const targetMonth = month; // 0-indexed
+    const targetYear = year;
+
+    events.forEach(event => {
+        const startDate = event.startDate;
+        const endDate = event.endDate;
+        const isSingleDay = startDate.getTime() === endDate.getTime();
+
+        // Helper to add anniversary event
+        const addEvent = (date, title, color) => {
+            if (date.getFullYear() === targetYear && date.getMonth() === targetMonth) {
+                anniversaryEvents.push({
+                    startDate: date,
+                    endDate: date,
+                    title: title,
+                    url: event.url,
+                    id: Math.random().toString(36).substr(2, 9),
+                    source: 'anniversary',
+                    color: color
+                });
+            }
+        };
+
+        // 1. Yearly Anniversary
+        // Calculate years passed
+        const startYearsDiff = targetYear - startDate.getFullYear();
+        if (startYearsDiff > 0) {
+            const annDate = new Date(startDate);
+            annDate.setFullYear(targetYear);
+            addEvent(annDate, `${event.title} (${startYearsDiff}周年)`, 'rgba(231, 76, 60, 0.8)');
+        }
+
+        if (!isSingleDay) {
+            const endYearsDiff = targetYear - endDate.getFullYear();
+            if (endYearsDiff > 0) {
+                const annDate = new Date(endDate);
+                annDate.setFullYear(targetYear);
+                addEvent(annDate, `${event.title} 終了 (${endYearsDiff}周年)`, 'rgba(231, 76, 60, 0.8)');
+            }
+        }
+
+        // 2. Day-count Anniversary (100, 200, ..., 1000, 2000, ...)
+        // Check if any significant day count falls in this month
+        // Iterate through days in the month to find matches? Or calculate directly?
+        // Calculating directly is better.
+
+        // We need to find if (targetDate - baseDate) is a significant number.
+        // Let's iterate through the days of the target month.
+        const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const currentDay = new Date(targetYear, targetMonth, d);
+
+            // Check Start Date
+            const diffTimeStart = currentDay.getTime() - startDate.getTime();
+            const diffDaysStart = Math.floor(diffTimeStart / (1000 * 60 * 60 * 24));
+
+            if (diffDaysStart > 0) {
+                if (isSignificantDay(diffDaysStart)) {
+                    addEvent(currentDay, `${event.title} (${diffDaysStart}日)`, 'rgba(155, 89, 182, 0.8)');
+                }
+            }
+
+            // Check End Date (if not single day)
+            if (!isSingleDay) {
+                const diffTimeEnd = currentDay.getTime() - endDate.getTime();
+                const diffDaysEnd = Math.floor(diffTimeEnd / (1000 * 60 * 60 * 24));
+                if (diffDaysEnd > 0) {
+                    if (isSignificantDay(diffDaysEnd)) {
+                        addEvent(currentDay, `${event.title} 終了 (${diffDaysEnd}日)`, 'rgba(155, 89, 182, 0.8)');
+                    }
+                }
+            }
+        }
+    });
+
+    return anniversaryEvents;
+}
+
+function isSignificantDay(days) {
+    if (days < 100) return false;
+    if (days < 1000) {
+        return days % 100 === 0;
+    }
+    if (days < 10000) {
+        return days % 1000 === 0;
+    }
+    return days % 10000 === 0;
+}
+
 
 // 解析other.csv数据
 async function parseOtherCSV() {
@@ -169,7 +297,7 @@ function generateCalendar(year, month, events) {
     }
 }
 
-// 更新renderEvents函数，根据事件来源设置不同的背景色
+// 更新renderEvents函数，根据事件来源设置不同的背景色和边框色
 function renderEvents(calendarGrid, year, month, events) {
     const dayElements = Array.from(calendarGrid.querySelectorAll('.calendar-day'));
     const firstDay = new Date(year, month, 1);
@@ -189,6 +317,7 @@ function renderEvents(calendarGrid, year, month, events) {
             birthdayContainer.target = '_blank'; // 在新标签页打开
             birthdayContainer.classList.add('bento-container');
             birthdayContainer.style.backgroundColor = 'rgba(46, 204, 113, 0.8)'; // 绿色背景
+            birthdayContainer.style.borderLeftColor = '#27ae60'; // 深绿色边框
 
             // 誕生日イベントの内容
             const birthdayItem = document.createElement('div');
@@ -221,6 +350,7 @@ function renderEvents(calendarGrid, year, month, events) {
                         bentoContainer.target = '_blank';
                         bentoContainer.classList.add('bento-container');
                         bentoContainer.style.backgroundColor = 'rgba(52, 152, 219, 0.8)'; // 蓝色背景，区分额外日期
+                        bentoContainer.style.borderLeftColor = '#3498db'; // 蓝色边框
 
                         // 创建 Bento 项目
                         const bentoItem = document.createElement('div');
@@ -242,12 +372,22 @@ function renderEvents(calendarGrid, year, month, events) {
         const displayStart = new Date(Math.max(startDate, new Date(year, month, 1)));
         const displayEnd = new Date(Math.min(endDate, new Date(year, month + 1, 0)));
 
-        // 设置事件背景色
+        // 设置事件背景色和边框色
         let backgroundColor = 'rgba(52, 152, 219, 0.8)'; // 默认蓝色背景
+        let borderColor = '#3498db'; // 默认蓝色边框
 
-        // 根据事件来源设置不同的背景色
+        // 根据事件来源设置不同的背景色和边框色
         if (event.source === 'other') {
             backgroundColor = '#43AA8B';
+            borderColor = '#2E8B57'; // 深海绿
+        } else if (event.source === 'anniversary') {
+            backgroundColor = event.color || 'rgba(231, 76, 60, 0.8)';
+            // 根据背景色判断边框色
+            if (backgroundColor.includes('231, 76, 60')) { // 红色 (Yearly)
+                borderColor = '#c0392b';
+            } else { // 紫色 (Day-count)
+                borderColor = '#8e44ad';
+            }
         }
 
         // 如果有指定星期几，则只在特定星期几显示
@@ -302,6 +442,7 @@ function renderEvents(calendarGrid, year, month, events) {
                         bentoContainer.target = '_blank';
                         bentoContainer.classList.add('bento-container');
                         bentoContainer.style.backgroundColor = backgroundColor; // 使用根据来源设置的背景色
+                        bentoContainer.style.borderLeftColor = borderColor; // 设置边框色
 
                         // 创建 Bento 项目
                         const bentoItem = document.createElement('div');
@@ -342,6 +483,7 @@ function renderEvents(calendarGrid, year, month, events) {
                     bentoContainer.target = '_blank';
                     bentoContainer.classList.add('bento-container');
                     bentoContainer.style.backgroundColor = backgroundColor; // 使用根据来源设置的背景色
+                    bentoContainer.style.borderLeftColor = borderColor; // 设置边框色
 
                     // 创建 Bento 项目
                     const bentoItem = document.createElement('div');
@@ -432,7 +574,17 @@ async function updateCalendar() {
     const year = parseInt(yearSelect.value);
     const month = parseInt(monthSelect.value);
 
-    const events = await parseCSV();
+    let events = await parseCSV(); // Always load schedule events
+
+    if (isAnniversaryMode) {
+        const rawAnniversaryEvents = await parseAnniversaryCSV();
+        const anniversaryEvents = calculateAnniversaries(rawAnniversaryEvents, year, month);
+        events = [...events, ...anniversaryEvents]; // Merge events
+        document.getElementById('calendar-title').textContent = `${year}年${month + 1}月 (Anniversary)`;
+    } else {
+        document.getElementById('calendar-title').textContent = `${year}年${month + 1}月`;
+    }
+
     generateCalendar(year, month, events);
     updateNavigationButtons(year, month);
 }
@@ -550,5 +702,12 @@ document.addEventListener('DOMContentLoaded', async function () {
         document.getElementById('month-select').value = today.getMonth();
         updateCalendar();
     });
-});
 
+    const viewToggleBtn = document.getElementById('view-toggle');
+    viewToggleBtn.addEventListener('click', () => {
+        isAnniversaryMode = !isAnniversaryMode;
+        viewToggleBtn.textContent = isAnniversaryMode ? 'Schedule View' : 'Anniversary View';
+        viewToggleBtn.classList.toggle('active');
+        updateCalendar();
+    });
+});
