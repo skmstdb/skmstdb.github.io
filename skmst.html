@@ -457,7 +457,6 @@
 
     <script>
         // 確保ページロード後に正確にレイアウトを適用
-        // 確保ページロード後に正確にレイアウトを適用
         document.addEventListener('DOMContentLoaded', function () {
             // Initialize Showcase
             initShowcase();
@@ -476,7 +475,7 @@
             const endOfDecade = new Date((Math.floor(year / 10) + 1) * 10, 0, 1);
             const decadeProgress = (now - startOfDecade) / (endOfDecade - startOfDecade) * 100;
             updateBar('decade', decadeProgress);
-            document.getElementById('decade-label').textContent = `Decade (${Math.floor(year / 10) * 10}s)`;
+            document.getElementById('decade-label').textContent = `Decade ${Math.floor(year / 10) * 10}s`;
 
             // 2. Year Progress
             const startOfYear = new Date(year, 0, 1);
@@ -501,7 +500,7 @@
             const monthNames = ["January", "February", "March", "April", "May", "June",
                 "July", "August", "September", "October", "November", "December"
             ];
-            document.getElementById('month-label').textContent = `Month (${monthNames[month]})`;
+            document.getElementById('month-label').textContent = `Month ${monthNames[month]}`;
 
             // 5. Sakai Masato Age Progress
             // Born: 1973-10-14
