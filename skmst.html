@@ -127,22 +127,22 @@
             /* Center content for rings */
         }
 
-        /* Force all progress tiles to start at the first column and define spans */
+        /* Force all progress tiles to display in the first row */
         .progress-tile.sakai {
-            grid-column: 1 / span 2;
-            /* Start at col 1, span 2 cols */
+            grid-column: span 2;
+            /* Span 2 cols - horizontal rectangle */
             grid-row: span 1;
         }
 
         .progress-tile.now {
-            grid-column: 1 / span 2;
-            /* Start at col 1, span 2 cols */
-            grid-row: span 2;
+            grid-column: span 4;
+            /* Span 4 cols - horizontal rectangle */
+            grid-row: span 1;
         }
 
         .progress-tile.running {
-            grid-column: 1 / span 1;
-            /* Start at col 1, span 1 col */
+            grid-column: span 1;
+            /* Span 1 col */
             grid-row: span 1;
         }
 
@@ -181,6 +181,16 @@
             justify-items: center;
             padding: 20px;
             box-sizing: border-box;
+        }
+
+        /* Sakai tile uses horizontal layout (2 columns) */
+        .progress-tile.sakai .progress-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        /* Now tile uses horizontal layout */
+        .progress-tile.now .progress-grid {
+            grid-template-columns: repeat(4, 1fr);
         }
 
         .progress-item-ring {
@@ -323,7 +333,7 @@
         /* Size variations based on work type */
         .showcase-item[data-type*="映画"] {
             grid-column: span 2;
-            grid-row: span 2;
+            grid-row: span 1;
         }
 
         .showcase-item[data-type*="TV"] {
@@ -342,6 +352,12 @@
         .showcase-item[data-multi-year="true"] {
             grid-column: span 2 !important;
             grid-row: span 2 !important;
+        }
+
+        /* Recent works (within 30 days of start/end or active) override all sizes */
+        .showcase-item[data-recent="true"] {
+            grid-column: span 2 !important;
+            grid-row: span 3 !important;
         }
 
         .showcase-item:hover {
@@ -367,6 +383,15 @@
 
         .showcase-item[data-type*="映画"] .showcase-title {
             font-size: 1.8rem;
+        }
+
+        /* Vertical text for items where col span < row span 纵向文字 */
+        .showcase-item.vertical-text .showcase-title {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            letter-spacing: 0.1em;
+            margin: 0 auto 8px auto;
+            /* Center horizontally */
         }
 
         .showcase-meta {
@@ -472,9 +497,45 @@
             /* Fix showcase grid to ensure equal column widths */
             .showcase-list {
                 grid-template-columns: repeat(2, 1fr);
-                grid-auto-rows: 150px;
+                grid-auto-rows: minmax(150px, auto);
                 gap: 10px;
             }
+
+            /* Reset progress tiles for mobile */
+            .progress-tile.sakai,
+            .progress-tile.running {
+                grid-column: span 2 !important;
+                grid-row: span 1 !important;
+            }
+
+            .progress-tile.now {
+                grid-column: span 2 !important;
+                grid-row: span 2 !important;
+                /* Needs more height for 2x2 grid */
+            }
+
+            /* Adjust Now tile internal grid for mobile to fit */
+            .progress-tile.now .progress-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+
+            /* Force recent works to span 2 columns on mobile (instead of 3) */
+            .showcase-item[data-recent="true"] {
+                grid-column: span 2 !important;
+                grid-row: span 2 !important;
+                /* Adjust row span as needed, 2 is likely good */
+            }
+        }
+
+        /* Intermediate Breakpoint: When grid has ~3 columns (approx 769px to 1024px) */
+        /* "Now" tile (span 4) won't fit in 3 columns, so reduce it to span 3 */
+        @media screen and (min-width: 769px) and (max-width: 1024px) {
+            .progress-tile.now {
+                grid-column: span 3 !important;
+                /* Keep row span 1 */
+            }
+
+            /* Internal grid still 4 columns, they will just be closer together */
         }
     </style>
 </head>
@@ -495,7 +556,6 @@
     </div>
 
     <script>
-        // 確保ページロード後に正確にレイアウトを適用
         // 確保ページロード後に正確にレイアウトを適用
         document.addEventListener('DOMContentLoaded', function () {
             // Initialize Showcase
@@ -653,6 +713,16 @@
                             }
                         }
 
+                        const dateEndStr = cols[11];
+                        let dateEnd = null;
+                        if (dateEndStr && dateEndStr.trim() !== '') {
+                            // Parse date in format YYYY/MM/DD
+                            const parts = dateEndStr.split('/');
+                            if (parts.length === 3) {
+                                dateEnd = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                            }
+                        }
+
                         return {
                             year: parseInt(cols[5]) || 0,
                             name: cols[6],
@@ -660,6 +730,7 @@
                             role: cols[8],
                             type: cols[9],
                             dateStart: dateStart,
+                            dateEnd: dateEnd,
                             url: cols[15], // URL is at index 15
                             isLead: (cols[8] && cols[8].includes('主演'))
                         };
@@ -692,6 +763,19 @@
                     // Use the earliest work's type for grid sizing
                     const earliestWork = worksInGroup[0];
 
+                    // Calculate min DateStart and max DateEnd
+                    let minDateStart = null;
+                    let maxDateEnd = null;
+
+                    worksInGroup.forEach(w => {
+                        if (w.dateStart) {
+                            if (!minDateStart || w.dateStart < minDateStart) minDateStart = w.dateStart;
+                        }
+                        if (w.dateEnd) {
+                            if (!maxDateEnd || w.dateEnd > maxDateEnd) maxDateEnd = w.dateEnd;
+                        }
+                    });
+
                     // Collect unique years
                     const uniqueYears = [...new Set(worksInGroup.map(w => w.year))].sort((a, b) => a - b);
 
@@ -702,7 +786,8 @@
                         years: uniqueYears.join(' '),
                         type: earliestWork.type,
                         url: earliestWork.url,
-                        dateStart: earliestWork.dateStart
+                        dateStart: minDateStart,
+                        dateEnd: maxDateEnd
                     });
                 }
 
@@ -744,6 +829,32 @@
                     item.setAttribute('data-multi-year', 'true');
                 }
 
+                // Check if work is recent (within 30 days of start/end or active)
+                // Criteria:
+                // 1. |Today - DateStart| <= 30 days
+                // 2. |Today - DateEnd| <= 30 days
+                // 3. DateStart <= Today <= DateEnd
+                // Effectively: DateStart - 30 <= Today <= DateEnd + 30
+
+                let isRecent = false;
+                if (work.dateStart) {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    const startLimit = new Date(work.dateStart);
+                    startLimit.setDate(startLimit.getDate() - 30);
+
+                    // If dateEnd is missing, assume it's just a start date event (like a movie release)
+                    // So we check if today is within 30 days of start
+                    let endLimit = new Date(work.dateEnd || work.dateStart);
+                    endLimit.setDate(endLimit.getDate() + 30);
+
+                    if (today >= startLimit && today <= endLimit) {
+                        isRecent = true;
+                        item.setAttribute('data-recent', 'true');
+                    }
+                }
+
                 // Content Wrapper
                 const content = document.createElement('div');
                 content.className = 'showcase-content';
@@ -770,7 +881,27 @@
                 };
 
                 container.appendChild(item);
+
+                // Dynamic Check: Apply vertical text if rowSpan > colSpan
+                // Must be done AFTER appending to DOM to get computed styles
+                const style = window.getComputedStyle(item);
+
+                const getSpanFromProp = (prop) => {
+                    const val = style[prop];
+                    if (!val) return 0;
+                    const match = val.match(/span\s+(\d+)/);
+                    return match ? parseInt(match[1]) : 0;
+                };
+
+                // Check both start and end for 'span'
+                const colSpan = Math.max(getSpanFromProp('gridColumnStart'), getSpanFromProp('gridColumnEnd'), 1);
+                const rowSpan = Math.max(getSpanFromProp('gridRowStart'), getSpanFromProp('gridRowEnd'), 1);
+
+                if (rowSpan > colSpan) {
+                    item.classList.add('vertical-text');
+                }
             });
+
 
             // Update progress bars after rendering
             updateProgressBars();
