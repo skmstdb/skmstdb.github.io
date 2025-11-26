@@ -163,7 +163,7 @@
             max-width: 900px;
             margin: 0 auto;
             position: relative;
-            padding: 20px 0;
+            padding: 20px 0 0 0;
         }
 
         /* Timeline vertical line */
@@ -181,6 +181,14 @@
         .timeline-year {
             position: relative;
             margin-bottom: 40px;
+        }
+
+        .timeline-year:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-year:last-child .year-label {
+            margin-bottom: 0;
         }
 
         .year-label {
@@ -522,7 +530,14 @@
             const timelineContainer = document.getElementById('timeline-container');
             let html = '';
 
-            for (let year = endYear; year >= startYear; year--) {
+            // Generate years list: [endYear, ..., 1992, 1973]
+            const yearsToRender = [];
+            for (let y = endYear; y >= startYear; y--) {
+                yearsToRender.push(y);
+            }
+            yearsToRender.push(1973);
+
+            yearsToRender.forEach(year => {
                 html += `
                     <div class="timeline-year">
                         <div class="year-label">${year}</div>
@@ -551,7 +566,7 @@
                         </div>
                     </div>
                 `;
-            }
+            });
 
             timelineContainer.innerHTML = html;
         }
