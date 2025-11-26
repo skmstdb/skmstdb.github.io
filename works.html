@@ -8,7 +8,6 @@
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-
         gtag('config', 'G-6C7BJGKMFT');
     </script>
     <meta charset="UTF-8">
@@ -21,13 +20,336 @@
     <title>Sakai Masato Database</title>
     <link rel="icon" href="favicon.png" type="image/png">
     <link rel="icon" href="favicon-32x32.png" sizes="32x32" />
-    <link rel="apple-touch-icon" href="../pic/apple-touch-icon.png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="apple-touch-icon" href="pic/apple-touch-icon.png">
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="css/works.css">
-    <link rel="stylesheet" href="/Navi/navi.css">
-    <script src="/js/darkmode.js"></script>
-    <script src="/Navi/navHighlight.js"></script>
+    <link rel="stylesheet" href="Navi/navi.css">
+    <script src="js/darkmode.js"></script>
+    <script src="Navi/navHighlight.js"></script>
+
+    <!-- Google Fonts: Noto Serif JP -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600;700;900&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #f6f4ef;
+            --text-color: #333333;
+            --panel-bg: #ffffff;
+            --timeline-line: #ddd;
+            --timeline-dot: #333333;
+            --border-color: #ddd;
+            --accent-color: #333333;
+        }
+
+        .dark-mode {
+            --bg-color: #121212;
+            --text-color: #ffffff;
+            --panel-bg: #1e1e1e;
+            --timeline-line: #555;
+            --timeline-dot: #e0e0e0;
+            --border-color: #555;
+            --accent-color: #e0e0e0;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .sidebar {
+            width: calc(100% / 7);
+            height: 100vh;
+            overflow-y: auto;
+            position: fixed;
+            z-index: 10;
+            flex-shrink: 0;
+            box-sizing: border-box;
+            background: var(--bg-color);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .main-content-wrapper {
+            width: calc(6 * 100% / 7);
+            margin-left: calc(100% / 7);
+            padding: 40px;
+            box-sizing: border-box;
+            background-color: var(--bg-color);
+            min-height: 100vh;
+        }
+
+        .content-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .title {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .stats-summary {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .dark-mode .stats-summary {
+            color: #aaa;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-number {
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--accent-color);
+        }
+
+        .filter-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .filter-btn {
+            padding: 8px 20px;
+            border: 1px solid var(--border-color);
+            background: var(--panel-bg);
+            color: var(--text-color);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-btn:hover {
+            background: var(--accent-color);
+            color: var(--bg-color);
+            border-color: var(--accent-color);
+        }
+
+        .filter-btn.active {
+            background: var(--accent-color);
+            color: var(--bg-color);
+            border-color: var(--accent-color);
+        }
+
+        .timeline-container {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            padding: 20px 0;
+        }
+
+        /* Timeline vertical line */
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--timeline-line);
+            transform: translateX(-50%);
+        }
+
+        .timeline-year {
+            position: relative;
+            margin-bottom: 40px;
+        }
+
+        .year-label {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: var(--accent-color);
+            background: var(--bg-color);
+            padding: 10px 20px;
+            display: inline-block;
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+
+        .timeline-items {
+            position: relative;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 30px;
+            width: calc(45% - 30px);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Lead roles on the right */
+        .timeline-item.lead-role {
+            margin-left: calc(55% + 30px);
+            padding-left: 30px;
+        }
+
+        /* Non-lead roles on the left */
+        .timeline-item.non-lead-role {
+            margin-left: 0;
+            padding-right: 30px;
+        }
+
+        .timeline-content {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .timeline-content:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            border-color: var(--accent-color);
+        }
+
+        .dark-mode .timeline-content:hover {
+            box-shadow: 0 8px 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .work-title {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-color);
+            margin: 0;
+        }
+
+        .work-name {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 8px;
+            color: #666;
+        }
+
+        .dark-mode .work-name {
+            color: #aaa;
+        }
+
+        .empty-year {
+            display: none;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 767px) {
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: 60px;
+                position: fixed;
+                top: 0;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .main-content-wrapper {
+                width: 95%;
+                margin-left: auto;
+                margin-right: auto;
+                padding: 20px;
+                padding-top: 80px;
+            }
+
+            .title {
+                font-size: 28px;
+            }
+
+            .stats-summary {
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            }
+
+            .filter-buttons {
+                gap: 8px;
+            }
+
+            .filter-btn {
+                padding: 6px 15px;
+                font-size: 12px;
+            }
+
+            /* Single column timeline on mobile */
+            .timeline-container::before {
+                left: 20px;
+            }
+
+            .timeline-item,
+            .timeline-item.lead-role,
+            .timeline-item.non-lead-role {
+                width: 100%;
+                margin-left: 0;
+                padding-left: 50px;
+                padding-right: 0;
+            }
+
+            .year-label {
+                font-size: 20px;
+                left: 20px;
+                transform: none;
+            }
+        }
+
+        /* Tablet responsive */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .timeline-container {
+                max-width: 700px;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -36,159 +358,206 @@
     </aside>
 
     <div class="main-content-wrapper">
-        <div class="main-content">
-            <div class="content-header">
-                <h1 class="title">WORKS</h1>
-                <div class="navigation">
-                    <button class="nav-item active" data-category="all">全て</button>
-                    <button class="nav-item" data-category="映画">映画</button>
-                    <button class="nav-item" data-category="TV">TV</button>
-                    <button class="nav-item" data-category="舞台">舞台</button>
-                    <button class="nav-item" data-category="声の出演">声の出演</button>
-                    <button class="nav-item" data-category="その他">その他</button>
-                    <button class="nav-item" data-category="BOOK">BOOK</button>
-                </div>
-                <div class="switch-container">
-                    <span class="switch-label">主演作品のみ</span>
-                    <label class="switch">
-                        <input type="checkbox" id="lead-role-filter">
-                        <span class="slider"></span>
-                    </label>
-                </div>
+        <div class="content-header">
+            <h1 class="title">WORKS</h1>
+            <div class="stats-summary" id="stats-summary">
+                <!-- Stats will be injected here -->
             </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">全て</button>
+                <button class="filter-btn" data-filter="映画">映画</button>
+                <button class="filter-btn" data-filter="TV">TV</button>
+                <button class="filter-btn" data-filter="舞台">舞台</button>
+                <button class="filter-btn" data-filter="声の出演">声の出演</button>
+                <button class="filter-btn" data-filter="その他">その他</button>
+                <button class="filter-btn" data-filter="BOOK">BOOK</button>
+                <button class="filter-btn" data-filter="lead">主演作品</button>
+            </div>
+        </div>
 
-            <div class="works-grid" id="works-container">
-            </div>
+        <div class="timeline-container" id="timeline-container">
+            <!-- Timeline items will be injected here -->
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // 恢复body可见性
-            document.body.style.visibility = 'visible';
+        let allWorks = [];
+        let currentFilter = 'all';
 
-            // loadNavbar() 已经在 navHighlight.js 中调用，这里不需要再调用
+        // Load navbar
+        fetch('Navi/navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.querySelector('.sidebar').innerHTML = data;
+            });
 
-            const container = document.getElementById('works-container');
+        // Parse CSV and generate timeline
+        async function loadData() {
+            try {
+                const response = await fetch('/data/biography.csv');
+                const data = await response.text();
+                const rows = data.split('\n').slice(1); // Skip header
 
-            fetch('/data/biography.csv')
-                .then(response => response.text())
-                .then(data => {
-                    // Parse CSV
-                    const lines = data.split('\n');
-                    const headers = lines[0].split(',');
+                allWorks = rows
+                    .map(row => {
+                        const cols = [];
+                        let current = '';
+                        let inQuotes = false;
 
-                    // Find column indices
-                    const pageWorksIdx = headers.findIndex(h => h.trim() === 'PageWorks');
-                    const yearIdx = headers.findIndex(h => h.trim() === 'Year');
-                    const titleIdx = headers.findIndex(h => h.trim() === 'Title');
-                    const roleIdx = headers.findIndex(h => h.trim() === 'Role');
-                    const worksTypeIdx = headers.findIndex(h => h.trim() === 'WorksType');
-                    const urlIdx = headers.findIndex(h => h.trim() === 'URL');
-
-                    // Parse and filter data
-                    const works = [];
-                    for (let i = 1; i < lines.length; i++) {
-                        if (!lines[i].trim()) continue;
-
-                        // Simple CSV parsing (handles basic cases)
-                        const cols = lines[i].split(',');
-
-                        // Only include rows where PageWorks is 'Y'
-                        if (cols[pageWorksIdx] && cols[pageWorksIdx].trim() === 'Y') {
-                            works.push({
-                                year: cols[yearIdx] ? cols[yearIdx].trim() : '',
-                                title: cols[titleIdx] ? cols[titleIdx].trim() : '',
-                                role: cols[roleIdx] ? cols[roleIdx].trim() : '',
-                                worksType: cols[worksTypeIdx] ? cols[worksTypeIdx].trim() : '',
-                                url: cols[urlIdx] ? cols[urlIdx].trim().replace(/\r$/, '') : ''
-                            });
+                        for (let i = 0; i < row.length; i++) {
+                            const char = row[i];
+                            if (char === '"') {
+                                inQuotes = !inQuotes;
+                            } else if (char === ',' && !inQuotes) {
+                                cols.push(current.trim());
+                                current = '';
+                            } else {
+                                current += char;
+                            }
                         }
+                        cols.push(current.trim());
+
+                        if (cols.length < 16) return null;
+
+                        // PageWorks,PageActivity,PageToday,PageCalendar,PageAnn,Year,Name,Title,Role,WorksType,DateStart,DateEnd,Weekday,DateAdd,DateDelete,URL
+                        const dateStartStr = cols[10];
+                        let dateStart = null;
+                        if (dateStartStr && dateStartStr.trim() !== '') {
+                            const parts = dateStartStr.split('/');
+                            if (parts.length === 3) {
+                                dateStart = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                            }
+                        }
+
+                        return {
+                            pageWorks: cols[0],
+                            year: parseInt(cols[5]) || 0,
+                            name: cols[6],
+                            title: cols[7],
+                            role: cols[8],
+                            type: cols[9],
+                            dateStart: dateStart,
+                            url: cols[15]
+                        };
+                    })
+                    .filter(work => work && work.pageWorks && work.pageWorks.trim() !== '' && work.year > 0);
+
+                // Sort by year descending, then by date descending
+                allWorks.sort((a, b) => {
+                    if (b.year !== a.year) {
+                        return b.year - a.year;
                     }
+                    if (a.dateStart && b.dateStart) {
+                        return b.dateStart - a.dateStart;
+                    }
+                    return 0;
+                });
 
-                    // Generate HTML
-                    const newContent = works.map(work => {
-                        const isLeadRole = work.role.includes('主演');
+                generateTimeline(allWorks);
+                setupFilterButtons();
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
 
-                        return `
-                        <div class="work-item" data-category="${work.worksType}" data-lead-role="${isLeadRole}" onclick="window.open('${work.url}', '_blank')">
-                            <div class="tags-container">
-                                <span class="work-tag" data-subtag="year">${work.year}</span>
-                                <span class="work-tag" data-subtag="role">${work.role}</span>
-                                <span class="work-tag" data-subtag="works">${work.worksType}</span>
-                            </div>
-                            <div class="work-title">${work.title}</div>
-                        </div>
-                        `;
-                    }).join('');
+        function setupFilterButtons() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    // Add active class to clicked button
+                    btn.classList.add('active');
 
-                    container.innerHTML = newContent;
-                    initFilter();
+                    const filter = btn.dataset.filter;
+                    currentFilter = filter;
 
-                    updateDisplayElements('all');
-                })
-                .catch(error => console.error('Error loading works data:', error));
-        });
-
-        function initFilter() {
-            const navItems = document.querySelectorAll('.nav-item');
-            const workItems = document.querySelectorAll('.work-item');
-            const leadRoleFilter = document.getElementById('lead-role-filter');
-
-            let currentCategory = 'all';
-
-            let showLeadRoleOnly = false;
-
-            function applyFilters() {
-                workItems.forEach(item => {
-                    const categoryMatch = currentCategory === 'all' || item.dataset.category === currentCategory;
-                    const roleMatch = !showLeadRoleOnly || item.dataset.leadRole === 'true';
-
-                    if (categoryMatch && roleMatch) {
-                        item.style.display = 'flex';
+                    let filteredWorks = allWorks;
+                    if (filter === 'all') {
+                        filteredWorks = allWorks;
+                    } else if (filter === 'lead') {
+                        filteredWorks = allWorks.filter(w => w.role && w.role.includes('主演'));
                     } else {
-                        item.style.display = 'none';
+                        filteredWorks = allWorks.filter(w => w.type === filter);
                     }
+
+                    generateTimeline(filteredWorks);
                 });
-
-                updateDisplayElements(currentCategory);
-            }
-
-            navItems.forEach(item => {
-                item.addEventListener('click', function () {
-                    navItems.forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                    currentCategory = this.dataset.category;
-                    applyFilters();
-                });
-            });
-
-            leadRoleFilter.addEventListener('change', function () {
-                showLeadRoleOnly = this.checked;
-                applyFilters();
             });
         }
 
-        function updateDisplayElements(category) {
-            const worksElements = document.querySelectorAll('.work-tag[data-subtag="works"]');
-            const roleElements = document.querySelectorAll('.work-tag[data-subtag="role"]');
+        function generateTimeline(works) {
+            const totalWorks = works.length;
+            const leadRoles = works.filter(w => w.role && w.role.includes('主演')).length;
 
-            if (category === 'all') {
-                worksElements.forEach(element => {
-                    element.style.display = 'inline';
-                });
-                roleElements.forEach(element => {
-                    element.style.display = 'none';
-                });
-            } else {
-                worksElements.forEach(element => {
-                    element.style.display = 'none';
-                });
-                roleElements.forEach(element => {
-                    element.style.display = 'inline';
-                });
+            // Generate stats summary based on filtered works
+            const statsSummary = document.getElementById('stats-summary');
+            statsSummary.innerHTML = `
+                <div class="stat-item">
+                    <span class="stat-number">${totalWorks}</span>
+                    <span>全部で</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">${leadRoles}</span>
+                    <span>主演</span>
+                </div>
+            `;
+
+            // Group works by year
+            const worksByYear = {};
+            works.forEach(work => {
+                if (!worksByYear[work.year]) {
+                    worksByYear[work.year] = [];
+                }
+                worksByYear[work.year].push(work);
+            });
+
+            // Generate all years from 1992 to current year (or max year in data)
+            const currentYear = new Date().getFullYear();
+            const maxYearInData = Math.max(...allWorks.map(w => w.year));
+            const endYear = Math.max(currentYear, maxYearInData);
+            const startYear = 1992;
+
+            // Generate timeline HTML
+            const timelineContainer = document.getElementById('timeline-container');
+            let html = '';
+
+            for (let year = endYear; year >= startYear; year--) {
+                html += `
+                    <div class="timeline-year">
+                        <div class="year-label">${year}</div>
+                        <div class="timeline-items">
+                `;
+
+                if (worksByYear[year] && worksByYear[year].length > 0) {
+                    worksByYear[year].forEach((work, index) => {
+                        const isLead = work.role && work.role.includes('主演');
+                        const roleClass = isLead ? 'lead-role' : 'non-lead-role';
+                        const animationDelay = `animation-delay: ${index * 0.1}s;`;
+
+                        html += `
+                            <div class="timeline-item ${roleClass}" style="${animationDelay}" onclick="window.open('${work.url}', '_blank')">
+                                <div class="timeline-content">
+                                    <div class="work-title">${work.title || work.name}</div>
+                                    ${work.name && work.title ? `<div class="work-name">${work.name}</div>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                // If no works for this year, just show the year label without any message
+
+                html += `
+                        </div>
+                    </div>
+                `;
             }
+
+            timelineContainer.innerHTML = html;
         }
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', loadData);
     </script>
 </body>
 
