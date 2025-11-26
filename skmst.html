@@ -515,14 +515,14 @@
             const endOfDecade = new Date((Math.floor(year / 10) + 1) * 10, 0, 1);
             const decadeProgress = (now - startOfDecade) / (endOfDecade - startOfDecade) * 100;
             updateBar('decade', decadeProgress);
-            document.getElementById('decade-label').textContent = `Decade ${Math.floor(year / 10) * 10}s`;
+            document.getElementById('decade-label').textContent = `${Math.floor(year / 10) * 10}s`;
 
             // 2. Year Progress
             const startOfYear = new Date(year, 0, 1);
             const endOfYear = new Date(year + 1, 0, 1);
             const yearProgress = (now - startOfYear) / (endOfYear - startOfYear) * 100;
             updateBar('year', yearProgress);
-            document.getElementById('year-label').textContent = `Year ${year}`;
+            document.getElementById('year-label').textContent = `${year}`;
 
             // 3. Quarter Progress
             const quarter = Math.floor(month / 3);
@@ -530,7 +530,7 @@
             const endOfQuarter = new Date(year, (quarter + 1) * 3, 1);
             const quarterProgress = (now - startOfQuarter) / (endOfQuarter - startOfQuarter) * 100;
             updateBar('quarter', quarterProgress);
-            document.getElementById('quarter-label').textContent = `Quarter Q${quarter + 1}`;
+            document.getElementById('quarter-label').textContent = `Q${quarter + 1}`;
 
             // 4. Month Progress
             const startOfMonth = new Date(year, month, 1);
@@ -540,7 +540,7 @@
             const monthNames = ["January", "February", "March", "April", "May", "June",
                 "July", "August", "September", "October", "November", "December"
             ];
-            document.getElementById('month-label').textContent = `Month ${monthNames[month]}`;
+            document.getElementById('month-label').textContent = `${monthNames[month]}`;
 
             // 5. Sakai Masato Age Progress
             // Born: 1973-10-14
@@ -563,7 +563,7 @@
 
             const ageProgress = (now - lastBirthday) / (nextBirthday - lastBirthday) * 100;
             updateBar('age', ageProgress);
-            document.getElementById('age-label').textContent = `Age ${age}`;
+            document.getElementById('age-label').textContent = `${age}`;
 
             // 6. 50s Decade Progress (or whatever decade he is in)
             // Born 1973. 
@@ -576,7 +576,7 @@
 
             const lifeDecadeProgress = (now - decadeStartBirthday) / (decadeEndBirthday - decadeStartBirthday) * 100;
             updateBar('life-decade', lifeDecadeProgress);
-            document.getElementById('life-decade-label').textContent = `Decade ${currentDecadeStartAge}s`;
+            document.getElementById('life-decade-label').textContent = `${currentDecadeStartAge}s`;
 
             // 7. Website Uptime
             // Launched: 2025-02-27
