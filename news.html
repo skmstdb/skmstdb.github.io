@@ -243,12 +243,8 @@
     </div>
 
     <script>
-        // Load navbar
-        fetch('Navi/navbar.html')
-            .then(response => response.text())
-            .then(data => {
-                document.querySelector('.sidebar').innerHTML = data;
-            });
+        // Navbar loading is handled by navHighlight.js
+
 
         // ============================================
         // YEAR-BASED URL MAPPING
