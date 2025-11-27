@@ -357,6 +357,42 @@
                 max-width: 700px;
             }
         }
+
+        /* Skeleton loading animation */
+        .skeleton-year {
+            opacity: 1;
+        }
+
+        .skeleton-label,
+        .skeleton-content {
+            background: linear-gradient(90deg,
+                    var(--panel-bg) 25%,
+                    var(--border-color) 50%,
+                    var(--panel-bg) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s ease-in-out infinite;
+            border-radius: 8px;
+        }
+
+        .skeleton-label {
+            color: transparent;
+        }
+
+        .skeleton-item {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            animation: none !important;
+        }
+
+        @keyframes skeleton-loading {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
     </style>
 </head>
 
@@ -384,7 +420,18 @@
         </div>
 
         <div class="timeline-container" id="timeline-container">
-            <!-- Timeline items will be injected here -->
+            <!-- Skeleton timeline items for loading feedback -->
+            <div class="timeline-year skeleton-year">
+                <div class="year-label skeleton-label">Loading...</div>
+                <div class="timeline-items">
+                    <div class="timeline-item lead-role skeleton-item">
+                        <div class="timeline-content skeleton-content"></div>
+                    </div>
+                    <div class="timeline-item non-lead-role skeleton-item">
+                        <div class="timeline-content skeleton-content"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -392,12 +439,24 @@
         let allWorks = [];
         let currentFilter = 'all';
 
-        // Load navbar
-        fetch('Navi/navbar.html')
-            .then(response => response.text())
-            .then(data => {
-                document.querySelector('.sidebar').innerHTML = data;
-            });
+        // ============================================
+        // INITIALIZATION - Ensure navbar loads first
+        // ============================================
+        document.addEventListener('DOMContentLoaded', async function () {
+            // 1. Load navbar first (explicit control)
+            if (typeof loadNavbar === 'function') {
+                await loadNavbar();
+                if (typeof highlightCurrentPage === 'function') {
+                    highlightCurrentPage();
+                }
+                if (typeof initializeHamburger === 'function') {
+                    initializeHamburger();
+                }
+            }
+
+            // 2. Then load main content
+            await loadData();
+        });
 
         // Parse CSV and generate timeline
         async function loadData() {
@@ -526,10 +585,6 @@
             const endYear = Math.max(currentYear, maxYearInData);
             const startYear = 1992;
 
-            // Generate timeline HTML
-            const timelineContainer = document.getElementById('timeline-container');
-            let html = '';
-
             // Generate years list: [endYear, ..., 1992, 1973]
             const yearsToRender = [];
             for (let y = endYear; y >= startYear; y--) {
@@ -537,42 +592,136 @@
             }
             yearsToRender.push(1973);
 
-            yearsToRender.forEach(year => {
-                html += `
-                    <div class="timeline-year">
-                        <div class="year-label">${year}</div>
-                        <div class="timeline-items">
-                `;
+            // Prepare year sections data
+            const yearSectionsData = yearsToRender.map(year => ({
+                year,
+                works: worksByYear[year] || []
+            }));
 
-                if (worksByYear[year] && worksByYear[year].length > 0) {
-                    worksByYear[year].forEach((work, index) => {
-                        const isLead = work.role && work.role.includes('主演');
-                        const roleClass = isLead ? 'lead-role' : 'non-lead-role';
-                        const animationDelay = `animation-delay: ${index * 0.1}s;`;
+            // Clear skeleton and render progressively
+            const timelineContainer = document.getElementById('timeline-container');
+            timelineContainer.innerHTML = '';
 
-                        html += `
-                            <div class="timeline-item ${roleClass}" style="${animationDelay}" onclick="window.open('${work.url}', '_blank')">
-                                <div class="timeline-content">
-                                    <div class="work-title">${work.title || work.name}</div>
-                                    ${work.name && work.title ? `<div class="work-name">${work.name}</div>` : ''}
-                                </div>
-                            </div>
-                        `;
-                    });
-                }
-                // If no works for this year, just show the year label without any message
-
-                html += `
-                        </div>
-                    </div>
-                `;
-            });
-
-            timelineContainer.innerHTML = html;
+            renderTimelineProgressively(yearSectionsData, timelineContainer);
         }
 
-        // Load data on page load
-        document.addEventListener('DOMContentLoaded', loadData);
+        // ============================================
+        // CREATE YEAR SECTION - Extracted for clarity
+        // ============================================
+        function createYearSection(yearData) {
+            const { year, works } = yearData;
+
+            const yearDiv = document.createElement('div');
+            yearDiv.className = 'timeline-year';
+
+            const yearLabel = document.createElement('div');
+            yearLabel.className = 'year-label';
+            yearLabel.textContent = year;
+            yearDiv.appendChild(yearLabel);
+
+            const itemsDiv = document.createElement('div');
+            itemsDiv.className = 'timeline-items';
+
+            if (works && works.length > 0) {
+                works.forEach((work, index) => {
+                    const isLead = work.role && work.role.includes('主演');
+                    const roleClass = isLead ? 'lead-role' : 'non-lead-role';
+
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = `timeline-item ${roleClass}`;
+                    itemDiv.style.animationDelay = `${index * 0.1}s`;
+                    itemDiv.onclick = () => window.open(work.url, '_blank');
+
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'timeline-content';
+
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'work-title';
+                    titleDiv.textContent = work.title || work.name;
+                    contentDiv.appendChild(titleDiv);
+
+                    if (work.name && work.title) {
+                        const nameDiv = document.createElement('div');
+                        nameDiv.className = 'work-name';
+                        nameDiv.textContent = work.name;
+                        contentDiv.appendChild(nameDiv);
+                    }
+
+                    itemDiv.appendChild(contentDiv);
+                    itemsDiv.appendChild(itemDiv);
+                });
+            }
+
+            yearDiv.appendChild(itemsDiv);
+            return yearDiv;
+        }
+
+        // ============================================
+        // PROGRESSIVE RENDERING - Render in batches
+        // ============================================
+        function renderTimelineProgressively(yearSectionsData, container) {
+            return new Promise((resolve) => {
+                const BATCH_SIZE = 3; // Render 3 years per frame
+                let currentIndex = 0;
+
+                function renderBatch() {
+                    const endIndex = Math.min(currentIndex + BATCH_SIZE, yearSectionsData.length);
+
+                    for (let i = currentIndex; i < endIndex; i++) {
+                        const yearSection = createYearSection(yearSectionsData[i]);
+                        container.appendChild(yearSection);
+                    }
+
+                    currentIndex = endIndex;
+
+                    if (currentIndex < yearSectionsData.length) {
+                        requestAnimationFrame(renderBatch);
+                    } else {
+                        resolve();
+                    }
+                }
+
+                renderBatch();
+            });
+        }
+
+        // Original timeline generation logic (now replaced by progressive rendering above)
+        function generateTimelineOld_UNUSED(works) {
+            // This function is kept for reference but not used
+            // The new implementation uses progressive rendering
+            const totalWorks = works.length;
+            const leadRoles = works.filter(w => w.role && w.role.includes('主演')).length;
+
+            // Generate stats summary based on filtered works
+            const statsSummary = document.getElementById('stats-summary');
+            statsSummary.innerHTML = `
+                <div class="stat-item">
+                    <span class="stat-number">${totalWorks}</span>
+                    <span>in Total</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">${leadRoles}</span>
+                    <span>主演</span>
+                </div>
+            `;
+
+            // Group works by year
+            const worksByYear = {};
+            works.forEach(work => {
+                if (!worksByYear[work.year]) {
+                    worksByYear[work.year] = [];
+                }
+                worksByYear[work.year].push(work);
+            });
+
+            // Generate all years from 1992 to current year (or max year in data)
+            const currentYear = new Date().getFullYear();
+            const maxYearInData = Math.max(...allWorks.map(w => w.year));
+            const endYear = Math.max(currentYear, maxYearInData);
+            const startYear = 1992;
+        }
+
+
     </script>
 </body>
 
