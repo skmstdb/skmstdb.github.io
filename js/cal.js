@@ -720,7 +720,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const viewToggleBtn = document.getElementById('view-toggle');
     viewToggleBtn.addEventListener('click', () => {
         isAnniversaryMode = !isAnniversaryMode;
-        viewToggleBtn.textContent = isAnniversaryMode ? 'Schedule View' : 'Anniversary View';
+        viewToggleBtn.textContent = isAnniversaryMode ? 'Anniversary View' : 'Schedule View';
         viewToggleBtn.classList.toggle('active');
         updateCalendar();
     });
