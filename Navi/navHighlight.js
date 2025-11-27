@@ -25,7 +25,7 @@ function highlightCurrentPage() {
             (currentPath.includes('today.html') && href.includes('today.html')) ||
             (currentPath.includes('activity.html') && href.includes('activity.html')) ||
             (currentPath.includes('sakaical.html') && href.includes('sakaical.html')) ||
-            (currentPath.includes('promotion.html') && href.includes('promotion.html')) ||
+            (currentPath.includes('news.html') && href.includes('news.html')) ||
             (currentPath.includes('about.html') && href.includes('about.html')) ||
             (currentPath.includes('contact.html') && href.includes('contact.html')) ||
             (currentPath.includes('streaming.html') && href.includes('streaming.html'))) {
