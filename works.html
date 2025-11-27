@@ -444,14 +444,9 @@
         // ============================================
         document.addEventListener('DOMContentLoaded', async function () {
             // 1. Load navbar first (explicit control)
+            // Note: loadNavbar() already calls highlightCurrentPage() and initializeHamburger()
             if (typeof loadNavbar === 'function') {
                 await loadNavbar();
-                if (typeof highlightCurrentPage === 'function') {
-                    highlightCurrentPage();
-                }
-                if (typeof initializeHamburger === 'function') {
-                    initializeHamburger();
-                }
             }
 
             // 2. Then load main content
