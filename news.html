@@ -101,11 +101,11 @@
             background-color: var(--panel-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 20px;
+            padding: 15px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -129,9 +129,8 @@
 
         .month-name {
             font-family: 'Noto Serif JP', serif;
-            font-size: 1.5rem;
             font-weight: 700;
-            line-height: 1.4;
+            line-height: 1.3;
             color: var(--text-color);
             text-align: center;
             flex: 1;
@@ -142,6 +141,7 @@
             width: 100%;
             max-width: 100%;
             overflow: hidden;
+            margin-bottom: 5px;
         }
 
         .work-item {
@@ -150,16 +150,28 @@
             word-wrap: break-word;
             overflow-wrap: break-word;
             max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        }
+
+        .work-char-name {
+            font-weight: 700;
+        }
+
+        .work-title {
+            font-weight: 400;
         }
 
         .month-year {
-            font-size: 0.85rem;
-            color: #999;
+            font-size: 0.7rem;
+            color: #686666;
             text-align: center;
-            padding-top: 10px;
+            padding-top: 2px;
             flex-shrink: 0;
+            width: 100%;
+            border-top: 0.5px solid transparent;
+            white-space: nowrap;
+            /* Prevent wrapping */
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .dark-mode .month-year {
@@ -207,7 +219,13 @@
             }
 
             .month-cell {
-                height: 150px;
+                height: 160px;
+                padding: 10px;
+            }
+
+            .month-year {
+                font-size: 0.7rem;
+                /* Smaller year on mobile */
             }
         }
     </style>
@@ -378,13 +396,17 @@
                         const nameDiv = document.createElement('div');
                         nameDiv.className = 'month-name';
 
+                        let totalTextLength = 0;
+
                         if (worksInMonth.length > 0) {
                             // Display all works in this month
                             worksInMonth.forEach(work => {
                                 const workItem = document.createElement('div');
                                 workItem.className = 'work-item';
+                                // Priority: Name > Title > Month
                                 workItem.textContent = work.name || work.title || month.toString();
                                 nameDiv.appendChild(workItem);
+                                totalTextLength += workItem.textContent.length;
                             });
                         } else {
                             // No works - show month number with "月" suffix
@@ -392,21 +414,21 @@
                             workItem.className = 'work-item';
                             workItem.textContent = `${month}月`;
                             nameDiv.appendChild(workItem);
+                            totalTextLength += 3;
                         }
 
                         // Dynamic font sizing based on content length
-                        const totalTextLength = Array.from(nameDiv.children)
-                            .reduce((sum, child) => sum + child.textContent.length, 0);
-
-                        let fontSize = '1.5rem';
-                        if (totalTextLength > 50) {
+                        let fontSize = '1.3rem';
+                        if (totalTextLength > 60) {
+                            fontSize = '0.6rem';
+                        } else if (totalTextLength > 40) {
                             fontSize = '0.7rem';
-                        } else if (totalTextLength > 30) {
+                        } else if (totalTextLength > 25) {
+                            fontSize = '0.8rem';
+                        } else if (totalTextLength > 15) {
                             fontSize = '0.9rem';
-                        } else if (totalTextLength > 20) {
-                            fontSize = '1.1rem';
                         } else if (totalTextLength > 10) {
-                            fontSize = '1.3rem';
+                            fontSize = '1.1rem';
                         }
                         nameDiv.style.fontSize = fontSize;
 
