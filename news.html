@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6C7BJGKMFT"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-6C7BJGKMFT');
+    </script>
+    <meta charset="UTF-8">
+    <script src="js/visibility.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="堺雅人の活動を月別に表示 / Monthly view of Sakai Masato's works">
+    <meta name="keywords" content="堺雅人, 月別, カレンダー, Sakai Masato, Monthly, Calendar">
+    <title>Sakai Masato Database</title>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <link rel="icon" href="favicon-32x32.png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="../pic/apple-touch-icon.png">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="Navi/navi.css">
+    <script src="js/darkmode.js"></script>
+    <script src="Navi/navHighlight.js"></script>
+
+    <!-- Google Fonts: Noto Serif JP -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600;700;900&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #f6f4ef;
+            --text-color: #333333;
+            --panel-bg: #ffffff;
+            --border-color: #ddd;
+            --hover-bg: #fafafa;
+            --hover-border: #999;
+        }
+
+        .dark-mode {
+            --bg-color: #121212;
+            --text-color: #ffffff;
+            --panel-bg: #1e1e1e;
+            --border-color: #444;
+            --hover-bg: #2a2a2a;
+            --hover-border: #666;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .sidebar {
+            width: calc(100% / 7);
+            height: 100vh;
+            overflow-y: auto;
+            position: relative;
+            z-index: 10;
+            flex-shrink: 0;
+            box-sizing: border-box;
+            background: var(--bg-color);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .main-container {
+            width: calc(6 * 100% / 7);
+            height: 100vh;
+            position: relative;
+            z-index: 5;
+            box-sizing: border-box;
+            margin-left: auto;
+            overflow-y: auto;
+            padding: 40px;
+            background-color: var(--bg-color);
+        }
+
+        .month-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+            width: 100%;
+        }
+
+        .month-cell {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            height: 180px;
+            position: relative;
+            min-width: 0;
+            overflow: hidden;
+            font-family: 'Noto Serif JP', serif;
+        }
+
+        .month-cell:hover {
+            background-color: var(--hover-bg);
+            border-color: var(--hover-border);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-mode .month-cell:hover {
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+        }
+
+        .month-name {
+            font-family: 'Noto Serif JP', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1.4;
+            color: var(--text-color);
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .work-item {
+            font-family: 'Noto Serif JP', serif;
+            margin: 2px 0;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .month-year {
+            font-size: 0.85rem;
+            color: #999;
+            text-align: center;
+            padding-top: 10px;
+            flex-shrink: 0;
+        }
+
+        .dark-mode .month-year {
+            color: #888;
+        }
+
+        /* Mobile adjustments */
+        @media screen and (max-width: 768px) {
+
+            html,
+            body {
+                overflow-y: auto;
+                height: auto;
+            }
+
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                min-height: 60px;
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 100;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .main-container {
+                width: 100%;
+                height: auto;
+                min-height: 100vh;
+                margin-left: 0;
+                padding-top: 80px;
+                padding: 80px 20px 20px 20px;
+                overflow: visible;
+            }
+
+            .month-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .month-cell {
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <!-- Navbar content will be loaded here -->
+    </aside>
+
+    <div class="main-container">
+        <div class="month-grid" id="month-grid">
+            <!-- Month cells will be injected here -->
+        </div>
+    </div>
+
+    <script>
+        // Load navbar
+        fetch('Navi/navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.querySelector('.sidebar').innerHTML = data;
+            });
+
+        // ============================================
+        // YEAR-BASED URL MAPPING
+        // Configure URLs for each year below
+        // All months in a year will link to the same URL
+        // ============================================
+        const YEAR_URLS = {
+            1992: 'https://h2col.notion.site/1958a08476c7801d8592f2b7d8677082',
+            1993: 'https://h2col.notion.site/1958a08476c78095a96bdf5bfef6a6be',
+            1994: 'https://h2col.notion.site/1958a08476c7804e90b5d1feaf6598e6',
+            1995: 'https://h2col.notion.site/1958a08476c780b0be19f0c38c2bb844',
+            1996: 'https://h2col.notion.site/1958a08476c78028bfbff191eceb5c82',
+            1997: 'https://h2col.notion.site/1958a08476c780749ca4dd0f95e23648',
+            1998: 'https://h2col.notion.site/1958a08476c78048b4a5f3fe425c598d',
+            1999: 'https://h2col.notion.site/1958a08476c7809d8589c5aaddfc7d59',
+            2000: 'https://h2col.notion.site/1958a08476c780469c3ee24a037e4a8b',
+            2001: 'https://h2col.notion.site/1958a08476c780f6a5e6ec42d896c98f',
+            2002: 'https://h2col.notion.site/1958a08476c780e49a7cdce496b53ccf',
+            2003: 'https://h2col.notion.site/1958a08476c78028bf64eb3df56289ca',
+            2004: 'https://h2col.notion.site/1958a08476c780cab862c37ed9f3231e',
+            2005: 'https://h2col.notion.site/1958a08476c780cfa067fea4c038ab03',
+            2006: 'https://h2col.notion.site/1958a08476c780cf8316e93916653fdc',
+            2007: 'https://h2col.notion.site/1958a08476c780f1822ef546454bd5aa',
+            2008: 'https://h2col.notion.site/1958a08476c7800aac62e340a05ff09e',
+            2009: 'https://h2col.notion.site/1958a08476c780ba83e9c6de8051a130',
+            2010: 'https://h2col.notion.site/1958a08476c780cdba35fd29d4a85f4e',
+            2011: 'https://h2col.notion.site/1958a08476c780488a2cdcbe8175f3f7',
+            2012: 'https://h2col.notion.site/1958a08476c7801f8213e49f7638c790',
+            2013: 'https://h2col.notion.site/1958a08476c7804c8817e2f5768ea450',
+            2014: 'https://h2col.notion.site/1958a08476c780d3aa34ee312c4861dc',
+            2015: 'https://h2col.notion.site/1958a08476c780008964cf32e408728f',
+            2016: 'https://h2col.notion.site/1958a08476c7807096e2d0a0c124dd5a',
+            2017: 'https://h2col.notion.site/1958a08476c78094932dfd3612b11aaa',
+            2018: 'https://h2col.notion.site/1958a08476c7805da162ffad03ca1589',
+            2019: 'https://h2col.notion.site/1958a08476c780258c92de856a312d4e',
+            2020: 'https://h2col.notion.site/1958a08476c780a092bafb44d04871ad',
+            2021: 'https://h2col.notion.site/1958a08476c780c3b68ac018a547d0d6',
+            2022: 'https://h2col.notion.site/1958a08476c780838e5cc2616cb84e22',
+            2023: 'https://h2col.notion.site/1958a08476c78040a6a2d9ffaf365777',
+            2024: 'https://h2col.notion.site/1958a08476c780d281b4f062857739a2',
+            2025: 'https://h2col.notion.site/1958a08476c780e9832acd8daadcf6c3',
+            2026: 'https://h2col.notion.site/1968a08476c7802584eeceec01185cc1',
+        };
+        // ============================================
+
+        // Parse CSV row handling quoted fields
+        function parseCSVRow(row) {
+            const cols = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < row.length; i++) {
+                const char = row[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    cols.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            cols.push(current.trim());
+            return cols;
+        }
+
+        // Parse date from YYYY/MM/DD format
+        function parseDate(dateStr) {
+            if (!dateStr || dateStr.trim() === '') return null;
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            }
+            return null;
+        }
+
+        // Check if a work occurs in a given year-month
+        function workOccursInMonth(work, year, month) {
+            if (!work.dateStart) return false;
+
+            const targetMonthStart = new Date(year, month - 1, 1);
+            const targetMonthEnd = new Date(year, month, 0); // Last day of month
+
+            // Check if work's date range overlaps with target month
+            const workStart = work.dateStart;
+            const workEnd = work.dateEnd || work.dateStart;
+
+            return workStart <= targetMonthEnd && workEnd >= targetMonthStart;
+        }
+
+        // Load and process data
+        async function loadMonthData() {
+            try {
+                const response = await fetch('/data/biography.csv');
+                const data = await response.text();
+                const rows = data.split('\n').slice(1); // Skip header
+
+                // Parse all works
+                const works = rows.map(row => {
+                    const cols = parseCSVRow(row);
+                    if (cols.length < 16) return null;
+
+                    // CSV Structure: PageWorks,PageActivity,PageToday,PageCalendar,PageAnn,Year,Name,Title,Role,WorksType,DateStart,DateEnd,Weekday,DateAdd,DateDelete,URL
+                    const name = cols[6];
+                    const title = cols[7];
+                    const dateStart = parseDate(cols[10]);
+                    const dateEnd = parseDate(cols[11]);
+                    const url = cols[15];
+
+                    if (!dateStart) return null;
+
+                    return {
+                        name: name,
+                        title: title,
+                        dateStart: dateStart,
+                        dateEnd: dateEnd,
+                        url: url
+                    };
+                }).filter(w => w !== null);
+
+                // Generate month cells
+                const currentYear = new Date().getFullYear();
+                const currentMonth = new Date().getMonth() + 1; // 1-12
+                const monthGrid = document.getElementById('month-grid');
+
+                // Generate from current year December to 1992 January
+                for (let year = currentYear; year >= 1973; year--) {
+                    const startMonth = (year === currentYear) ? currentMonth : 12;
+                    const endMonth = (year === 1973) ? 10 : 1;
+
+                    // Descending order: 12 to 1
+                    for (let month = startMonth; month >= endMonth; month--) {
+
+                        const cell = document.createElement('div');
+                        cell.className = 'month-cell';
+                        cell.setAttribute('data-year', year);
+                        cell.setAttribute('data-month', month);
+
+                        // Find works in this month
+                        const worksInMonth = works.filter(w => workOccursInMonth(w, year, month));
+
+                        // Sort works by dateStart (chronological order)
+                        worksInMonth.sort((a, b) => a.dateStart - b.dateStart);
+
+                        const nameDiv = document.createElement('div');
+                        nameDiv.className = 'month-name';
+
+                        if (worksInMonth.length > 0) {
+                            // Display all works in this month
+                            worksInMonth.forEach(work => {
+                                const workItem = document.createElement('div');
+                                workItem.className = 'work-item';
+                                workItem.textContent = work.name || work.title || month.toString();
+                                nameDiv.appendChild(workItem);
+                            });
+                        } else {
+                            // No works - show month number with "月" suffix
+                            const workItem = document.createElement('div');
+                            workItem.className = 'work-item';
+                            workItem.textContent = `${month}月`;
+                            nameDiv.appendChild(workItem);
+                        }
+
+                        // Dynamic font sizing based on content length
+                        const totalTextLength = Array.from(nameDiv.children)
+                            .reduce((sum, child) => sum + child.textContent.length, 0);
+
+                        let fontSize = '1.5rem';
+                        if (totalTextLength > 50) {
+                            fontSize = '0.7rem';
+                        } else if (totalTextLength > 30) {
+                            fontSize = '0.9rem';
+                        } else if (totalTextLength > 20) {
+                            fontSize = '1.1rem';
+                        } else if (totalTextLength > 10) {
+                            fontSize = '1.3rem';
+                        }
+                        nameDiv.style.fontSize = fontSize;
+
+                        const yearDiv = document.createElement('div');
+                        yearDiv.className = 'month-year';
+
+                        // Show year+month for cells with works, only year for empty cells
+                        if (worksInMonth.length > 0) {
+                            yearDiv.textContent = `${year}年${month}月`;
+                        } else {
+                            yearDiv.textContent = `${year}`;
+                        }
+
+                        cell.appendChild(nameDiv);
+                        cell.appendChild(yearDiv);
+
+                        // Add click handler based on year URL mapping
+                        if (YEAR_URLS[year]) {
+                            cell.onclick = () => {
+                                window.open(YEAR_URLS[year], '_blank');
+                            };
+                            cell.style.cursor = 'pointer';
+                        } else {
+                            cell.style.cursor = 'default';
+                        }
+
+                        monthGrid.appendChild(cell);
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error loading month data:', error);
+            }
+        }
+
+        // Initialize
+        loadMonthData();
+    </script>
+</body>
+
+</html>
