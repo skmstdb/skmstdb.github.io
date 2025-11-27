@@ -223,10 +223,10 @@ async function loadEventsForDate(selectedDate) {
 
             // 2.1 weekday为Film的情况
             if (weekdayLower === 'film') {
-                // 检查是否在开始后60天内
+                // 检查是否在开始后45天内
                 if (event.startDate && selectedDate >= event.startDate) {
                     const daysSinceStart = getDaysDifference(event.startDate, selectedDate);
-                    if (daysSinceStart <= 60) {
+                    if (daysSinceStart <= 45) {
                         matchType = 'film';
                     }
                 }
