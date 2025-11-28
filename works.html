@@ -437,7 +437,8 @@
 
     <script>
         let allWorks = [];
-        let currentFilter = 'all';
+        let currentTypeFilter = 'all'; // Type filter: all, 映画, TV, 舞台, etc.
+        let isLeadFilterActive = false; // Lead role filter: true/false
 
         // ============================================
         // INITIALIZATION - Ensure navbar loads first
@@ -524,28 +525,75 @@
 
         function setupFilterButtons() {
             const filterButtons = document.querySelectorAll('.filter-btn');
+            const typeFilters = ['all', '映画', 'TV', '舞台', '声の出演', 'その他', 'BOOK'];
+
             filterButtons.forEach(btn => {
                 btn.addEventListener('click', () => {
-                    // Remove active class from all buttons
-                    filterButtons.forEach(b => b.classList.remove('active'));
-                    // Add active class to clicked button
-                    btn.classList.add('active');
-
                     const filter = btn.dataset.filter;
-                    currentFilter = filter;
 
-                    let filteredWorks = allWorks;
                     if (filter === 'all') {
-                        filteredWorks = allWorks;
+                        // Reset all filters
+                        currentTypeFilter = 'all';
+                        isLeadFilterActive = false;
+
+                        // Update button states
+                        filterButtons.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
                     } else if (filter === 'lead') {
-                        filteredWorks = allWorks.filter(w => w.role && w.role.includes('主演'));
-                    } else {
-                        filteredWorks = allWorks.filter(w => w.type === filter);
+                        // Toggle lead filter
+                        isLeadFilterActive = !isLeadFilterActive;
+                        btn.classList.toggle('active');
+
+                        // If toggling lead filter on, deactivate "全て" button
+                        if (isLeadFilterActive) {
+                            filterButtons.forEach(b => {
+                                if (b.dataset.filter === 'all') {
+                                    b.classList.remove('active');
+                                }
+                            });
+                        } else if (currentTypeFilter === 'all') {
+                            // If lead filter is off and no type filter, activate "全て"
+                            filterButtons.forEach(b => {
+                                if (b.dataset.filter === 'all') {
+                                    b.classList.add('active');
+                                }
+                            });
+                        }
+                    } else if (typeFilters.includes(filter)) {
+                        // Type filter clicked
+                        currentTypeFilter = filter;
+
+                        // Remove active from all type filter buttons
+                        filterButtons.forEach(b => {
+                            if (typeFilters.includes(b.dataset.filter)) {
+                                b.classList.remove('active');
+                            }
+                        });
+
+                        // Add active to clicked button
+                        btn.classList.add('active');
                     }
 
-                    generateTimeline(filteredWorks);
+                    // Apply combined filters
+                    applyFilters();
                 });
             });
+        }
+
+        function applyFilters() {
+            let filteredWorks = allWorks;
+
+            // Apply type filter first
+            if (currentTypeFilter !== 'all') {
+                filteredWorks = filteredWorks.filter(w => w.type === currentTypeFilter);
+            }
+
+            // Apply lead role filter if active
+            if (isLeadFilterActive) {
+                filteredWorks = filteredWorks.filter(w => w.role && w.role.includes('主演'));
+            }
+
+            generateTimeline(filteredWorks);
         }
 
         function generateTimeline(works) {
