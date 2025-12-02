@@ -17,14 +17,6 @@ async function parseCSV() {
         const rows = data.split('\n').filter(row => row.trim());
         const header = rows[0].split(',').map(col => col.trim()); // 获取表头
 
-        // 找到需要的列的索引
-        const pageActivityIdx = header.indexOf('PageToday');
-        const titleIdx = header.indexOf('Title');
-        const dateStartIdx = header.indexOf('DateStart');
-        const dateEndIdx = header.indexOf('DateEnd');
-        const urlIdx = header.indexOf('URL');
-        const weekdayIdx = header.indexOf('Weekday');
-
         return rows.slice(1).map(row => {
             // 使用更可靠的方式来分割CSV行，考虑引号内的逗号
             const columns = processCSVRow(row);
@@ -35,13 +27,22 @@ async function parseCSV() {
                 eventData[header[i]] = columns[i] ? columns[i].trim() : '';
             }
 
+            // 解析DateDelete（多个日期用逗号分隔）
+            const dateDeleteStr = eventData['DateDelete'] || '';
+            const dateDeleteArray = dateDeleteStr
+                .split(',')
+                .map(d => d.trim())
+                .filter(d => d)
+                .map(d => new Date(d));
+
             return {
                 pageActivity: eventData['PageToday'] || '',
                 startDate: eventData['DateStart'] ? new Date(eventData['DateStart']) : null,
                 endDate: eventData['DateEnd'] ? new Date(eventData['DateEnd']) : null,
                 title: eventData['Title'] || '',
                 url: eventData['URL'] || '#',
-                weekday: eventData['Weekday'] ? eventData['Weekday'].trim() : ''
+                weekday: eventData['Weekday'] ? eventData['Weekday'].trim() : '',
+                dateDelete: dateDeleteArray
             };
         }).filter(event =>
             // 只包含 PageToday 列不为空的数据
@@ -88,6 +89,14 @@ function isDateMatchingToday(date, today) {
         date.getDate() === today.getDate();
 }
 
+// 检查日期是否在DateDelete列表中
+function isDateDeleted(selectedDate, dateDeleteArray) {
+    if (!dateDeleteArray || dateDeleteArray.length === 0) return false;
+    return dateDeleteArray.some(deleteDate =>
+        !isNaN(deleteDate.getTime()) && isSameDay(deleteDate, selectedDate)
+    );
+}
+
 // 计算周年数
 function calculateAnniversary(date, today) {
     return today.getFullYear() - date.getFullYear();
@@ -99,24 +108,38 @@ function getJapaneseWeekday(date) {
     return weekdays[date.getDay()];
 }
 
-// 获取英文星期对应的数字 (0-6, Sunday-Saturday)
-function getWeekdayNumber(weekdayName) {
-    const weekdays = {
-        'sunday': 0,
-        'monday': 1,
-        'tuesday': 2,
-        'wednesday': 3,
-        'thursday': 4,
-        'friday': 5,
-        'saturday': 6
-    };
-    return weekdays[weekdayName.toLowerCase()];
-}
+// 检查TV模式的weekday（支持单个数字、多个数字、负数）
+function isMatchingTVWeekday(date, weekdayStr) {
+    // TV模式: 1=星期一, 2=星期二, ..., 7=星期日
+    // 负数表示排除: -7=除星期日外的所有日期, -2=除星期二外的所有日期
+    // 多个数字用逗号分隔: 1,2=星期一和星期二
 
-// 检查日期是否匹配weekday
-function isMatchingWeekday(date, weekdayName) {
-    const weekdayNum = getWeekdayNumber(weekdayName);
-    return weekdayNum !== undefined && date.getDay() === weekdayNum;
+    const actualDay = date.getDay(); // 0=星期日, 1=星期一, ..., 6=星期六
+
+    // 将actualDay转换为1-7格式 (1=星期一, 7=星期日)
+    const dayNum = actualDay === 0 ? 7 : actualDay;
+
+    // 分割weekday字符串（处理逗号分隔的情况）
+    const weekdays = weekdayStr.split(',').map(w => w.trim());
+
+    for (const wd of weekdays) {
+        const num = parseInt(wd);
+
+        if (num < 0) {
+            // 负数模式：排除指定的星期
+            const excludeDay = Math.abs(num);
+            if (dayNum !== excludeDay) {
+                return true; // 不是被排除的日期，匹配成功
+            }
+        } else if (num >= 1 && num <= 7) {
+            // 正数模式：匹配指定的星期
+            if (dayNum === num) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 // 计算两个日期之间的天数差
@@ -211,38 +234,47 @@ async function loadEventsForDate(selectedDate) {
         let matchType = null;
         let milestone = null;
 
-        // 1. 检查是否是开始或结束日期当天
-        if (isDateMatchingToday(event.startDate, selectedDate)) {
+        // 检查是否在DateDelete列表中
+        if (isDateDeleted(selectedDate, event.dateDelete)) {
+            continue; // 跳过这个事件
+        }
+
+        // 判断weekday模式
+        const weekdayLower = event.weekday ? event.weekday.toLowerCase() : '';
+        // TV模式：weekday包含数字（支持单个、多个、负数）
+        const isTVMode = event.weekday && /^-?\d+([,，]\s*-?\d+)*$/.test(event.weekday.trim());
+        const isFilmMode = weekdayLower === 'film';
+
+        // 1. TV模式的开始日期：显示"初回"
+        if (isTVMode && isDateMatchingToday(event.startDate, selectedDate)) {
+            matchType = 'tv-start';
+        }
+        // 2. TV模式的结束日期：显示"最終回"
+        else if (isTVMode && isDateMatchingToday(event.endDate, selectedDate)) {
+            matchType = 'tv-end';
+        }
+        // 3. TV模式的中间日期：在DateStart到DateEnd之间（不包含开始和结束日期）的对应星期数显示"放送中"
+        else if (isTVMode && event.startDate && event.endDate &&
+            selectedDate > event.startDate &&
+            selectedDate < event.endDate &&
+            isMatchingTVWeekday(selectedDate, event.weekday)) {
+            matchType = 'tv-weekday';
+        }
+        // 4. Film模式：开始日期后45天内持续显示"公開中"
+        else if (isFilmMode && event.startDate && selectedDate >= event.startDate) {
+            const daysSinceStart = getDaysDifference(event.startDate, selectedDate);
+            if (daysSinceStart <= 45) {
+                matchType = 'film';
+            }
+        }
+        // 5. 非TV和Film模式：检查是否是开始或结束日期当天
+        else if (!isTVMode && !isFilmMode && isDateMatchingToday(event.startDate, selectedDate)) {
             matchType = 'start';
-        } else if (isDateMatchingToday(event.endDate, selectedDate)) {
+        } else if (!isTVMode && !isFilmMode && isDateMatchingToday(event.endDate, selectedDate)) {
             matchType = 'end';
         }
-        // 2. 检查weekday规则
-        else if (event.weekday) {
-            const weekdayLower = event.weekday.toLowerCase();
 
-            // 2.1 weekday为Film的情况
-            if (weekdayLower === 'film') {
-                // 检查是否在开始后45天内
-                if (event.startDate && selectedDate >= event.startDate) {
-                    const daysSinceStart = getDaysDifference(event.startDate, selectedDate);
-                    if (daysSinceStart <= 45) {
-                        matchType = 'film';
-                    }
-                }
-            }
-            // 2.2 weekday为星期名称的情况
-            else if (getWeekdayNumber(weekdayLower) !== undefined) {
-                // 只在DateStart到DateEnd范围内的对应星期数显示
-                if (event.startDate && event.endDate &&
-                    selectedDate >= event.startDate &&
-                    selectedDate <= event.endDate &&
-                    isMatchingWeekday(selectedDate, weekdayLower)) {
-                    matchType = 'weekday';
-                }
-            }
-        }
-        // 3. 检查整数倍天数纪念日
+        // 6. 检查整数倍天数纪念日
         if (!matchType) {
             if (event.startDate) {
                 const startMilestone = checkMilestone(event.startDate, selectedDate);
@@ -289,11 +321,14 @@ async function loadEventsForDate(selectedDate) {
             const daysUntilBirthday = Math.ceil((nextBirthday - selectedDate) / (1000 * 60 * 60 * 24));
             const nextAge = nextBirthday.getFullYear() - 1973;
 
-            htmlContent += `
-            <div class="today-item" onclick="window.open('https://sakai-masato.com/', '_blank')">
-                <div class="today-title">${nextAge}歳の誕生日まであと${daysUntilBirthday}日</div>
-            </div>
-            `;
+            // 只在300天、200天、100天及100天以内显示
+            if (daysUntilBirthday === 300 || daysUntilBirthday === 200 || daysUntilBirthday <= 100) {
+                htmlContent += `
+                <div class="today-item" onclick="window.open('https://sakai-masato.com/', '_blank')">
+                    <div class="today-title">${nextAge}歳の誕生日まであと${daysUntilBirthday}日</div>
+                </div>
+                `;
+            }
         }
 
         // 查找即将开始或结束的事件
@@ -308,74 +343,35 @@ async function loadEventsForDate(selectedDate) {
     container.innerHTML = htmlContent;
 }
 
-// 获取即将开始或结束的事件HTML
+// 获取即将开始的事件HTML
 function getUpcomingEventsHTML(events, selectedDate) {
     let upcomingHTML = '';
 
-    // 筛选出开始日期或结束日期在今天之后的事件
+    // 筛选出开始日期在今天之后的事件
     const upcomingEvents = events.filter(event => {
         // 跳过没有日期的事件
-        if (!event.startDate || !event.endDate) return false;
+        if (!event.startDate) return false;
 
         // 检查开始日期是否在今天之后
-        const isStartAfterToday = event.startDate > selectedDate;
-
-        // 检查结束日期是否在今天之后且不是开始日期当天
-        const isEndAfterToday = event.endDate > selectedDate &&
-            !isDateMatchingToday(event.startDate, selectedDate);
-
-        return isStartAfterToday || isEndAfterToday;
+        return event.startDate > selectedDate;
     });
 
     // 按日期排序（先显示最近的事件）
     upcomingEvents.sort((a, b) => {
-        // 如果a的开始日期在今天之后，使用开始日期
-        const dateA = a.startDate > selectedDate ? a.startDate : a.endDate;
-        // 如果b的开始日期在今天之后，使用开始日期
-        const dateB = b.startDate > selectedDate ? b.startDate : b.endDate;
-
-        return dateA - dateB;
+        return a.startDate - b.startDate;
     });
 
     // 最多显示100个即将到来的事件
     const eventsToShow = upcomingEvents.slice(0, 100);
 
     for (const event of eventsToShow) {
-        // 如果开始日期在今天之后且不是开始日期当天
-        if (event.startDate > selectedDate && !isDateMatchingToday(event.startDate, selectedDate)) {
-            // 计算距离开始日期的天数
-            const daysUntilStart = Math.ceil((event.startDate - selectedDate) / (1000 * 60 * 60 * 24));
-            upcomingHTML += `
-            <div class="today-item" onclick="window.open('${event.url}', '_blank')">
-                <div class="today-title">『 ${event.title} 』の公開まであと${daysUntilStart}日</div>
-            </div>
-            `;
-        }
-        // 如果今天在开始日期之后但在结束日期之前，且不是结束日期当天
-        else if (selectedDate >= event.startDate && event.endDate > selectedDate &&
-            !isDateMatchingToday(event.endDate, selectedDate)) {
-            // 检查是否需要跳过显示：如果weekday是星期名称且今天是放送日
-            let shouldSkip = false;
-            if (event.weekday) {
-                const weekdayLower = event.weekday.toLowerCase();
-                // 如果weekday是星期名称且今天匹配该星期
-                if (getWeekdayNumber(weekdayLower) !== undefined &&
-                    isMatchingWeekday(selectedDate, weekdayLower)) {
-                    shouldSkip = true;
-                }
-            }
-
-            // 只有在不需要跳过时才显示
-            if (!shouldSkip) {
-                // 计算距离结束日期的天数
-                const daysUntilEnd = Math.ceil((event.endDate - selectedDate) / (1000 * 60 * 60 * 24));
-                upcomingHTML += `
-                <div class="today-item" onclick="window.open('${event.url}', '_blank')">
-                    <div class="today-title">『 ${event.title} 』の完結まであと${daysUntilEnd}日</div>
-                </div>
-                `;
-            }
-        }
+        // 计算距离开始日期的天数
+        const daysUntilStart = Math.ceil((event.startDate - selectedDate) / (1000 * 60 * 60 * 24));
+        upcomingHTML += `
+        <div class="today-item" onclick="window.open('${event.url}', '_blank')">
+            <div class="today-title">『 ${event.title} 』の公開まであと${daysUntilStart}日</div>
+        </div>
+        `;
     }
 
     return upcomingHTML;
@@ -402,16 +398,28 @@ function createEventsHTML(events, selectedDate) {
                 dateText = `${formatDate(event.endDate)} 終了`;
                 break;
 
+            case 'tv-start':
+                // TV模式的开始日期
+                anniversaryText = '初回';
+                dateText = `${formatDate(event.startDate)} 放送開始`;
+                break;
+
+            case 'tv-end':
+                // TV模式的结束日期
+                anniversaryText = '最終回';
+                dateText = `${formatDate(event.endDate)} 放送終了`;
+                break;
+
+            case 'tv-weekday':
+                // TV模式的中间日期
+                anniversaryText = '放送日';
+                dateText = `${formatDate(event.startDate)} - ${formatDate(event.endDate)}`;
+                break;
+
             case 'film':
                 // weekday为Film
                 anniversaryText = '公開中';
                 dateText = `${formatDate(event.startDate)} 公開`;
-                break;
-
-            case 'weekday':
-                // 特定星期显示
-                anniversaryText = '放送中';
-                dateText = `${formatDate(event.startDate)} - ${formatDate(event.endDate)}`;
                 break;
 
             case 'milestone-start':
