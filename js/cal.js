@@ -387,6 +387,7 @@ function renderEvents(calendarGrid, year, month, events) {
         let borderColor = '#3498db'; // 默认蓝色边框
 
         // 根据事件来源设置不同的背景色和边框色
+        // 根据事件来源设置不同的背景色和边框色
         if (event.source === 'other') {
             backgroundColor = '#43AA8B';
             borderColor = '#2E8B57'; // 深海绿
@@ -398,6 +399,9 @@ function renderEvents(calendarGrid, year, month, events) {
             } else { // 紫色 (Day-count)
                 borderColor = '#8e44ad';
             }
+        } else if (event.source === 'syukujitsu') {
+            backgroundColor = '#FFD1D1'; // 浅红色背景
+            borderColor = '#FF6B6B'; // 红色边框
         }
 
         // 检查 weekday 是否为数字（包括负数）
@@ -451,9 +455,17 @@ function renderEvents(calendarGrid, year, month, events) {
                         const dayElement = dayElements[dayIndex];
 
                         // 创建 Bento 的包装容器
-                        const bentoContainer = document.createElement('a');
-                        bentoContainer.href = event.url;
-                        bentoContainer.target = '_blank';
+                        let bentoContainer;
+                        if (event.source === 'syukujitsu') {
+                            bentoContainer = document.createElement('div');
+                            bentoContainer.style.cursor = 'default';
+                            bentoContainer.style.color = '#c0392b'; // 深红色文字
+                        } else {
+                            bentoContainer = document.createElement('a');
+                            bentoContainer.href = event.url;
+                            bentoContainer.target = '_blank';
+                        }
+
                         bentoContainer.classList.add('bento-container');
                         bentoContainer.style.backgroundColor = backgroundColor; // 使用根据来源设置的背景色
                         bentoContainer.style.borderLeftColor = borderColor; // 设置边框色
@@ -492,9 +504,17 @@ function renderEvents(calendarGrid, year, month, events) {
                 // 如果当前日期不在排除列表中，则显示事件
                 if (!isExcludedDate) {
                     // 创建 Bento 的包装容器
-                    const bentoContainer = document.createElement('a');
-                    bentoContainer.href = event.url;
-                    bentoContainer.target = '_blank';
+                    let bentoContainer;
+                    if (event.source === 'syukujitsu') {
+                        bentoContainer = document.createElement('div');
+                        bentoContainer.style.cursor = 'default';
+                        bentoContainer.style.color = '#c0392b'; // 深红色文字
+                    } else {
+                        bentoContainer = document.createElement('a');
+                        bentoContainer.href = event.url;
+                        bentoContainer.target = '_blank';
+                    }
+
                     bentoContainer.classList.add('bento-container');
                     bentoContainer.style.backgroundColor = backgroundColor; // 使用根据来源设置的背景色
                     bentoContainer.style.borderLeftColor = borderColor; // 设置边框色
@@ -596,11 +616,49 @@ async function updateCalendar() {
         events = [...events, ...anniversaryEvents]; // Merge events
         document.getElementById('calendar-title').textContent = `${year}年${month + 1}月 (Anniversary)`;
     } else {
+        // Schedule View: Load holidays
+        const holidayEvents = await parseSyukujitsuCSV();
+        events = [...events, ...holidayEvents];
         document.getElementById('calendar-title').textContent = `${year}年${month + 1}月`;
     }
 
     generateCalendar(year, month, events);
     updateNavigationButtons(year, month);
+}
+
+// 解析 syukujitsu.csv 数据
+async function parseSyukujitsuCSV() {
+    try {
+        const response = await fetch('../data/syukujitsu.csv');
+        const data = await response.text();
+        const rows = data.split('\n').filter(row => row.trim());
+        const header = rows[0].split(',').map(col => col.trim());
+        const dataStartIndex = 1;
+
+        const events = rows.slice(dataStartIndex).map(row => {
+            const columns = parseCSVRow(row);
+            const eventData = {};
+            for (let i = 0; i < header.length && i < columns.length; i++) {
+                eventData[header[i]] = columns[i] ? columns[i].trim() : '';
+            }
+
+            const date = eventData['Date'] ? new Date(eventData['Date']) : null;
+
+            return {
+                startDate: date,
+                endDate: date,
+                title: eventData['Name'] || '',
+                url: '', // Holidays are not clickable
+                id: Math.random().toString(36).substr(2, 9),
+                source: 'syukujitsu'
+            };
+        }).filter(event => event.startDate && !isNaN(event.startDate.getTime()) && event.title);
+
+        return events;
+    } catch (error) {
+        console.error('Error loading Syukujitsu CSV data:', error);
+        return [];
+    }
 }
 
 function updateNavigationButtons(year, month) {
