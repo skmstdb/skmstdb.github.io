@@ -251,8 +251,7 @@ body.dark-mode .calendar-day.other-month {
 /* Year Mode Styles */
 .year-mode-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
     width: 100%;
     border: none;
