@@ -1,6 +1,7 @@
 /* 默认深色模式（保持原样） */
 :root {
-    --sidebar-bg-color: #1a1a1a; /* 原深色背景，保持不变 */
+    --sidebar-bg-color: #1a1a1a;
+    /* 原深色背景，保持不变 */
     /* 其他颜色变量... */
 }
 
@@ -26,6 +27,7 @@
     box-shadow: 2px 0 5px var(--box-shadow-color);
     z-index: 1000;
     transition: background-color var(--transition-duration);
+    overflow: hidden;
 }
 
 .logo-text {
