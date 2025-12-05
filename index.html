@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,7 +33,12 @@
             font-family: "ヒラギノ明朝 ProN", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
             background-color: var(--bg-color);
             color: var(--text-color);
-            min-height: 100vh;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            /* Prevent scrolling */
+            position: fixed;
+            /* Lock body in place */
             padding: 0;
             margin: 0;
             transition: background-color 0.3s ease, color 0.3s ease;
@@ -45,6 +51,7 @@
             gap: 20px;
             padding: 20px;
             box-sizing: border-box;
+            overflow: hidden;
         }
 
         /* Desktop layout: 4 columns, 3 rows */
@@ -84,11 +91,11 @@
                 align-items: center;
                 height: 100vh;
             }
-            
+
             .grid-item:not(.database) {
                 display: none;
             }
-            
+
             .grid-item.database {
                 width: 80%;
                 max-width: 400px;
@@ -116,26 +123,26 @@
         }
 
         .disclaimer {
-            font-size: 1.1rem;
+            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
             line-height: 1.6;
             align-items: flex-start;
             text-align: left;
         }
 
         .birthday-countdown .title {
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 1.6vw, 1.2rem);
             margin-bottom: 10px;
             font-weight: 300;
         }
 
         .birthday-countdown .days {
-            font-size: 3rem;
+            font-size: clamp(2rem, 4vw, 3rem);
             font-weight: bold;
             color: var(--text-color);
         }
 
         .birthday-special {
-            font-size: 2.5rem !important;
+            font-size: clamp(1.8rem, 3.5vw, 2.5rem) !important;
             font-weight: bold;
             background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
             -webkit-background-clip: text;
@@ -145,12 +152,19 @@
         }
 
         @keyframes rainbow {
-            0%, 100% { filter: hue-rotate(0deg); }
-            50% { filter: hue-rotate(180deg); }
+
+            0%,
+            100% {
+                filter: hue-rotate(0deg);
+            }
+
+            50% {
+                filter: hue-rotate(180deg);
+            }
         }
 
         .database {
-            font-size: 4rem;
+            font-size: clamp(2rem, 5.5vw, 4rem);
             font-family: " ";
             font-weight: bold;
             letter-spacing: 2px;
@@ -169,18 +183,19 @@
         }
 
         .date-countdown .label {
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 1.6vw, 1.2rem);
             margin-bottom: 10px;
             opacity: 0.8;
         }
 
         .date-countdown #dateCountdown {
-            font-size: 3rem;
+            font-size: clamp(2rem, 4vw, 3rem);
             font-weight: bold;
         }
 
-        .work1, .work2 {
-            font-size: 1.8rem;
+        .work1,
+        .work2 {
+            font-size: clamp(1.2rem, 2.5vw, 1.8rem);
             font-weight: 500;
         }
 
@@ -190,24 +205,11 @@
                 min-height: 120px;
             }
 
-            .birthday-countdown .days {
-                font-size: 2.5rem;
-            }
-
-            .date-countdown #dateCountdown {
-                font-size: 2.5rem;
-            }
-
-            .database {
-                font-size: 2rem;
-            }
-
-            .work1, .hwork2 {
-                font-size: 1.5rem;
-            }
+            /* Font sizes are now handled by clamp() */
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="grid-item database hoverable" onclick="window.location.href='skmst.html'">
@@ -217,12 +219,14 @@
             </div>
         </div>
 
-        <div class="grid-item birthday-countdown hoverable" onclick="window.open('https://sakai-masato.com/', '_blank')">
+        <div class="grid-item birthday-countdown hoverable"
+            onclick="window.open('https://sakai-masato.com/', '_blank')">
             <div class="title" id="birthdayTitle">His Birthday</div>
             <div class="days" id="birthdayDays"> </div>
         </div>
 
-        <div class="grid-item date-countdown hoverable" onclick="window.open('https://www.youtube.com/watch?v=jbEc6AcxFWs', '_blank')">
+        <div class="grid-item date-countdown hoverable"
+            onclick="window.open('https://www.youtube.com/watch?v=jbEc6AcxFWs', '_blank')">
             <div class="label">平場の月 11月14日 (金) 公開</div>
             <div id="dateCountdown"> </div>
         </div>
@@ -237,18 +241,24 @@
     </div>
 
     <script>
+        // Helper to get current date in JST
+        function getJSTDate() {
+            const now = new Date();
+            return new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+        }
+
         function updateCountdowns() {
-            const today = new Date();
+            const today = getJSTDate();
             const currentYear = today.getFullYear();
-            
+
             // Birthday countdown (October 14)
             const birthdayTitle = document.getElementById('birthdayTitle');
             const birthdayDays = document.getElementById('birthdayDays');
-            
+
             // Check if today is the birthday (October 14th)
             const todayMonth = today.getMonth();
             const todayDate = today.getDate();
-            
+
             if (todayMonth === 9 && todayDate === 14) {
                 // Today is October 14th - birthday!
                 birthdayTitle.textContent = '';
@@ -265,12 +275,12 @@
                 birthdayDays.textContent = `D-${birthdayDiff}`;
                 birthdayDays.classList.remove('birthday-special');
             }
-            
+
             // Date countdown (November 14, 2025)
             const targetDate = new Date(2025, 10, 14); // Month is 0-indexed
             const dateDiff = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
             const dateCountdown = document.getElementById('dateCountdown');
-            
+
             if (dateDiff === 0) {
                 dateCountdown.textContent = 'D-Day';
             } else if (dateDiff > 0) {
@@ -280,13 +290,41 @@
                 dateCountdown.textContent = `${daysPast} Days ago`;
             }
         }
-        
-        // Update countdowns immediately and then every hour
+
+        function scheduleNextUpdate() {
+            const now = new Date();
+            const jstNow = getJSTDate();
+
+            // Calculate next midnight JST
+            const nextMidnight = new Date(jstNow);
+            nextMidnight.setDate(jstNow.getDate() + 1);
+            nextMidnight.setHours(0, 0, 0, 0);
+
+            // Calculate delay (difference between target JST time and current JST time)
+            // Note: We use the difference in milliseconds. Since both dates are derived from the same 'now' instant
+            // but represented in local time objects, we need to be careful.
+            // A safer way is to calculate the time until the next JST midnight relative to the current UTC time.
+
+            // Simplified approach:
+            // 1. Get current time in JST
+            // 2. Calculate milliseconds until next 00:00:00
+            const msUntilMidnight = nextMidnight.getTime() - jstNow.getTime();
+
+            // Add a small buffer (e.g., 1 second) to ensure we are past midnight
+            const delay = msUntilMidnight + 1000;
+
+            console.log(`Next update scheduled in ${delay} ms (approx ${delay / 1000 / 60} minutes)`);
+
+            setTimeout(() => {
+                updateCountdowns();
+                scheduleNextUpdate(); // Schedule next day
+            }, delay);
+        }
+
+        // Initial call
         updateCountdowns();
-        setInterval(updateCountdowns, 3600000); // Update every hour
-        
-        // Update every minute for more accuracy when close to dates
-        setInterval(updateCountdowns, 60000); // Update every minute
+        scheduleNextUpdate();
     </script>
 </body>
+
 </html>
