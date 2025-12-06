@@ -1,10 +1,6 @@
-// 格式化日期为本地字符串
+// 格式化日期为本地字符串 (JST)
 function formatDate(date) {
-    return date.toLocaleDateString('ja-JP', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+    return formatJSTDateJapanese(date);
 }
 
 // 解析CSV数据
@@ -33,12 +29,12 @@ async function parseCSV() {
                 .split(',')
                 .map(d => d.trim())
                 .filter(d => d)
-                .map(d => new Date(d));
+                .map(d => parseJSTDate(d));
 
             return {
                 pageActivity: eventData['PageToday'] || '',
-                startDate: eventData['DateStart'] ? new Date(eventData['DateStart']) : null,
-                endDate: eventData['DateEnd'] ? new Date(eventData['DateEnd']) : null,
+                startDate: eventData['DateStart'] ? parseJSTDate(eventData['DateStart']) : null,
+                endDate: eventData['DateEnd'] ? parseJSTDate(eventData['DateEnd']) : null,
                 title: eventData['Title'] || '',
                 url: eventData['URL'] || '#',
                 weekday: eventData['Weekday'] ? eventData['Weekday'].trim() : '',
@@ -167,9 +163,9 @@ function checkMilestone(date, selectedDate) {
     return null;
 }
 
-// 创建日期导航
+// 创建日期导航 (JST)
 function createDateNavigation() {
-    const today = new Date();
+    const today = getJSTNow();
     const dateNavigation = document.getElementById('date-navigation');
     let navigationHTML = '';
 
@@ -216,11 +212,11 @@ function isSameDay(date1, date2) {
         date1.getDate() === date2.getDate();
 }
 
-// 為指定日期加載事件
+// 為指定日期加載事件 (JST)
 async function loadEventsForDate(selectedDate) {
     const container = document.getElementById('today-container');
     const currentDateElement = document.getElementById('current-date');
-    const today = new Date(); // 获取真正的今天
+    const today = getJSTNow(); // 获取真正的今天 (JST)
 
     // 顯示選中日期
     currentDateElement.textContent = formatDate(selectedDate);
@@ -445,9 +441,9 @@ function createEventsHTML(events, selectedDate) {
     }).join('');
 }
 
-// 加载今日事件
+// 加载今日事件 (JST)
 async function loadTodayEvents() {
-    const today = new Date();
+    const today = getJSTNow();
 
     // 检查是否为移动设备
     const isMobile = window.innerWidth <= 767;
@@ -470,8 +466,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (isMobile) {
             dateNavigation.style.display = 'none';
-            // 在移动设备上，始终显示今天的内容
-            loadEventsForDate(new Date());
+            // 在移动设备上，始终显示今天的内容 (JST)
+            loadEventsForDate(getJSTNow());
         } else {
             dateNavigation.style.display = 'flex';
         }
