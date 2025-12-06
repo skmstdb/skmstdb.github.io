@@ -5,18 +5,18 @@
 function highlightCurrentPage() {
     // 获取当前页面路径
     const currentPath = window.location.pathname;
-    
+
     // 获取所有导航链接
-    const navLinks = document.querySelectorAll('.sidebar nav a');
-    
+    const navLinks = document.querySelectorAll('.sidebar nav a, .logo-text a');
+
     navLinks.forEach(link => {
         // 获取链接的href属性
         const href = link.getAttribute('href');
-        
+
         // 检查链接是否匹配当前页面
         // 处理首页情况
-        if ((currentPath === '/' || currentPath === '/index.html' || currentPath.endsWith('/')) && 
-            (href === 'index.html' || href === './' || href === '../index.html' || href === '/')) {
+        if ((currentPath === '/' || currentPath === '/index.html' || currentPath.endsWith('/') || currentPath.includes('skmst.html')) &&
+            (href === 'index.html' || href === './' || href === '../index.html' || href === '/' || href.includes('skmst.html'))) {
             link.classList.add('active');
         }
         // 处理其他页面
@@ -26,15 +26,13 @@ function highlightCurrentPage() {
             (currentPath.includes('activity.html') && href.includes('activity.html')) ||
             (currentPath.includes('sakaical.html') && href.includes('sakaical.html')) ||
             (currentPath.includes('news.html') && href.includes('news.html')) ||
-            (currentPath.includes('about.html') && href.includes('about.html')) ||
-            (currentPath.includes('contact.html') && href.includes('contact.html')) ||
-            (currentPath.includes('streaming.html') && href.includes('streaming.html'))) {
+            ((currentPath.includes('about.html') || currentPath.includes('contact.html')) && href.includes('about.html'))) {
             link.classList.add('active');
         } else {
             link.classList.remove('active');
         }
     });
-    
+
     // 调试信息
     console.log('当前路径:', currentPath);
     navLinks.forEach(link => {
@@ -49,7 +47,7 @@ function initializeHamburger() {
     const hamburger = document.querySelector('.hamburger');
     const nav = document.querySelector('nav');
 
-    if (hamburger && nav) {  
+    if (hamburger && nav) {
         hamburger.addEventListener('click', function () {
             nav.classList.toggle('active');
             this.classList.toggle('is-active');
@@ -73,8 +71,8 @@ async function loadNavbar() {
         const response = await fetch('../Navi/navbar.html');
         const navbarContent = await response.text();
         document.querySelector('.sidebar').innerHTML = navbarContent;
-        initializeHamburger(); 
-        highlightCurrentPage(); 
+        initializeHamburger();
+        highlightCurrentPage();
     } catch (error) {
         console.error('Error loading navbar:', error);
         document.querySelector('.sidebar').innerHTML = '<p>Failed to load navigation.</p>';
@@ -82,6 +80,6 @@ async function loadNavbar() {
 }
 
 // 当DOM加载完成后执行
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     loadNavbar();
 });
