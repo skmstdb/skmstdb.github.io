@@ -36,8 +36,8 @@ async function parseCSV() {
 
             return {
                 pageCalendar: eventData['PageCalendar'] || '',
-                startDate: new Date(eventData['DateStart']),
-                endDate: eventData['DateEnd'] ? new Date(eventData['DateEnd']) : new Date(eventData['DateStart']),
+                startDate: parseJSTDate(eventData['DateStart']),
+                endDate: eventData['DateEnd'] ? parseJSTDate(eventData['DateEnd']) : parseJSTDate(eventData['DateStart']),
                 title: eventData['Title'] || '',
                 url: eventData['URL'] ? eventData['URL'].trim() : '#', // 确保URL被正确处理
                 id: Math.random().toString(36).substr(2, 9),
@@ -81,8 +81,8 @@ async function parseAnniversaryCSV() {
 
             return {
                 pageAnn: eventData['PageAnn'] || '',
-                startDate: new Date(eventData['DateStart']),
-                endDate: eventData['DateEnd'] ? new Date(eventData['DateEnd']) : new Date(eventData['DateStart']),
+                startDate: parseJSTDate(eventData['DateStart']),
+                endDate: eventData['DateEnd'] ? parseJSTDate(eventData['DateEnd']) : parseJSTDate(eventData['DateStart']),
                 title: eventData['Title'] || '',
                 url: eventData['URL'] ? eventData['URL'].trim() : '#',
                 id: Math.random().toString(36).substr(2, 9),
@@ -214,7 +214,7 @@ async function parseOtherCSV() {
             }
 
             // 从Date字段获取日期
-            const date = eventData['Date'] ? new Date(eventData['Date']) : null;
+            const date = eventData['Date'] ? parseJSTDate(eventData['Date']) : null;
 
             return {
                 startDate: date,
@@ -288,7 +288,7 @@ function generateCalendar(year, month, events) {
     const firstDayOfWeek = (firstDay.getDay() + 6) % 7; // 将星期天(0)转换为6，其他日期-1
 
     const prevMonthLastDay = new Date(year, month, 0).getDate();
-    const today = new Date();
+    const today = getJSTNow();
     const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
 
     for (let i = 0; i < firstDayOfWeek; i++) {
@@ -545,12 +545,9 @@ function renderEvents(calendarGrid, year, month, events) {
     });
 }
 
-// 统一的日期格式化函数，确保格式一致
+// 统一的日期格式化函数，确保格式一致 (JST)
 function formatDate(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return formatJSTDate(date);
 }
 
 function createDayElement(day, date, isOtherMonth, isToday = false) {
@@ -608,7 +605,7 @@ function initializeSelectors() {
         option.textContent = name;
         monthSelect.appendChild(option);
     });
-    monthSelect.value = new Date().getMonth();
+    monthSelect.value = getJSTMonth();
 
     yearSelect.addEventListener('change', updateCalendar);
     monthSelect.addEventListener('change', updateCalendar);
@@ -700,7 +697,7 @@ function generateYearCalendar(year, events) {
             monthGrid.appendChild(emptyCell);
         }
 
-        const today = new Date();
+        const today = getJSTNow();
         const isCurrentYear = today.getFullYear() === year;
 
         // Days of the month
@@ -870,7 +867,7 @@ async function parseSyukujitsuCSV() {
                 eventData[header[i]] = columns[i] ? columns[i].trim() : '';
             }
 
-            const date = eventData['Date'] ? new Date(eventData['Date']) : null;
+            const date = eventData['Date'] ? parseJSTDate(eventData['Date']) : null;
 
             return {
                 startDate: date,
@@ -892,7 +889,7 @@ async function parseSyukujitsuCSV() {
 function updateNavigationButtons(year, month) {
     const prevButton = document.getElementById('prev-month');
     const nextButton = document.getElementById('next-month');
-    const currentYear = new Date().getFullYear();
+    const currentYear = getJSTYear();
     const minYear = 1992;
     const maxYear = currentYear + 3;
 
@@ -1027,7 +1024,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('next-month').addEventListener('click', () => navigateMonth('next'));
 
     document.getElementById('today-button').addEventListener('click', () => {
-        const today = new Date();
+        const today = getJSTNow();
         document.getElementById('year-select').value = today.getFullYear();
         document.getElementById('month-select').value = today.getMonth();
         updateCalendar();
