@@ -43,23 +43,17 @@ function processCSVLine(line) {
     return result;
 }
 
-// 统一的日期格式化函数，确保格式一致YYYY-MM-DD
+// 统一的日期格式化函数，确保格式一致YYYY-MM-DD (JST)
 function formatDate(date) {
-    if (!(date instanceof Date) || isNaN(date.getTime())) {
-        return null; // Invalid date
-    }
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return formatJSTDate(date);
 }
 
 // Helper function to parse and format a list of date strings (e.g., from 'Add' or 'Date' columns)
-// This ensures that all dates from CSV are consistentlyYYYY-MM-DD
+// This ensures that all dates from CSV are consistently YYYY-MM-DD (JST)
 function parseAndFormatDates(dateStringList) {
     if (!dateStringList) return [];
     return dateStringList.split(',').map(dateStr => {
-        const dateObj = new Date(dateStr.trim());
+        const dateObj = parseJSTDate(dateStr.trim());
         return formatDate(dateObj); // Use our consistent formatDate
     }).filter(d => d !== null); // Filter out any invalid or null formatted dates
 }
@@ -120,9 +114,9 @@ function getActivityOrder(worksType) {
 }
 
 // --- Constants for Graph Generation ---
-const BIRTH_DATE = new Date('1973-10-14');
+const BIRTH_DATE = parseJSTDate('1973/10/14');
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '🎂', 'Nov', 'Dec'];
-const CURRENT_YEAR = new Date().getFullYear();
+const CURRENT_YEAR = getJSTYear();
 const START_YEAR_MONTH_VIEW = 1992;
 const START_YEAR_GLOBAL = 1970; // For Year View
 const AGE_START = 0; // For Age View
