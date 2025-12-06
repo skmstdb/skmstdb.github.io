@@ -134,7 +134,10 @@
         }
 
         .filter-btn {
-            padding: 8px 20px;
+            padding: 8px 10px;
+            /* Reduced side padding as width is fixed */
+            min-width: 100px;
+            /* Fixed width for uniformity */
             border: 1px solid var(--border-color);
             background: var(--panel-bg);
             color: var(--text-color);
@@ -145,6 +148,12 @@
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            text-align: center;
+            /* Ensure centered text */
+            display: inline-flex;
+            /* Use flex for centering */
+            justify-content: center;
+            align-items: center;
         }
 
         .filter-btn:hover {
@@ -393,6 +402,69 @@
                 background-position: -200% 0;
             }
         }
+
+        /* Toggle Switch Styles */
+        .switch-container {
+            display: flex;
+            align-items: center;
+            margin-left: 10px;
+            /* Match button margin/gap if needed, flex gap handles it usually */
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            margin-right: 8px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--accent-color);
+        }
+
+        input:checked+.slider:before {
+            -webkit-transform: translateX(20px);
+            transform: translateX(20px);
+        }
+
+        .switch-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
     </style>
 </head>
 
@@ -415,7 +487,16 @@
                 <button class="filter-btn" data-filter="声の出演">声の出演</button>
                 <button class="filter-btn" data-filter="その他">その他</button>
                 <button class="filter-btn" data-filter="BOOK">BOOK</button>
-                <button class="filter-btn" data-filter="lead">主演作品</button>
+            </div>
+
+            <div style="display: flex; justify-content: center; margin-bottom: 40px;">
+                <div class="switch-container" style="margin-left: 0;">
+                    <label class="switch">
+                        <input type="checkbox" id="lead-role-toggle">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label">主演作品</span>
+                </div>
             </div>
         </div>
 
@@ -526,6 +607,39 @@
         function setupFilterButtons() {
             const filterButtons = document.querySelectorAll('.filter-btn');
             const typeFilters = ['all', '映画', 'TV', '舞台', '声の出演', 'その他', 'BOOK'];
+            const leadToggle = document.getElementById('lead-role-toggle');
+
+            // Handle Lead Role Toggle
+            if (leadToggle) {
+                leadToggle.addEventListener('change', (e) => {
+                    isLeadFilterActive = e.target.checked;
+
+                    // Interaction with "All":
+                    // If turning ON lead filter, deselect "All" button if it was active?
+                    // Or keep "All" active because it means "All types" + "Lead Only"?
+                    // Current logic implies "All" button creates a "Reset" state.
+                    // Let's decide: If Lead is ON, "All" (Reset) button should probably NOT be active visually 
+                    // if "All" button means "Reset Everything".
+                    // But usually "All" means "All Types". 
+                    // Let's stick to previous behavior: logic de-activated 'all' button.
+
+                    if (isLeadFilterActive) {
+                        filterButtons.forEach(b => {
+                            if (b.dataset.filter === 'all') {
+                                b.classList.remove('active');
+                            }
+                        });
+                    } else if (currentTypeFilter === 'all') {
+                        filterButtons.forEach(b => {
+                            if (b.dataset.filter === 'all') {
+                                b.classList.add('active');
+                            }
+                        });
+                    }
+
+                    applyFilters();
+                });
+            }
 
             filterButtons.forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -535,30 +649,11 @@
                         // Reset all filters
                         currentTypeFilter = 'all';
                         isLeadFilterActive = false;
+                        if (leadToggle) leadToggle.checked = false; // Uncheck toggle
 
                         // Update button states
                         filterButtons.forEach(b => b.classList.remove('active'));
                         btn.classList.add('active');
-                    } else if (filter === 'lead') {
-                        // Toggle lead filter
-                        isLeadFilterActive = !isLeadFilterActive;
-                        btn.classList.toggle('active');
-
-                        // If toggling lead filter on, deactivate "全て" button
-                        if (isLeadFilterActive) {
-                            filterButtons.forEach(b => {
-                                if (b.dataset.filter === 'all') {
-                                    b.classList.remove('active');
-                                }
-                            });
-                        } else if (currentTypeFilter === 'all') {
-                            // If lead filter is off and no type filter, activate "全て"
-                            filterButtons.forEach(b => {
-                                if (b.dataset.filter === 'all') {
-                                    b.classList.add('active');
-                                }
-                            });
-                        }
                     } else if (typeFilters.includes(filter)) {
                         // Type filter clicked
                         currentTypeFilter = filter;
@@ -572,6 +667,13 @@
 
                         // Add active to clicked button
                         btn.classList.add('active');
+
+                        // "All" button visual update
+                        filterButtons.forEach(b => {
+                            if (b.dataset.filter === 'all') {
+                                b.classList.remove('active');
+                            }
+                        });
                     }
 
                     // Apply combined filters
