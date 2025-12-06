@@ -1,8 +1,6 @@
-/* 默认深色模式（保持原样） */
+/* 深色模式 */
 :root {
     --sidebar-bg-color: #1a1a1a;
-    /* 原深色背景，保持不变 */
-    /* 其他颜色变量... */
 }
 
 /* 浅色模式 */
@@ -90,6 +88,10 @@
     color: var(--text-color);
 }
 
+.mobile-footer {
+    display: none;
+}
+
 .hamburger {
     display: none;
     flex-direction: column;
@@ -140,7 +142,27 @@
         margin-top: 20px;
         padding: 0;
     }
+
+    .mobile-footer {
+        display: none;
+    }
 }
+
+/* Default Desktop Base Styles (outside media queries) are preserved implicitly. 
+   I need to ensure mobile-footer is hidden by default on desktop if base styles don't cover it.
+   Since I can only replace this block, I'll rely on the min-width query above. 
+   BUT wait, standard desktop (>1024px) doesn't use this query.
+   This query is for Tablet.
+   Standard desktop uses base styles.
+   I need to add a rule to hide it on large screens.
+   I can add a new query for >1024px or just assume standard desktop catches it?
+   Actually, I can add `.mobile-footer { display: none; }` inside the replacement block if I structure it right?
+   No, CSS doesn't work like that.
+   
+   Wait, I can scroll up to base styles and add it there first?
+   Or I can use `multi_replace` to update base styles too.
+   Let's do `multi_replace` to be safe.
+*/
 
 @media (max-width: 767px) {
     .sidebar {
@@ -173,30 +195,48 @@
         flex-direction: column;
         padding: 20px 0;
         z-index: 999;
+        border-bottom: 1px solid var(--border-color);
+        /* Match sidebar bottom style */
     }
 
     nav.active {
         display: flex;
     }
 
+    /* Hide the original desktop footer on mobile */
     .footer {
-        position: fixed;
-        bottom: 0;
-        left: 0;
+        display: none;
+    }
+
+    /* Show and style the mobile footer inside nav */
+    .mobile-footer {
+        display: block;
         width: 100%;
-        padding: 10px;
-        background-color: var(--sidebar-bg-color);
-        z-index: 999;
+        padding: 20px 10px;
+        background-color: transparent;
         text-align: center;
+        margin-top: auto;
+        font-size: 12px;
+        color: var(--text-color);
     }
 
     .sidebar-nav {
         flex-direction: column;
-        align-items: center;
+        align-items: stretch;
+        width: 100%;
+        padding: 0 20px;
+        box-sizing: border-box;
     }
 
     .sidebar-nav-item {
-        margin-bottom: 15px;
+        margin-bottom: 0;
+        text-align: center;
+        border-bottom: 1px dashed var(--text-color);
+        padding: 15px 0;
+    }
+
+    .sidebar-nav-item:last-child {
+        border-bottom: 1px dashed var(--text-color);
     }
 
     .sidebar-nav-item a.active {
@@ -204,5 +244,17 @@
         color: white;
         padding: 10px 20px;
         border-radius: 0;
+        display: inline-block;
+    }
+}
+
+/* Desktop-only active style for Logo */
+@media (min-width: 768px) {
+    .logo-text a.active {
+        color: var(--active-link-text-color);
+        background-color: var(--active-link-bg-color);
+        border-radius: 5px;
+        padding: 5px 10px;
+        display: inline-block;
     }
 }
