@@ -208,6 +208,7 @@
             /* Font sizes are now handled by clamp() */
         }
     </style>
+    <script src="js/jst-utils.js"></script>
 </head>
 
 <body>
@@ -241,23 +242,17 @@
     </div>
 
     <script>
-        // Helper to get current date in JST
-        function getJSTDate() {
-            const now = new Date();
-            return new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
-        }
-
         function updateCountdowns() {
-            const today = getJSTDate();
-            const currentYear = today.getFullYear();
+            const today = getJSTNow();
+            const currentYear = today.getUTCFullYear();
 
             // Birthday countdown (October 14)
             const birthdayTitle = document.getElementById('birthdayTitle');
             const birthdayDays = document.getElementById('birthdayDays');
 
             // Check if today is the birthday (October 14th)
-            const todayMonth = today.getMonth();
-            const todayDate = today.getDate();
+            const todayMonth = today.getUTCMonth();
+            const todayDate = today.getUTCDate();
 
             if (todayMonth === 9 && todayDate === 14) {
                 // Today is October 14th - birthday!
@@ -266,9 +261,9 @@
                 birthdayDays.classList.add('birthday-special');
             } else {
                 // Calculate next birthday
-                let nextBirthday = new Date(currentYear, 9, 14); // Month is 0-indexed
+                let nextBirthday = new Date(Date.UTC(currentYear, 9, 14)); // Month is 0-indexed
                 if (today > nextBirthday) {
-                    nextBirthday = new Date(currentYear + 1, 9, 14);
+                    nextBirthday = new Date(Date.UTC(currentYear + 1, 9, 14));
                 }
                 const birthdayDiff = Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24));
                 birthdayTitle.textContent = '堺さんの誕生日';
@@ -277,7 +272,7 @@
             }
 
             // Date countdown (November 14, 2025)
-            const targetDate = new Date(2025, 10, 14); // Month is 0-indexed
+            const targetDate = new Date(Date.UTC(2025, 10, 14)); // Month is 0-indexed
             const dateDiff = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
             const dateCountdown = document.getElementById('dateCountdown');
 
@@ -292,24 +287,7 @@
         }
 
         function scheduleNextUpdate() {
-            const now = new Date();
-            const jstNow = getJSTDate();
-
-            // Calculate next midnight JST
-            const nextMidnight = new Date(jstNow);
-            nextMidnight.setDate(jstNow.getDate() + 1);
-            nextMidnight.setHours(0, 0, 0, 0);
-
-            // Calculate delay (difference between target JST time and current JST time)
-            // Note: We use the difference in milliseconds. Since both dates are derived from the same 'now' instant
-            // but represented in local time objects, we need to be careful.
-            // A safer way is to calculate the time until the next JST midnight relative to the current UTC time.
-
-            // Simplified approach:
-            // 1. Get current time in JST
-            // 2. Calculate milliseconds until next 00:00:00
-            const msUntilMidnight = nextMidnight.getTime() - jstNow.getTime();
-
+            const msUntilMidnight = getMillisecondsUntilJSTMidnight();
             // Add a small buffer (e.g., 1 second) to ensure we are past midnight
             const delay = msUntilMidnight + 1000;
 
