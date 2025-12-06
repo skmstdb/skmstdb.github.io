@@ -3,18 +3,19 @@
 
 <head>
     <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C7BJGKMFT"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6C7BJGKMFT"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-  gtag('config', 'G-6C7BJGKMFT');
-</script>
+        gtag('config', 'G-6C7BJGKMFT');
+    </script>
     <meta charset="UTF-8">
     <script src="js/visibility.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="堺雅人の出演作品の「今日は何の日」。歴史上の今日に公開・放送された作品を紹介。 / What happened today in Sakai Masato's career. Check out works that were released or aired on this day in history.">
+    <meta name="description"
+        content="堺雅人の出演作品の「今日は何の日」。歴史上の今日に公開・放送された作品を紹介。 / What happened today in Sakai Masato's career. Check out works that were released or aired on this day in history.">
     <meta name="keywords" content="堺雅人, 今日は何の日, 出演作品, 記念日, Sakai Masato, This Day in History">
     <title>Sakai Masato Database</title>
     <link rel="icon" href="../favicon.png" type="image/png">
@@ -26,6 +27,7 @@
     <link rel="stylesheet" href="/Navi/navi.css">
     <script src="/js/darkmode.js"></script>
     <script src="/Navi/navHighlight.js"></script>
+    <script src="/js/jst-utils.js"></script>
     <script src="/js/today.js"></script>
 </head>
 
@@ -39,14 +41,14 @@
             <div class="content-header">
                 <h1 class="title">TODAY</h1>
             </div>
-            
+
             <!-- 添加日期导航 -->
             <div class="date-navigation" id="date-navigation">
                 <!-- 日期导航将通过JavaScript动态加载 -->
             </div>
-            
+
             <div class="current-date" id="current-date"></div>
-            
+
             <div class="today-grid" id="today-container">
                 <!-- 内容将通过JavaScript动态加载 -->
             </div>
