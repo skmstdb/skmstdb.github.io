@@ -16,8 +16,8 @@ function getJSTNow() {
 /**
  * Parse a date string as JST
  * Accepts formats: YYYY/MM/DD, YYYY-MM-DD
- * @param {string} dateString - Date string to parse
- * @returns {Date|null} Date object in JST, or null if invalid
+ * @param {string} dateString - Date string to parse (already in JST)
+ * @returns {Date|null} Date object representing the JST date, or null if invalid
  */
 function parseJSTDate(dateString) {
     if (!dateString || dateString.trim() === '') return null;
@@ -34,11 +34,9 @@ function parseJSTDate(dateString) {
 
     if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
 
-    // Create date in JST (UTC+9)
-    // We create a UTC date and then adjust it to represent JST
-    const date = new Date(Date.UTC(year, month, day, 0, 0, 0, 0));
-    // Subtract 9 hours to get the UTC time that represents JST midnight
-    date.setUTCHours(date.getUTCHours() - 9);
+    // Since the CSV dates are already in JST, create a Date object directly
+    // This represents the date at midnight in the local timezone
+    const date = new Date(year, month, day, 0, 0, 0, 0);
 
     return date;
 }
