@@ -113,7 +113,7 @@ function calculateAnniversaries(events, year, month) {
 
         // Helper to add anniversary event
         const addEvent = (date, title, color) => {
-            if (date.getFullYear() === targetYear && date.getMonth() === targetMonth) {
+            if (date.getUTCFullYear() === targetYear && date.getUTCMonth() === targetMonth) {
                 anniversaryEvents.push({
                     startDate: date,
                     endDate: date,
@@ -128,18 +128,18 @@ function calculateAnniversaries(events, year, month) {
 
         // 1. Yearly Anniversary
         // Calculate years passed
-        const startYearsDiff = targetYear - startDate.getFullYear();
+        const startYearsDiff = targetYear - startDate.getUTCFullYear();
         if (startYearsDiff > 0) {
             const annDate = new Date(startDate);
-            annDate.setFullYear(targetYear);
+            annDate.setUTCFullYear(targetYear);
             addEvent(annDate, `${event.title} (${startYearsDiff}周年)`, 'rgba(231, 76, 60, 0.8)');
         }
 
         if (!isSingleDay) {
-            const endYearsDiff = targetYear - endDate.getFullYear();
+            const endYearsDiff = targetYear - endDate.getUTCFullYear();
             if (endYearsDiff > 0) {
                 const annDate = new Date(endDate);
-                annDate.setFullYear(targetYear);
+                annDate.setUTCFullYear(targetYear);
                 addEvent(annDate, `${event.title} 終了 (${endYearsDiff}周年)`, 'rgba(231, 76, 60, 0.8)');
             }
         }
@@ -151,10 +151,10 @@ function calculateAnniversaries(events, year, month) {
 
         // We need to find if (targetDate - baseDate) is a significant number.
         // Let's iterate through the days of the target month.
-        const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+        const daysInMonth = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
 
         for (let d = 1; d <= daysInMonth; d++) {
-            const currentDay = new Date(targetYear, targetMonth, d);
+            const currentDay = new Date(Date.UTC(targetYear, targetMonth, d));
 
             // Check Start Date
             const diffTimeStart = currentDay.getTime() - startDate.getTime();
@@ -281,35 +281,35 @@ function generateCalendar(year, month, events) {
 
     calendarTitle.textContent = `${year}年${month + 1}月`;
 
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
+    const firstDay = new Date(Date.UTC(year, month, 1));
+    const lastDay = new Date(Date.UTC(year, month + 1, 0));
 
     // 获取第一天是星期几（0是星期一，6是星期日）
-    const firstDayOfWeek = (firstDay.getDay() + 6) % 7; // 将星期天(0)转换为6，其他日期-1
+    const firstDayOfWeek = (firstDay.getUTCDay() + 6) % 7; // 将星期天(0)转换为6，其他日期-1
 
-    const prevMonthLastDay = new Date(year, month, 0).getDate();
+    const prevMonthLastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
     const today = getJSTNow();
-    const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+    const isCurrentMonth = today.getUTCFullYear() === year && today.getUTCMonth() === month;
 
     for (let i = 0; i < firstDayOfWeek; i++) {
         const day = prevMonthLastDay - firstDayOfWeek + i + 1;
-        const date = new Date(year, month - 1, day);
+        const date = new Date(Date.UTC(year, month - 1, day));
         const dayElement = createDayElement(day, date, true);
         calendarGrid.appendChild(dayElement);
     }
 
-    for (let day = 1; day <= lastDay.getDate(); day++) {
-        const date = new Date(year, month, day);
-        const isToday = isCurrentMonth && today.getDate() === day;
+    for (let day = 1; day <= lastDay.getUTCDate(); day++) {
+        const date = new Date(Date.UTC(year, month, day));
+        const isToday = isCurrentMonth && today.getUTCDate() === day;
         const dayElement = createDayElement(day, date, false, isToday);
         calendarGrid.appendChild(dayElement);
     }
 
-    const totalDaysDisplayed = firstDayOfWeek + lastDay.getDate();
+    const totalDaysDisplayed = firstDayOfWeek + lastDay.getUTCDate();
     const remainingCells = 42 - totalDaysDisplayed;
 
     for (let day = 1; day <= remainingCells; day++) {
-        const date = new Date(year, month + 1, day);
+        const date = new Date(Date.UTC(year, month + 1, day));
         const dayElement = createDayElement(day, date, true);
         calendarGrid.appendChild(dayElement);
     }
@@ -322,8 +322,8 @@ function generateCalendar(year, month, events) {
 // 更新renderEvents函数，根据事件来源设置不同的背景色和边框色
 function renderEvents(calendarGrid, year, month, events) {
     const dayElements = Array.from(calendarGrid.querySelectorAll('.calendar-day'));
-    const firstDay = new Date(year, month, 1);
-    const firstDayOfWeek = (firstDay.getDay() + 6) % 7;
+    const firstDay = new Date(Date.UTC(year, month, 1));
+    const firstDayOfWeek = (firstDay.getUTCDay() + 6) % 7;
 
     // 堺雅人さんの誕生日イベントを追加（10月14日）
     if (month === 9) { // JavaScriptでは月は0から始まるため、10月は9
@@ -361,8 +361,8 @@ function renderEvents(calendarGrid, year, month, events) {
             event.additionalDates.forEach(dateStr => {
                 const additionalDate = new Date(dateStr);
                 // 检查额外日期是否在当前月份
-                if (additionalDate.getFullYear() === year && additionalDate.getMonth() === month) {
-                    const dayIndex = additionalDate.getDate() + firstDayOfWeek - 1;
+                if (additionalDate.getUTCFullYear() === year && additionalDate.getUTCMonth() === month) {
+                    const dayIndex = additionalDate.getUTCDate() + firstDayOfWeek - 1;
                     if (dayIndex >= 0 && dayIndex < dayElements.length) {
                         const dayElement = dayElements[dayIndex];
 
@@ -424,12 +424,12 @@ function renderEvents(calendarGrid, year, month, events) {
         if (isNumericWeekday) {
             // weekday 是数字，执行星期过滤逻辑
             // 获取当月的所有日期
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
 
             for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(year, month, day);
+                const date = new Date(Date.UTC(year, month, day));
                 // 获取星期几 (0-6，0是星期日)
-                const dayOfWeek = date.getDay();
+                const dayOfWeek = date.getUTCDay();
                 // 将星期日的0转换为7，使1-7分别对应周一到周日
                 const adjustedDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
 
@@ -495,8 +495,8 @@ function renderEvents(calendarGrid, year, month, events) {
             }
         } else {
             // weekday 不是数字或为空，按照没有指定星期几的逻辑处理
-            const startIndex = displayStart.getDate() + firstDayOfWeek - 1;
-            const endIndex = displayEnd.getDate() + firstDayOfWeek - 1;
+            const startIndex = displayStart.getUTCDate() + firstDayOfWeek - 1;
+            const endIndex = displayEnd.getUTCDate() + firstDayOfWeek - 1;
 
             for (let i = startIndex; i <= endIndex && i < dayElements.length; i++) {
                 const dayElement = dayElements[i];
@@ -545,10 +545,8 @@ function renderEvents(calendarGrid, year, month, events) {
     });
 }
 
-// 统一的日期格式化函数，确保格式一致 (JST)
-function formatDate(date) {
-    return formatJSTDate(date);
-}
+// formatDate is now defined in jst-utils.js
+
 
 function createDayElement(day, date, isOtherMonth, isToday = false) {
     const dayElement = document.createElement('div');
@@ -587,7 +585,7 @@ function createDayElement(day, date, isOtherMonth, isToday = false) {
 function initializeSelectors() {
     const yearSelect = document.getElementById('year-select');
     const monthSelect = document.getElementById('month-select');
-    const currentYear = new Date().getFullYear();
+    const currentYear = getJSTYear();
 
     yearSelect.innerHTML = '';
     for (let year = currentYear + 3; year >= 1992; year--) {
@@ -681,13 +679,13 @@ function generateYearCalendar(year, events) {
         monthGrid.className = 'year-month-grid';
 
         // Add days
-        const firstDay = new Date(year, monthIndex, 1);
-        const lastDay = new Date(year, monthIndex + 1, 0);
+        const firstDay = new Date(Date.UTC(year, monthIndex, 1));
+        const lastDay = new Date(Date.UTC(year, monthIndex + 1, 0));
 
         // Monday start (0 is Monday, 6 is Sunday)
-        // Date.getDay(): 0=Sun, 1=Mon... 6=Sat
+        // Date.getUTCDay(): 0=Sun, 1=Mon... 6=Sat
         // We want Mon=0, ..., Sun=6
-        let firstDayOfWeek = firstDay.getDay() - 1;
+        let firstDayOfWeek = firstDay.getUTCDay() - 1;
         if (firstDayOfWeek === -1) firstDayOfWeek = 6;
 
         // Empty cells for previous month
@@ -698,79 +696,39 @@ function generateYearCalendar(year, events) {
         }
 
         const today = getJSTNow();
-        const isCurrentYear = today.getFullYear() === year;
+        const isCurrentYear = today.getUTCFullYear() === year;
 
         // Days of the month
-        for (let day = 1; day <= lastDay.getDate(); day++) {
-            const date = new Date(year, monthIndex, day);
+        for (let day = 1; day <= lastDay.getUTCDate(); day++) {
+            const date = new Date(Date.UTC(year, monthIndex, day));
             const dayCell = document.createElement('div');
             dayCell.className = 'year-day';
             dayCell.textContent = day;
 
             // Highlight Today
-            if (isCurrentYear && today.getMonth() === monthIndex && today.getDate() === day) {
+            if (isCurrentYear && today.getUTCMonth() === monthIndex && today.getUTCDate() === day) {
                 dayCell.classList.add('today');
             }
 
             // Check for events
             const dayEvents = events.filter(event => {
-                const startDate = new Date(event.startDate);
-                const endDate = new Date(event.endDate);
-                // Simple check: is date within range?
-                // Also handle excludeDates and specific weekdays if needed.
-                // Reusing logic from renderEvents would be ideal but it's DOM bound.
-                // Let's implement a simplified check for Year Mode.
+                const startDate = event.startDate;
+                const endDate = event.endDate;
+
+                // Get UTC timestamps for comparison (date only, no time)
+                const dateTime = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+                const startTime = Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), startDate.getUTCDate());
+                const endTime = Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate());
 
                 // Check if date is within range
-                if (date < new Date(startDate.setHours(0, 0, 0, 0)) || date > new Date(endDate.setHours(0, 0, 0, 0))) {
-                    return false;
-                }
+                let isInRange = dateTime >= startTime && dateTime <= endTime;
 
-                // Check weekday
-                if (event.weekday) {
-                    const weekdayValue = parseInt(event.weekday);
-                    if (!isNaN(weekdayValue)) {
-                        const dayOfWeek = date.getDay();
-                        const adjustedDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
-                        const isExcludeMode = weekdayValue < 0;
-                        const absWeekday = Math.abs(weekdayValue);
-
-                        if (isExcludeMode) {
-                            if (adjustedDayOfWeek === absWeekday) return false;
-                        } else {
-                            // This is a simplification. The original logic handles string "1,2" etc. 
-                            // But parseCSV only parses single number or string.
-                            // Let's look at parseCSV... it returns weekday as string.
-                            // renderEvents handles complex logic.
-                            // For now, let's assume if weekday is present, we check it.
-                            if (!event.weekday.includes(String(adjustedDayOfWeek))) return false;
-                        }
-                    }
-                }
-
-                // Check exclude dates
-                const dateString = formatDate(date);
-                if (event.excludeDates && event.excludeDates.includes(dateString)) {
-                    return false;
-                }
-
-                // Check additional dates (if event is not in range but in additional dates)
-                // Wait, the range check above might exclude valid additional dates.
-                // Correct logic: (in range AND valid weekday AND not excluded) OR (in additional dates)
-
-                // Let's refine:
-                let isInRange = date >= new Date(event.startDate) && date <= new Date(event.endDate);
-                // Re-evaluate range with setHours to be safe
-                const dTime = date.getTime();
-                const sTime = new Date(event.startDate).setHours(0, 0, 0, 0);
-                const eTime = new Date(event.endDate).setHours(0, 0, 0, 0);
-                isInRange = dTime >= sTime && dTime <= eTime;
-
+                // Check weekday filter
                 let isValidWeekday = true;
                 if (event.weekday) {
                     const weekdayValue = parseInt(event.weekday);
                     if (!isNaN(weekdayValue)) {
-                        const dayOfWeek = date.getDay();
+                        const dayOfWeek = date.getUTCDay();
                         const adjustedDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
                         const isExcludeMode = weekdayValue < 0;
                         const absWeekday = Math.abs(weekdayValue);
@@ -782,13 +740,16 @@ function generateYearCalendar(year, events) {
                     }
                 }
 
+                // Check exclude dates
                 let isExcluded = false;
-                if (event.excludeDates && event.excludeDates.includes(formatDate(date))) {
+                const dateString = formatDate(date);
+                if (event.excludeDates && event.excludeDates.includes(dateString)) {
                     isExcluded = true;
                 }
 
+                // Check additional dates
                 let isAdditional = false;
-                if (event.additionalDates && event.additionalDates.includes(formatDate(date))) {
+                if (event.additionalDates && event.additionalDates.includes(dateString)) {
                     isAdditional = true;
                 }
 
@@ -1025,8 +986,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     document.getElementById('today-button').addEventListener('click', () => {
         const today = getJSTNow();
-        document.getElementById('year-select').value = today.getFullYear();
-        document.getElementById('month-select').value = today.getMonth();
+        document.getElementById('year-select').value = today.getUTCFullYear();
+        document.getElementById('month-select').value = today.getUTCMonth();
         updateCalendar();
     });
 
