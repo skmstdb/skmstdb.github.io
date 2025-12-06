@@ -368,8 +368,8 @@
         function workOccursInMonth(work, year, month) {
             if (!work.dateStart) return false;
 
-            const targetMonthStart = new Date(year, month - 1, 1);
-            const targetMonthEnd = new Date(year, month, 0); // Last day of month
+            const targetMonthStart = new Date(Date.UTC(year, month - 1, 1));
+            const targetMonthEnd = new Date(Date.UTC(year, month, 0)); // Last day of month
 
             // Check if work's date range overlaps with target month
             const workStart = work.dateStart;
