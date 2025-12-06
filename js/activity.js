@@ -433,6 +433,9 @@ function createMonthGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
     const monthlyWorksMap = {}; // Stores detailed works for each month (key: "YYYY-M")
 
     data.forEach(item => {
+        // Filter by PageActivity for Month Graph
+        if (!item.PageActivity || item.PageActivity.trim() === '') return;
+
         if (showLeadRoleOnly && item.Role !== '主演') return;
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
 
@@ -463,6 +466,9 @@ function createYearGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
     const yearlyWorksMap = {}; // Stores detailed works for each year (key: "YYYY")
 
     data.forEach(item => {
+        // Filter by PageActivity for Year Graph
+        if (!item.PageActivity || item.PageActivity.trim() === '') return;
+
         if (showLeadRoleOnly && item.Role !== '主演') return;
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
 
@@ -493,6 +499,9 @@ function createAgeGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
     const ageWorksMap = {}; // Stores detailed works for each age (key: "age")
 
     data.forEach(item => {
+        // Filter by PageActivity for Age Graph
+        if (!item.PageActivity || item.PageActivity.trim() === '') return;
+
         if (showLeadRoleOnly && item.Role !== '主演') return;
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
 
@@ -518,6 +527,305 @@ function createAgeGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
 }
 
 
+// --- Chart View Implementation ---
+let currentChartMode = 'year'; // year, decade, age, age-decade
+
+function createChartView(data, showLeadRoleOnly = false, selectedTypes = []) {
+    const container = document.getElementById('chart-view-container');
+    if (!container) return;
+
+    // Ensure container itself is strictly constrained
+    container.style.width = '100%';
+    // container.style.overflow = 'hidden'; // Let chart-content handle scroll
+
+    // 1. Render Controls (if not present)
+    let controlsDiv = container.querySelector('.chart-controls');
+    if (!controlsDiv) {
+        controlsDiv = document.createElement('div');
+        controlsDiv.className = 'chart-controls';
+        controlsDiv.style.marginBottom = '20px';
+        controlsDiv.style.textAlign = 'center';
+
+        const modes = [
+            { id: 'year', label: 'Year' },
+            { id: '5-year', label: '5 Years' },
+            { id: 'decade', label: 'Decade' },
+            { id: 'age', label: 'Age' },
+            { id: '5-year-age', label: 'Age 5 Years' },
+            { id: 'age-decade', label: 'Age Decade' }
+        ];
+
+        modes.forEach(mode => {
+            const btn = document.createElement('button');
+            btn.textContent = mode.label;
+            btn.className = 'chart-mode-btn';
+            if (mode.id === currentChartMode) btn.classList.add('active');
+
+            // Basic styles for buttons (can be moved to CSS later)
+            btn.style.padding = '5px 15px';
+            btn.style.margin = '0 5px';
+            btn.style.cursor = 'pointer';
+            btn.style.border = '1px solid #ccc';
+            btn.style.backgroundColor = mode.id === currentChartMode ? '#ddd' : '#fff';
+            btn.style.borderRadius = '4px';
+
+            btn.addEventListener('click', () => {
+                currentChartMode = mode.id;
+                // Update button styles
+                container.querySelectorAll('.chart-mode-btn').forEach(b => {
+                    b.style.backgroundColor = '#fff';
+                    b.classList.remove('active');
+                });
+                btn.style.backgroundColor = '#ddd';
+                btn.classList.add('active');
+
+                // Get current filter state dynamically
+                const currentShowLeadRoleOnly = document.getElementById('lead-role-filter').checked;
+                const currentSelectedTypes = Array.from(document.querySelectorAll('.type-filter'))
+                    .filter(input => input.checked)
+                    .map(input => input.dataset.type);
+
+                // Re-render chart with current filters
+                renderChartContent(data, currentShowLeadRoleOnly, currentSelectedTypes);
+            });
+            controlsDiv.appendChild(btn);
+        });
+        container.innerHTML = ''; // Clear previous
+        container.appendChild(controlsDiv);
+    }
+
+    // 2. Render Chart Content Area
+    let chartArea = container.querySelector('.chart-content');
+    if (!chartArea) {
+        chartArea = document.createElement('div');
+        chartArea.className = 'chart-content';
+        chartArea.style.display = 'flex';
+        chartArea.style.alignItems = 'flex-end';
+        chartArea.style.height = '540px';
+        chartArea.style.width = '100%'; // Match main-content width
+        chartArea.style.minWidth = '0'; // Prevent flex breakout
+        chartArea.style.padding = '10px 0 30px 0';
+        chartArea.style.overflowX = 'auto';
+        chartArea.style.justifyContent = 'space-between'; // Flexible spacing
+        chartArea.style.gap = '2px'; // Minimum gap
+        chartArea.style.boxSizing = 'border-box';
+        container.appendChild(chartArea);
+    }
+
+    renderChartContent(data, showLeadRoleOnly, selectedTypes);
+}
+
+function renderChartContent(data, showLeadRoleOnly, selectedTypes) {
+    const chartArea = document.querySelector('#chart-view-container .chart-content');
+    if (!chartArea) return;
+    chartArea.innerHTML = '';
+
+    // Aggregate Data
+    const aggregatedData = {}; // key -> { total: 0, worksList: [], typeCounts: {} }
+
+    // Initialize Keys based on Range
+    let sortedKeys = [];
+    if (currentChartMode === 'year') {
+        const start = 1992;
+        const end = CURRENT_YEAR;
+        for (let y = start; y <= end; y++) sortedKeys.push(y);
+    } else if (currentChartMode === 'age') {
+        const start = 19;
+        const end = getAgeAtDate(BIRTH_DATE, new Date());
+        for (let a = start; a <= end; a++) sortedKeys.push(a);
+    } else if (currentChartMode === 'decade') {
+        const start = 1990;
+        const end = Math.floor(CURRENT_YEAR / 10) * 10;
+        for (let d = start; d <= end; d += 10) sortedKeys.push(d + 's');
+    } else if (currentChartMode === '5-year') {
+        sortedKeys.push('1992-1994'); // Special first group
+        const start = 1995;
+        const end = CURRENT_YEAR;
+        for (let y = start; y <= end; y += 5) {
+            sortedKeys.push(`${y}-${y + 4}`);
+        }
+    } else if (currentChartMode === '5-year-age') {
+        const start = 20;
+        const end = getAgeAtDate(BIRTH_DATE, new Date());
+        for (let a = start; a <= end; a += 5) {
+            sortedKeys.push(`${a}-${a + 4}`);
+        }
+    } else if (currentChartMode === 'age-decade') {
+        const start = 10; // Assuming 19 is start age, so 10s is the decade
+        const end = Math.floor(getAgeAtDate(BIRTH_DATE, new Date()) / 10) * 10;
+        for (let ad = start; ad <= end; ad += 10) sortedKeys.push(ad + 's');
+    }
+
+    // Initialize aggregation map
+    sortedKeys.forEach(k => {
+        aggregatedData[k] = { total: 0, worksList: [], typeCounts: {} };
+    });
+
+    data.forEach(item => {
+        // Filter by PageWorks (Y or not empty)
+        if (!item.PageWorks || item.PageWorks.trim() === '') return;
+
+        if (showLeadRoleOnly && item.Role !== '主演') return;
+        if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
+
+        // Determine Keys for this item
+        const keys = new Set();
+        const filteredActivityDates = getFilteredActivityDates(item);
+
+        filteredActivityDates.forEach(dateStr => {
+            const dateObj = new Date(dateStr);
+            let key;
+            if (currentChartMode === 'year') {
+                key = dateObj.getUTCFullYear();
+            } else if (currentChartMode === 'decade') {
+                const year = dateObj.getUTCFullYear();
+                key = Math.floor(year / 10) * 10 + 's';
+            } else if (currentChartMode === '5-year') {
+                const year = dateObj.getUTCFullYear();
+                if (year < 1995) {
+                    key = '1992-1994';
+                } else {
+                    const blockStart = 1995 + Math.floor((year - 1995) / 5) * 5;
+                    key = `${blockStart}-${blockStart + 4}`;
+                }
+            } else if (currentChartMode === '5-year-age') {
+                const age = getAgeAtDate(BIRTH_DATE, dateObj);
+                if (age >= 20) {
+                    const blockStart = 20 + Math.floor((age - 20) / 5) * 5;
+                    key = `${blockStart}-${blockStart + 4}`;
+                }
+            } else if (currentChartMode === 'age') {
+                key = getAgeAtDate(BIRTH_DATE, dateObj);
+            } else if (currentChartMode === 'age-decade') {
+                const age = getAgeAtDate(BIRTH_DATE, dateObj);
+                key = Math.floor(age / 10) * 10 + 's';
+            }
+            if (key !== undefined && aggregatedData[key]) keys.add(key);
+        });
+
+        // Add to aggregation
+        keys.forEach(key => {
+            if (!aggregatedData[key].worksList.some(w => w.Title === item.Title)) {
+                aggregatedData[key].worksList.push(item);
+                aggregatedData[key].total++;
+                const nType = normalizeWorksType(item.WorksType);
+                aggregatedData[key].typeCounts[nType] = (aggregatedData[key].typeCounts[nType] || 0) + 1;
+            }
+        });
+    });
+
+    if (sortedKeys.length === 0) {
+        chartArea.innerHTML = '<p>No data available for current selection.</p>';
+        return;
+    }
+
+    // Find max total for scaling
+    const maxTotal = Math.max(1, ...sortedKeys.map(k => aggregatedData[k].total));
+
+    // Prepare map for showWorksDetail
+    const worksMapForDetail = {};
+    sortedKeys.forEach(k => worksMapForDetail[k] = aggregatedData[k].worksList);
+
+    // Render Bars
+    sortedKeys.forEach(key => {
+        const dataPoint = aggregatedData[key];
+
+        const barContainer = document.createElement('div');
+        barContainer.className = 'chart-bar-container';
+        barContainer.style.flex = '1 0 auto';
+
+        // Conditional Min Width (Year/Age = Narrow, Decade/5-Year = Wide)
+        if (currentChartMode === 'year' || currentChartMode === 'age') {
+            barContainer.style.minWidth = '12px';
+        } else {
+            barContainer.style.minWidth = '30px';
+        }
+
+        barContainer.style.maxWidth = '60px';
+        // barContainer.style.margin = '0 1px'; // REMOVE margin, rely on gap
+        barContainer.style.display = 'flex';
+        barContainer.style.flexDirection = 'column-reverse'; // Bottom-up stacking
+        barContainer.style.alignItems = 'center';
+        barContainer.style.height = '100%';
+        barContainer.style.position = 'relative';
+        barContainer.style.cursor = 'pointer';
+
+        if (dataPoint.total > 0) {
+            barContainer.addEventListener('click', () => {
+                showWorksDetail(key, worksMapForDetail, currentChartMode);
+            });
+        }
+
+        let tooltipText = `${key} (Total: ${dataPoint.total})`;
+        if (dataPoint.total > 0) {
+            const types = Object.keys(dataPoint.typeCounts).sort((a, b) => getActivityOrder(a) - getActivityOrder(b));
+            types.forEach(t => {
+                tooltipText += `\n${t}: ${dataPoint.typeCounts[t]}`;
+            });
+        }
+        barContainer.title = tooltipText;
+
+        // Label (Visually at Bottom)
+        const label = document.createElement('div');
+        label.className = 'chart-bar-label';
+        label.textContent = key;
+        label.style.fontSize = '10px';
+        label.style.marginTop = '4px';
+        label.style.textAlign = 'center';
+        label.style.whiteSpace = 'nowrap';
+
+        // Vertical Text Logic - ONLY for Year view (4 digits in 12px)
+        if (currentChartMode === 'year') {
+            label.style.writingMode = 'vertical-rl';
+            label.style.marginTop = '8px';
+        }
+
+        // Bar Wrapper
+        const barWrapper = document.createElement('div');
+        barWrapper.style.width = '100%';
+        barWrapper.style.height = dataPoint.total > 0 ? `${(dataPoint.total / maxTotal) * 85}%` : '0px';
+        barWrapper.style.minHeight = dataPoint.total > 0 ? '1px' : '0px';
+        barWrapper.style.display = 'flex';
+        barWrapper.style.flexDirection = 'column-reverse'; // Stack segments bottom-up
+        barWrapper.style.position = 'relative';
+        barWrapper.style.borderBottom = '1px solid #999'; // X-axis line
+
+        const typeOrder = ['映画', 'TV', '舞台', 'BOOK', 'その他', '声の出演'];
+        typeOrder.forEach(type => {
+            const count = dataPoint.typeCounts[type];
+            if (count) {
+                const segment = document.createElement('div');
+                const typeClass = getActivityTypeClass(type);
+                segment.className = `${typeClass} chart-bar-segment`;
+                segment.style.width = '100%';
+                segment.style.flex = count;
+                segment.style.borderTop = '1px solid rgba(255,255,255,0.3)';
+                segment.style.boxSizing = 'border-box';
+                barWrapper.appendChild(segment);
+            }
+        });
+
+        // Total Count Label (Visually at Top)
+        const countLabel = document.createElement('div');
+        countLabel.textContent = dataPoint.total > 0 ? dataPoint.total : '';
+        countLabel.style.fontSize = '9px';
+        countLabel.style.marginBottom = '2px';
+        countLabel.style.textAlign = 'center';
+        countLabel.style.height = '12px'; // Fixed height reservation
+
+        // Append in Order for column-reverse (Bottom to Top)
+        // 1. Label (Bottom)
+        barContainer.appendChild(label);
+        // 2. Bar (Middle)
+        barContainer.appendChild(barWrapper);
+        // 3. Count (Top)
+        barContainer.appendChild(countLabel);
+
+        chartArea.appendChild(barContainer);
+    });
+}
+
+
 // Display Works Detail (Updated to handle different key types)
 function showWorksDetail(key, worksDataMap, viewType) {
     const detailContainer = document.getElementById('works-detail-container');
@@ -533,11 +841,34 @@ function showWorksDetail(key, worksDataMap, viewType) {
         const [year, month] = key.split('-');
         title = `${year} ${MONTH_NAMES[parseInt(month)]}`;
     } else if (viewType === 'year') {
-        works = worksDataMap[parseInt(key)] || [];
+        works = worksDataMap[parseInt(key)] || []; // Ensure key is int for map lookup
         title = `Year: ${key}`;
     } else if (viewType === 'age') {
         works = worksDataMap[parseInt(key)] || [];
         title = `公開時年齢: ${key}`;
+    } else if (viewType === 'decade') {
+        // worksDataMap passed from renderChartContent will be aggregatedData which stores { worksList: [...] }
+        // BUT wait, existing views pass a map of key -> Array.
+        // renderChartContent passes aggregatedData which is key -> Object.
+        // We need to handle this difference.
+        // Actually, let's make renderChartContent pass a simple key->List map to showWorksDetail
+        // OR update showWorksDetail to handle list directly.
+        // For simplicity, let's assume worksDataMap[key] returns the list of works.
+        // We will adapt renderChartContent to pass the correct structure.
+
+        // However, in renderChartContent below, I will construct a `worksMap` specifically for this.
+
+        works = worksDataMap[key] || [];
+        title = `Decade: ${key}`;
+    } else if (viewType === '5-year') {
+        works = worksDataMap[key] || [];
+        title = `Period: ${key}`;
+    } else if (viewType === '5-year-age') {
+        works = worksDataMap[key] || [];
+        title = `Age Period: ${key}`;
+    } else if (viewType === 'age-decade') {
+        works = worksDataMap[key] || [];
+        title = `Age Decade: ${key}`;
     }
 
     if (works.length === 0) {
@@ -642,23 +973,30 @@ document.addEventListener('DOMContentLoaded', function () {
         const yearGraph = document.getElementById('year-graph-container');
         const ageGraph = document.getElementById('age-graph-container');
 
+        const chartGraph = document.getElementById('chart-view-container');
+
         const yearViewActive = document.getElementById('year-view-filter').checked;
         const ageViewActive = document.getElementById('age-view-filter').checked;
+        const chartViewActive = document.getElementById('chart-view-filter') ? document.getElementById('chart-view-filter').checked : false;
+
+        monthGraph.style.display = 'none';
+        yearGraph.style.display = 'none';
+        ageGraph.style.display = 'none';
+        if (chartGraph) chartGraph.style.display = 'none';
 
         if (yearViewActive) {
-            monthGraph.style.display = 'none';
-            ageGraph.style.display = 'none';
             yearGraph.style.display = 'block';
             createYearGraph(worksData, showLeadRoleOnly, selectedTypes);
         } else if (ageViewActive) {
-            monthGraph.style.display = 'none';
-            yearGraph.style.display = 'none';
             ageGraph.style.display = 'block';
             createAgeGraph(worksData, showLeadRoleOnly, selectedTypes);
+        } else if (chartViewActive) {
+            if (chartGraph) {
+                chartGraph.style.display = 'block';
+                createChartView(worksData, showLeadRoleOnly, selectedTypes);
+            }
         } else {
             // Default to month view
-            yearGraph.style.display = 'none';
-            ageGraph.style.display = 'none';
             monthGraph.style.display = 'block';
             createMonthGraph(worksData, showLeadRoleOnly, selectedTypes);
         }
@@ -670,8 +1008,8 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(data => {
             const allData = parseCSV(data); // Parse all data
 
-            // Filter data: only include rows where PageActivity is not empty
-            worksData = allData.filter(item => item.PageActivity && item.PageActivity.trim() !== '');
+            // Store ALL data initially, filtering happens in create functions
+            worksData = allData;
 
             // Normalize WorksType in the data
             worksData.forEach(item => {
