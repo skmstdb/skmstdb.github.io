@@ -1,5 +1,5 @@
-// 格式化日期为本地字符串 (JST)
-function formatDate(date) {
+// 格式化日期为日语显示格式 (JST) - 用于用户界面显示
+function formatDateForDisplay(date) {
     return formatJSTDateJapanese(date);
 }
 
@@ -81,8 +81,8 @@ function processCSVRow(row) {
 // 检查日期是否匹配今天（只比较月和日）
 function isDateMatchingToday(date, today) {
     if (!date) return false;
-    return date.getMonth() === today.getMonth() &&
-        date.getDate() === today.getDate();
+    return date.getUTCMonth() === today.getUTCMonth() &&
+        date.getUTCDate() === today.getUTCDate();
 }
 
 // 检查日期是否在DateDelete列表中
@@ -95,13 +95,13 @@ function isDateDeleted(selectedDate, dateDeleteArray) {
 
 // 计算周年数
 function calculateAnniversary(date, today) {
-    return today.getFullYear() - date.getFullYear();
+    return today.getUTCFullYear() - date.getUTCFullYear();
 }
 
 // 获取星期几的日语表示
 function getJapaneseWeekday(date) {
     const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
-    return weekdays[date.getDay()];
+    return weekdays[date.getUTCDay()];
 }
 
 // 检查TV模式的weekday（支持单个数字、多个数字、负数）
@@ -110,7 +110,7 @@ function isMatchingTVWeekday(date, weekdayStr) {
     // 负数表示排除: -7=除星期日外的所有日期, -2=除星期二外的所有日期
     // 多个数字用逗号分隔: 1,2=星期一和星期二
 
-    const actualDay = date.getDay(); // 0=星期日, 1=星期一, ..., 6=星期六
+    const actualDay = date.getUTCDay(); // 0=星期日, 1=星期一, ..., 6=星期六
 
     // 将actualDay转换为1-7格式 (1=星期一, 7=星期日)
     const dayNum = actualDay === 0 ? 7 : actualDay;
@@ -171,9 +171,9 @@ function createDateNavigation() {
 
     for (let i = 0; i < 7; i++) {
         const date = new Date(today);
-        date.setDate(today.getDate() + i);
+        date.setUTCDate(today.getUTCDate() + i);
 
-        const day = date.getDate();
+        const day = date.getUTCDate();
         const weekday = getJapaneseWeekday(date);
         const isActive = i === 0 ? 'active' : '';
 
@@ -207,9 +207,9 @@ function changeDate(element) {
 
 // 检查两个日期是否是同一天
 function isSameDay(date1, date2) {
-    return date1.getFullYear() === date2.getFullYear() &&
-        date1.getMonth() === date2.getMonth() &&
-        date1.getDate() === date2.getDate();
+    return date1.getUTCFullYear() === date2.getUTCFullYear() &&
+        date1.getUTCMonth() === date2.getUTCMonth() &&
+        date1.getUTCDate() === date2.getUTCDate();
 }
 
 // 為指定日期加載事件 (JST)
@@ -219,7 +219,7 @@ async function loadEventsForDate(selectedDate) {
     const today = getJSTNow(); // 获取真正的今天 (JST)
 
     // 顯示選中日期
-    currentDateElement.textContent = formatDate(selectedDate);
+    currentDateElement.textContent = formatDateForDisplay(selectedDate);
 
     const events = await parseCSV();
 
@@ -298,11 +298,11 @@ async function loadEventsForDate(selectedDate) {
     // 只在今天（真正的当前日期）显示生日检查和即将开始/结束的事件
     if (isSameDay(selectedDate, today)) {
         // 檢查是否是堺雅人的生日（10月14日）
-        const isBirthday = selectedDate.getMonth() === 9 && selectedDate.getDate() === 14; // 月份從0開始，所以10月是9
+        const isBirthday = selectedDate.getUTCMonth() === 9 && selectedDate.getUTCDate() === 14; // 月份從0開始，所以10月是9
 
         // 如果是生日，添加生日祝福
         if (isBirthday) {
-            const age = selectedDate.getFullYear() - 1973;
+            const age = selectedDate.getUTCFullYear() - 1973;
             htmlContent += `
             <div class="today-item" onclick="window.open('https://sakai-masato.com/', '_blank')">
                 <div class="today-title">堺さん、${age}歳のお誕生日おめでとうございます！！</div>
@@ -310,12 +310,12 @@ async function loadEventsForDate(selectedDate) {
             `;
         } else {
             // 計算距離下一個生日的天數
-            const nextBirthday = new Date(selectedDate.getFullYear(), 9, 14); // 10月14日
+            const nextBirthday = new Date(Date.UTC(selectedDate.getUTCFullYear(), 9, 14)); // 10月14日
             if (selectedDate > nextBirthday) {
-                nextBirthday.setFullYear(nextBirthday.getFullYear() + 1);
+                nextBirthday.setUTCFullYear(nextBirthday.getUTCFullYear() + 1);
             }
             const daysUntilBirthday = Math.ceil((nextBirthday - selectedDate) / (1000 * 60 * 60 * 24));
-            const nextAge = nextBirthday.getFullYear() - 1973;
+            const nextAge = nextBirthday.getUTCFullYear() - 1973;
 
             // 只在300天、200天、100天及100天以内显示
             if (daysUntilBirthday === 300 || daysUntilBirthday === 200 || daysUntilBirthday <= 100) {
@@ -384,50 +384,50 @@ function createEventsHTML(events, selectedDate) {
                 // 开始日期当天
                 const startAnniversary = calculateAnniversary(event.startDate, selectedDate);
                 anniversaryText = startAnniversary === 0 ? 'Premiere' : `${startAnniversary}周年`;
-                dateText = `${formatDate(event.startDate)} 公開`;
+                dateText = `${formatDateForDisplay(event.startDate)} 公開`;
                 break;
 
             case 'end':
                 // 结束日期当天
                 const endAnniversary = calculateAnniversary(event.endDate, selectedDate);
                 anniversaryText = endAnniversary === 0 ? 'Finale' : `${endAnniversary}周年`;
-                dateText = `${formatDate(event.endDate)} 終了`;
+                dateText = `${formatDateForDisplay(event.endDate)} 終了`;
                 break;
 
             case 'tv-start':
                 // TV模式的开始日期
                 anniversaryText = '初回';
-                dateText = `${formatDate(event.startDate)} 放送開始`;
+                dateText = `${formatDateForDisplay(event.startDate)} 放送開始`;
                 break;
 
             case 'tv-end':
                 // TV模式的结束日期
                 anniversaryText = '最終回';
-                dateText = `${formatDate(event.endDate)} 放送終了`;
+                dateText = `${formatDateForDisplay(event.endDate)} 放送終了`;
                 break;
 
             case 'tv-weekday':
                 // TV模式的中间日期
                 anniversaryText = '放送日';
-                dateText = `${formatDate(event.startDate)} - ${formatDate(event.endDate)}`;
+                dateText = `${formatDateForDisplay(event.startDate)} - ${formatDateForDisplay(event.endDate)}`;
                 break;
 
             case 'film':
                 // weekday为Film
                 anniversaryText = '公開中';
-                dateText = `${formatDate(event.startDate)} 公開`;
+                dateText = `${formatDateForDisplay(event.startDate)} 公開`;
                 break;
 
             case 'milestone-start':
                 // 开始日期的整数倍纪念日
                 anniversaryText = `${event.milestone.days} Days Ago`;
-                dateText = `${formatDate(event.startDate)} 公開`;
+                dateText = `${formatDateForDisplay(event.startDate)} 公開`;
                 break;
 
             case 'milestone-end':
                 // 结束日期的整数倍纪念日
                 anniversaryText = `${event.milestone.days} Days Ago`;
-                dateText = `${formatDate(event.endDate)} 終了`;
+                dateText = `${formatDateForDisplay(event.endDate)} 終了`;
                 break;
         }
 
