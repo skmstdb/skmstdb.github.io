@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="Navi/navi.css">
     <script src="js/darkmode.js"></script>
     <script src="Navi/navHighlight.js"></script>
+    <script src="js/jst-utils.js"></script>
 
     <!-- Google Fonts: Noto Serif JP -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -357,14 +358,10 @@
             return cols;
         }
 
-        // Parse date from YYYY/MM/DD format
+        // Parse date from YYYY/MM/DD format as JST
         function parseDate(dateStr) {
             if (!dateStr || dateStr.trim() === '') return null;
-            const parts = dateStr.split('/');
-            if (parts.length === 3) {
-                return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-            }
-            return null;
+            return parseJSTDate(dateStr);
         }
 
         // Check if a work occurs in a given year-month
@@ -518,8 +515,8 @@
                 }).filter(w => w !== null);
 
                 // Generate cells data (prepare all data first)
-                const currentYear = new Date().getFullYear();
-                const currentMonth = new Date().getMonth() + 1; // 1-12
+                const currentYear = getJSTYear();
+                const currentMonth = getJSTMonth() + 1; // 1-12
                 const cellsData = [];
 
                 // Generate from current year December to 1973 October
