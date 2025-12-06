@@ -26,6 +26,7 @@
     <link rel="stylesheet" href="Navi/navi.css">
     <script src="js/darkmode.js"></script>
     <script src="Navi/navHighlight.js"></script>
+    <script src="js/jst-utils.js"></script>
 
     <!-- Google Fonts: Noto Serif JP -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -566,7 +567,7 @@
         });
 
         function updateProgressBars() {
-            const now = new Date();
+            const now = getJSTNow();
             const year = now.getFullYear();
             const month = now.getMonth(); // 0-11
 
@@ -639,8 +640,8 @@
             document.getElementById('life-decade-label').textContent = `${currentDecadeStartAge}s`;
 
             // 7. Website Uptime
-            // Launched: 2025-02-27
-            const launchDate = new Date(2025, 1, 27); // Feb is 1
+            // Launched: 2025-02-27 (JST)
+            const launchDate = createJSTDate(2025, 1, 27); // Feb is 1 (0-indexed)
             const diffTime = Math.abs(now - launchDate);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             document.getElementById('uptime-days').textContent = `${diffDays} Days`;
@@ -675,7 +676,7 @@
                 const response = await fetch('/data/biography.csv');
                 const data = await response.text();
                 const rows = data.split('\n').slice(1); // Skip header
-                const today = new Date();
+                const today = getJSTNow();
                 today.setHours(0, 0, 0, 0); // Reset time to midnight for date comparison
 
                 const works = rows
@@ -706,21 +707,15 @@
                         const dateStartStr = cols[10];
                         let dateStart = null;
                         if (dateStartStr && dateStartStr.trim() !== '') {
-                            // Parse date in format YYYY/MM/DD
-                            const parts = dateStartStr.split('/');
-                            if (parts.length === 3) {
-                                dateStart = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-                            }
+                            // Parse date in format YYYY/MM/DD as JST
+                            dateStart = parseJSTDate(dateStartStr);
                         }
 
                         const dateEndStr = cols[11];
                         let dateEnd = null;
                         if (dateEndStr && dateEndStr.trim() !== '') {
-                            // Parse date in format YYYY/MM/DD
-                            const parts = dateEndStr.split('/');
-                            if (parts.length === 3) {
-                                dateEnd = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-                            }
+                            // Parse date in format YYYY/MM/DD as JST
+                            dateEnd = parseJSTDate(dateEndStr);
                         }
 
                         return {
@@ -838,7 +833,7 @@
 
                 let isRecent = false;
                 if (work.dateStart) {
-                    const today = new Date();
+                    const today = getJSTNow();
                     today.setHours(0, 0, 0, 0);
 
                     const startLimit = new Date(work.dateStart);
