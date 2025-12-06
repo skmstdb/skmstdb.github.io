@@ -3,14 +3,14 @@
 
 <head>
     <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-6C7BJGKMFT"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6C7BJGKMFT"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-  gtag('config', 'G-6C7BJGKMFT');
-</script>
+        gtag('config', 'G-6C7BJGKMFT');
+    </script>
     <meta charset="UTF-8">
     <script src="js/visibility.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,7 +35,7 @@
         <main class="main-content">
             <div class="content-header">
                 <h1 class="title">ABOUT</h1>
-                
+
                 <div class="button-group">
                     <a href="https://www.youtube.com/@H2COL43" target="_blank">
                         <i class="fab fa-youtube"></i>
@@ -50,22 +50,45 @@
             </div>
             <div class="about-content">
                 <p>This site is NOT an official site, with NO affiliation with Mr. Sakai Masato or his management.</p>
-                <p>All media on this site belong to their respective copyright owners. I have NO intention of infringing on any copyrights and all content is used under the 'Fair Use' copyright laws.</p>
+                <p>All media on this site belong to their respective copyright owners. I have NO intention of infringing
+                    on any copyrights and all content is used under the 'Fair Use' copyright laws.</p>
                 <p>If there is any infringement, please contact me, and I will remove the content promptly.</p>
                 <p>All materials presented here are sourced from publicly accessible information on the internet.</p>
-                <p>If you notice any errors or omissions in the content of this website, please do NOT hesitate to let me know. I welcome and appreciate your feedback to help improve the accuracy and completeness of the information provided.</p>
+                <p>If you notice any errors or omissions in the content of this website, please do NOT hesitate to let
+                    me know. I welcome and appreciate your feedback to help improve the accuracy and completeness of the
+                    information provided.</p>
             </div>
 
-            <div class="about-content official-link" onclick="window.location.href='../contact.html'">
+            <div class="about-content official-link" onclick="toggleReportIssue()" style="cursor: pointer;">
                 <p>Report an Issue</p>
             </div>
-            
+
+            <div id="report-issue-container"
+                style="display: none; width: 100%; height: 80vh; margin-top: 15px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <iframe src="https://h2col.notion.site/ebd/18e8a08476c780d0bfeadee886962819?pm=s" frameborder="0"
+                    allowfullscreen sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                    style="width: 100%; height: 100%; transform-origin: 0 0; transform: scale(1);">
+                </iframe>
+            </div>
+
+            <script>
+                function toggleReportIssue() {
+                    const container = document.getElementById('report-issue-container');
+
+                    if (container.style.display === 'none') {
+                        container.style.display = 'block';
+                    } else {
+                        container.style.display = 'none';
+                    }
+                }
+            </script>
+
             <div class="about-content official-link" onclick="window.open('https://sakai-masato.com/', '_blank')">
                 <p>堺さんの公式HP</p>
             </div>
         </main>
     </div>
-    
+
 </body>
 
 </html>
