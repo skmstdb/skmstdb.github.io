@@ -1,23 +1,25 @@
 // JST (Japan Standard Time) Utility Functions
 // JST is UTC+9
+// All functions ensure consistent Japan time display regardless of user's timezone
 
 /**
  * Get current date and time in JST
- * @returns {Date} Current date/time in JST
+ * @returns {Date} Current date/time representing JST (stored as UTC+9)
  */
 function getJSTNow() {
     const now = new Date();
-    // Convert to JST by getting UTC time and adding 9 hours
-    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const jstTime = new Date(utc + (9 * 3600000));
+    // Get current UTC time in milliseconds
+    const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+    // Add 9 hours for JST (UTC+9)
+    const jstTime = new Date(utcTime + (9 * 3600000));
     return jstTime;
 }
 
 /**
  * Parse a date string as JST
  * Accepts formats: YYYY/MM/DD, YYYY-MM-DD
- * @param {string} dateString - Date string to parse (already in JST)
- * @returns {Date|null} Date object representing the JST date, or null if invalid
+ * @param {string} dateString - Date string to parse (dates in CSV are in JST)
+ * @returns {Date|null} Date object representing JST date, or null if invalid
  */
 function parseJSTDate(dateString) {
     if (!dateString || dateString.trim() === '') return null;
@@ -34,9 +36,11 @@ function parseJSTDate(dateString) {
 
     if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
 
-    // Since the CSV dates are already in JST, create a Date object directly
-    // This represents the date at midnight in the local timezone
-    const date = new Date(year, month, day, 0, 0, 0, 0);
+    // Create a UTC date representing JST midnight
+    // We store the date as UTC, but it represents the JST date
+    // This way, when we use getUTCFullYear(), getUTCMonth(), getUTCDate()
+    // we get the JST values consistently across all timezones
+    const date = new Date(Date.UTC(year, month, day, 0, 0, 0, 0));
 
     return date;
 }
@@ -51,13 +55,10 @@ function formatJSTDate(date) {
         return null;
     }
 
-    // Convert to JST
-    const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
-    const jstDate = new Date(utc + (9 * 3600000));
-
-    const year = jstDate.getFullYear();
-    const month = String(jstDate.getMonth() + 1).padStart(2, '0');
-    const day = String(jstDate.getDate()).padStart(2, '0');
+    // Use UTC methods since our dates are stored as UTC representing JST
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
 }
@@ -72,16 +73,13 @@ function formatJSTDateJapanese(date) {
         return '';
     }
 
-    // Convert to JST
-    const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
-    const jstDate = new Date(utc + (9 * 3600000));
+    // Use UTC methods to get JST values
+    const year = date.getUTCFullYear();
+    const month = date.getUTCMonth() + 1;
+    const day = date.getUTCDate();
 
-    return jstDate.toLocaleDateString('ja-JP', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        timeZone: 'Asia/Tokyo'
-    });
+    // Format in Japanese style
+    return `${year}年${month}月${day}日`;
 }
 
 /**
@@ -90,8 +88,12 @@ function formatJSTDateJapanese(date) {
  */
 function getJSTMidnight() {
     const now = getJSTNow();
-    const midnight = new Date(now);
-    midnight.setHours(24, 0, 0, 0); // Set to next midnight
+    const year = now.getUTCFullYear();
+    const month = now.getUTCMonth();
+    const day = now.getUTCDate();
+
+    // Create midnight of next day in JST
+    const midnight = new Date(Date.UTC(year, month, day + 1, 0, 0, 0, 0));
     return midnight;
 }
 
@@ -110,7 +112,7 @@ function getMillisecondsUntilJSTMidnight() {
  * @returns {number} Current year in JST
  */
 function getJSTYear() {
-    return getJSTNow().getFullYear();
+    return getJSTNow().getUTCFullYear();
 }
 
 /**
@@ -118,7 +120,7 @@ function getJSTYear() {
  * @returns {number} Current month in JST (0-11)
  */
 function getJSTMonth() {
-    return getJSTNow().getMonth();
+    return getJSTNow().getUTCMonth();
 }
 
 /**
@@ -126,7 +128,7 @@ function getJSTMonth() {
  * @returns {number} Current date in JST (1-31)
  */
 function getJSTDate() {
-    return getJSTNow().getDate();
+    return getJSTNow().getUTCDate();
 }
 
 /**
@@ -140,10 +142,8 @@ function getJSTDate() {
  * @returns {Date} Date object representing the JST date/time
  */
 function createJSTDate(year, month, day, hour = 0, minute = 0, second = 0) {
-    // Create UTC date and subtract 9 hours to represent JST
-    const date = new Date(Date.UTC(year, month, day, hour, minute, second));
-    date.setUTCHours(date.getUTCHours() - 9);
-    return date;
+    // Create UTC date representing JST time
+    return new Date(Date.UTC(year, month, day, hour, minute, second));
 }
 
 /**
@@ -159,4 +159,14 @@ function isSameJSTDay(date1, date2) {
     const jst2 = formatJSTDate(date2);
 
     return jst1 === jst2;
+}
+
+/**
+ * Unified date formatting function (wrapper for formatJSTDate)
+ * This provides a consistent interface across all files
+ * @param {Date} date - Date to format
+ * @returns {string|null} Formatted date string as YYYY-MM-DD, or null if invalid
+ */
+function formatDate(date) {
+    return formatJSTDate(date);
 }
