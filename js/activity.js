@@ -43,10 +43,8 @@ function processCSVLine(line) {
     return result;
 }
 
-// 统一的日期格式化函数，确保格式一致YYYY-MM-DD (JST)
-function formatDate(date) {
-    return formatJSTDate(date);
-}
+// formatDate is now defined in jst-utils.js
+
 
 // Helper function to parse and format a list of date strings (e.g., from 'Add' or 'Date' columns)
 // This ensures that all dates from CSV are consistently YYYY-MM-DD (JST)
@@ -123,9 +121,9 @@ const AGE_START = 0; // For Age View
 
 // --- Helper to get age at a specific date ---
 function getAgeAtDate(birthDate, targetDate) {
-    let age = targetDate.getFullYear() - birthDate.getFullYear();
-    const m = targetDate.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && targetDate.getDate() < birthDate.getDate())) {
+    let age = targetDate.getUTCFullYear() - birthDate.getUTCFullYear();
+    const m = targetDate.getUTCMonth() - birthDate.getUTCMonth();
+    if (m < 0 || (m === 0 && targetDate.getUTCDate() < birthDate.getUTCDate())) {
         age--;
     }
     return age;
@@ -391,13 +389,13 @@ function getFilteredActivityDates(item) {
     const relevantDates = new Set(); // Stores 'YYYY-MM-DD' strings
 
     // 1. Process dates from DateStart to DateEnd, applying Weekday filter
-    let currentIterateDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    let currentIterateDate = new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), startDate.getUTCDate()));
     let safetyCounter = 0;
     const MAX_ITERATIONS = 366 * 100; // Max 100 years to prevent infinite loops
 
     while (currentIterateDate <= endDate && safetyCounter < MAX_ITERATIONS) {
         // Get day of the week: 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-        let dayOfWeek = currentIterateDate.getDay();
+        let dayOfWeek = currentIterateDate.getUTCDay();
         // Convert to 1=Monday, ..., 7=Sunday to match CSV Weekday column
         let csvDayOfWeek = (dayOfWeek === 0) ? 7 : dayOfWeek;
 
@@ -411,7 +409,7 @@ function getFilteredActivityDates(item) {
                 relevantDates.add(formattedDate);
             }
         }
-        currentIterateDate.setDate(currentIterateDate.getDate() + 1); // Move to next day
+        currentIterateDate.setUTCDate(currentIterateDate.getUTCDate() + 1); // Move to next day
         safetyCounter++;
     }
 
@@ -442,8 +440,8 @@ function createMonthGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
 
         filteredActivityDates.forEach(dateStr => {
             const dateObj = new Date(dateStr); // Convert back to Date object for month/year extraction
-            const year = dateObj.getFullYear();
-            const month = dateObj.getMonth();
+            const year = dateObj.getUTCFullYear();
+            const month = dateObj.getUTCMonth();
             const key = `${year}-${month}`; // Key for month view
 
             if (!monthlyWorksMap[key]) monthlyWorksMap[key] = [];
@@ -474,7 +472,7 @@ function createYearGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
         const yearsWithActivity = new Set();
         filteredActivityDates.forEach(dateStr => {
             const dateObj = new Date(dateStr);
-            yearsWithActivity.add(dateObj.getFullYear());
+            yearsWithActivity.add(dateObj.getUTCFullYear());
         });
 
         yearsWithActivity.forEach(year => {
