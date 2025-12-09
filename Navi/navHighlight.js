@@ -14,19 +14,28 @@ function highlightCurrentPage() {
         const href = link.getAttribute('href');
 
         // 检查链接是否匹配当前页面
+        const normalizePageName = (path) => {
+            if (!path) return '';
+            // 提取文件名
+            const fileName = path.split('/').pop().split('?')[0].split('#')[0];
+            // 移除 .html 后缀
+            return fileName.replace(/\.html$/, '');
+        };
+
+        const currentPageName = normalizePageName(currentPath);
+        const linkPageName = normalizePageName(href);
+
         // 处理首页情况
-        if ((currentPath === '/' || currentPath === '/index.html' || currentPath.endsWith('/') || currentPath.includes('skmst.html')) &&
-            (href === 'index.html' || href === './' || href === '../index.html' || href === '/' || href.includes('skmst.html'))) {
+        if ((currentPath === '/' || currentPath.endsWith('/') || currentPageName === 'index' || currentPageName === 'skmst') &&
+            (href === './' || href === '../' || href === '/' || linkPageName === 'index' || linkPageName === 'skmst')) {
             link.classList.add('active');
         }
-        // 处理其他页面
-        else if (
-            (currentPath.includes('works.html') && href.includes('works.html')) ||
-            (currentPath.includes('today.html') && href.includes('today.html')) ||
-            (currentPath.includes('activity.html') && href.includes('activity.html')) ||
-            (currentPath.includes('sakaical.html') && href.includes('sakaical.html')) ||
-            (currentPath.includes('news.html') && href.includes('news.html')) ||
-            ((currentPath.includes('about.html') || currentPath.includes('contact.html')) && href.includes('about.html'))) {
+        // 处理其他页面 - 使用标准化后的页面名称进行匹配
+        else if (currentPageName && linkPageName && currentPageName === linkPageName) {
+            link.classList.add('active');
+        }
+        // 特殊处理 about 和 contact 页面
+        else if ((currentPageName === 'about' || currentPageName === 'contact') && linkPageName === 'about') {
             link.classList.add('active');
         } else {
             link.classList.remove('active');
