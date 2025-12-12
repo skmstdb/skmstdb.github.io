@@ -2,12 +2,39 @@
 <html lang="ja">
 
 <head>
+    <!-- Analytics and Tracking -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6C7BJGKMFT"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-6C7BJGKMFT');
+    </script>
+    
+    <!-- Meta Tags -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description"
+        content="堺雅人データベース【非公式】 / Sakai Masato Database [Unofficial]">
+    <meta name="keywords"
+        content="堺雅人, Sakai Masato, Masato Sakai, Database, heatmap, contribution graph, calendar, カレンダー">
+    
+    <!-- Title -->
     <title>Sakai Masato Database</title>
-    <link rel="icon" href="favicon.png" type="image/png">
-    <link rel="icon" href="favicon-32x32.png" sizes="32x32" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    
+    <!-- Favicon for all devices and platforms -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
+    <link rel="shortcut icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <!-- Android Chrome -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png">
+
+    <!-- Scripts and Other Resources -->
+    <script src="js/timezone.js"></script>
+    <script src="js/00-index.js"></script>
     <style>
         :root {
             --bg-color: #f6f4ef;
@@ -61,25 +88,26 @@
                 grid-template-rows: repeat(3, 1fr);
             }
 
-            .birthday-countdown {
-                grid-column: span 2;
-            }
-
             .database {
                 grid-column: span 2;
                 grid-row: span 2;
             }
 
+            .birthday-countdown {
+                grid-column: span 1;
+            }
+
             .date-countdown {
-                grid-column: span 2;
+                grid-column: span 1;
             }
 
             .work1 {
                 grid-column: span 2;
             }
 
-            .work2 {
+            .calendar {
                 grid-column: span 2;
+                grid-row: span 2;
             }
         }
 
@@ -189,14 +217,21 @@
         }
 
         .date-countdown #dateCountdown {
-            font-size: clamp(2rem, 4vw, 3rem);
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
             font-weight: bold;
         }
 
-        .work1,
-        .work2 {
+        .work1 {
             font-size: clamp(1.2rem, 2.5vw, 1.8rem);
             font-weight: 500;
+        }
+
+        .calendar {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         @media (max-width: 768px) {
@@ -207,19 +242,102 @@
 
             /* Font sizes are now handled by clamp() */
         }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-card {
+            background-color: var(--bg-color);
+            border: 4px solid var(--border-color);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 5px;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            opacity: 0.7;
+        }
+
+        .modal-content {
+            margin-bottom: 30px;
+        }
+
+        .modal-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .modal-text.english {
+            margin-bottom: 25px;
+        }
+
+        .modal-text.japanese {
+            margin-bottom: 0;
+        }
+
+        .modal-button {
+            background-color: var(--bg-color);
+            border: 3px solid var(--border-color);
+            border-radius: 15px;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .modal-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
     </style>
-    <script src="js/jst-utils.js"></script>
+    <!-- Calendar Specific Styles -->
+    <link rel="stylesheet" href="css/00-index.css">
 </head>
 
 <body>
     <div class="container">
-        <div class="grid-item database hoverable" onclick="window.location.href='skmst.html'">
+        <!-- Row 1 & 2 Left: Database (2x2) -->
+        <div class="grid-item database hoverable" onclick="showDisclaimer('skmst.html')">
             <div class="database-text">
                 <div>SAKAI MASATO</div>
                 <div>DATABASE</div>
             </div>
         </div>
 
+        <!-- Row 1 Right: Countdowns (1x1 each) -->
         <div class="grid-item birthday-countdown hoverable"
             onclick="window.open('https://sakai-masato.com/', '_blank')">
             <div class="title" id="birthdayTitle">His Birthday</div>
@@ -232,16 +350,71 @@
             <div id="dateCountdown"> </div>
         </div>
 
+        <div class="grid-item calendar hoverable"
+            onclick="if(!event.target.closest('.cal-event')) showDisclaimer('sakaical.html')">
+            <div class="calendar-wrapper">
+                <div class="calendar-header" id="miniCalTitle">Loading...</div>
+                <div class="calendar-grid" id="miniCalGrid">
+                    <!-- Grid content will be injected by JS -->
+                </div>
+            </div>
+        </div>
+
         <div class="grid-item work1 hoverable" onclick="window.open('https://www.tbs.co.jp/VIVANT_tbs/', '_blank')">
             VIVANT in 2026
         </div>
+    </div>
 
-        <div class="grid-item work2 hoverable" onclick="window.open('https://hirabanotsuki.jp/', '_blank')">
-            平場の月 in 2025
+    <!-- Disclaimer Modal -->
+    <div class="modal-overlay" id="disclaimerModal">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeDisclaimer()">&times;</button>
+            <div class="modal-content">
+                <div class="modal-text english">
+                    This site is NOT an official site, with NO affiliation with Mr. Sakai Masato or his management.
+                </div>
+                <div class="modal-text japanese">
+                    当サイトは非公式であり、堺さんおよび関係各所とは一切関係ございません。
+                </div>
+            </div>
+            <button class="modal-button" onclick="acceptDisclaimer()">OK</button>
         </div>
     </div>
 
     <script>
+        let pendingRedirect = null;
+
+        function showDisclaimer(url) {
+            pendingRedirect = url;
+            document.getElementById('disclaimerModal').style.display = 'flex';
+        }
+
+        function closeDisclaimer() {
+            document.getElementById('disclaimerModal').style.display = 'none';
+            pendingRedirect = null;
+        }
+
+        function acceptDisclaimer() {
+            if (pendingRedirect) {
+                window.location.href = pendingRedirect;
+            }
+            closeDisclaimer();
+        }
+
+        // Close modal when clicking outside the card
+        document.getElementById('disclaimerModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDisclaimer();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeDisclaimer();
+            }
+        });
+
         function updateCountdowns() {
             const today = getJSTNow();
             const currentYear = today.getUTCFullYear();
@@ -288,7 +461,6 @@
 
         function scheduleNextUpdate() {
             const msUntilMidnight = getMillisecondsUntilJSTMidnight();
-            // Add a small buffer (e.g., 1 second) to ensure we are past midnight
             const delay = msUntilMidnight + 1000;
 
             console.log(`Next update scheduled in ${delay} ms (approx ${delay / 1000 / 60} minutes)`);
@@ -299,9 +471,7 @@
             }, delay);
         }
 
-        // Initial call
         updateCountdowns();
-        scheduleNextUpdate();
     </script>
 </body>
 
