@@ -225,7 +225,6 @@ input:checked+.slider:before {
         -webkit-transform: translateZ(0); /* Force hardware acceleration */
         transform: translateZ(0);
     }
-}
 
     #dark-mode-toggle {
         position: absolute;
@@ -233,8 +232,6 @@ input:checked+.slider:before {
         right: 20px;
     }
 }
-
-/* 汉堡菜单按钮样式在 navi.css 中定义，这里移除重复定义 */
 
 /* Large desktop screens */
 @media (min-width: 1440px) {
