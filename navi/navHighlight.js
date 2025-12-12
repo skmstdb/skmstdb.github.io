@@ -67,7 +67,7 @@ function initializeHamburger() {
  */
 async function loadNavbar() {
     try {
-        const response = await fetch('../Navi/navbar.html');
+        const response = await fetch('../navi/navbar.html');
         const navbarContent = await response.text();
         document.querySelector('.sidebar').innerHTML = navbarContent;
         initializeHamburger();
