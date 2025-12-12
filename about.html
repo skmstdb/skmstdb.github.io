@@ -2,7 +2,7 @@
 <html lang="ja">
 
 <head>
-    <!-- Google tag (gtag.js) -->
+    <!-- Analytics and Tracking -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-6C7BJGKMFT"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -11,17 +11,32 @@
 
         gtag('config', 'G-6C7BJGKMFT');
     </script>
+
+    <!-- Meta Tags -->
     <meta charset="UTF-8">
-    <script src="js/visibility.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <!-- Title -->
     <title>Sakai Masato Database</title>
-    <link rel="icon" href="favicon.png" type="image/png">
-    <link rel="icon" href="favicon-32x32.png" sizes="32x32" />
-    <link rel="apple-touch-icon" href="../pic/apple-touch-icon.png">
+
+    <!-- Favicon for all devices and platforms -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
+    <link rel="shortcut icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <!-- Android Chrome -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png">
+
+    <!-- External Stylesheets and Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/about.css">
-    <link rel="stylesheet" href="/Navi/navi.css">
+    <link rel="stylesheet" href="/css/08-about.css">
+    <link rel="stylesheet" href="/navi/navi.css">
+
+    <!-- Scripts and Other Resources -->
+    <script src="js/mobileview.js"></script>
+    <script src="js/visibility.js"></script>
     <script src="/js/darkmode.js"></script>
     <script src="/Navi/navHighlight.js"></script>
 </head>
@@ -48,6 +63,10 @@
                     </a>
                 </div>
             </div>
+            <div class="about-content">
+                <p>Dates are displayed in Japan Standard Time (JST, GMT+9).<p>
+            </div>
+
             <div class="about-content">
                 <p>This site is NOT an official site, with NO affiliation with Mr. Sakai Masato or his management.</p>
                 <p>All media on this site belong to their respective copyright owners. I have NO intention of infringing
@@ -77,8 +96,34 @@
 
                     if (container.style.display === 'none') {
                         container.style.display = 'block';
+                        
+                        // 自动滚动到弹窗位置
+                        setTimeout(() => {
+                            container.scrollIntoView({ 
+                                behavior: 'smooth', 
+                                block: 'start' 
+                            });
+                        }, 100); // 稍微延迟以确保弹窗已完全显示
+                        
+                        // 添加全局点击监听器，延迟添加以避免立即触发
+                        setTimeout(() => {
+                            document.addEventListener('click', closeReportIssueOnClickOutside);
+                        }, 0);
                     } else {
                         container.style.display = 'none';
+                        // 移除全局点击监听器
+                        document.removeEventListener('click', closeReportIssueOnClickOutside);
+                    }
+                }
+
+                function closeReportIssueOnClickOutside(event) {
+                    const container = document.getElementById('report-issue-container');
+                    const trigger = document.querySelector('.about-content.official-link[onclick*="toggleReportIssue"]');
+
+                    // 如果点击的不是弹窗容器内部，也不是触发按钮，则关闭弹窗
+                    if (!container.contains(event.target) && !trigger.contains(event.target)) {
+                        container.style.display = 'none';
+                        document.removeEventListener('click', closeReportIssueOnClickOutside);
                     }
                 }
             </script>

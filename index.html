@@ -164,7 +164,7 @@
         }
 
         .birthday-countdown .days {
-            font-size: clamp(2rem, 4vw, 3rem);
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
             font-weight: bold;
             color: var(--text-color);
         }
@@ -440,7 +440,7 @@
                 }
                 const birthdayDiff = Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24));
                 birthdayTitle.textContent = '堺さんの誕生日';
-                birthdayDays.textContent = `D-${birthdayDiff}`;
+                birthdayDays.textContent = `${birthdayDiff} Days Left`;
                 birthdayDays.classList.remove('birthday-special');
             }
 

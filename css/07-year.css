@@ -1,0 +1,431 @@
+/* Year Grid System CSS */
+
+:root {
+    --year-grid-bg: #ffffff;
+    --year-grid-border: #ddd;
+    --year-label-color: #666;
+    --activity-square-color: #22c55e;
+    --empty-square-color: transparent;
+    --grid-border-color: #e5e7eb;
+    --transition-duration: 0.3s;
+    --year-item-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --year-item-hover-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.dark-mode {
+    --year-grid-bg: #161b22;
+    --year-label-color: #aaa;
+    --activity-square-color: #4ade80;
+    --grid-border-color: #404040;
+    --year-item-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --year-item-hover-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+/* Main container */
+#year-grid-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px 0;
+    overflow-x: visible;
+    /* Allow heatmap to extend beyond container width */
+}
+
+/* Grid layout - responsive columns */
+#year-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    justify-items: start;
+    /* Changed from center - heatmap uses full width */
+}
+
+/* Year item - each grid cell */
+.year-item {
+    position: relative;
+    background: var(--year-grid-bg);
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: var(--year-item-shadow);
+    transition: all var(--transition-duration) ease;
+    width: 100%;
+    max-width: 280px;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    justify-self: center;
+    /* Center year-item specifically */
+}
+
+.year-item:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--year-item-hover-shadow);
+}
+
+/* Year label in top-right corner */
+.year-label {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--year-label-color);
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 4px 8px;
+    border-radius: 6px;
+    backdrop-filter: blur(4px);
+    pointer-events: none;
+}
+
+.dark-mode .year-label {
+    background: rgba(22, 27, 34, 0.9);
+}
+
+/* 20x20 Activity grid container */
+.activity-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    grid-template-rows: repeat(20, 1fr);
+    gap: 1.5px;
+    padding: 6px;
+    margin-top: 24px;
+    aspect-ratio: 1;
+    /* Maintain square aspect ratio */
+    min-height: 200px;
+    /* Ensure minimum size for visibility */
+}
+
+/* Individual activity square */
+.activity-square {
+    background: var(--activity-square-color);
+    border-radius: 2px;
+    transition: all 0.2s ease;
+}
+
+.activity-square.empty {
+    background: var(--empty-square-color);
+}
+
+.activity-square:not(.empty):hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
+.dark-mode .activity-square:not(.empty):hover {
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+}
+
+/* Loading state */
+.year-item.loading {
+    pointer-events: none;
+}
+
+.year-item.loading .activity-grid {
+    opacity: 0.5;
+}
+
+/* Error state */
+.year-item.error-grid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+}
+
+.error-message {
+    text-align: center;
+    padding: 20px;
+    font-size: 14px;
+}
+
+/* Fallback grid */
+.year-item.fallback-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.fallback-message {
+    text-align: center;
+    color: #999;
+}
+
+.fallback-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.fallback-text {
+    font-size: 14px;
+}
+
+/* ========== Responsive Breakpoints ========== */
+
+/* Large desktops: 5 columns */
+@media (min-width: 1200px) {
+    #year-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Extra large screens: maintain max width */
+@media (min-width: 1600px) {
+    #year-grid-container {
+        max-width: 1600px;
+    }
+
+    #year-grid {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 25px;
+    }
+
+    .year-item {
+        max-width: 300px;
+    }
+}
+
+/* Medium desktops: 4 columns */
+@media (min-width: 900px) and (max-width: 1199px) {
+    #year-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Tablets: 3 columns */
+@media (min-width: 600px) and (max-width: 899px) {
+    #year-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .year-item {
+        max-width: 240px;
+    }
+}
+
+/* Mobile: 1 column */
+@media (max-width: 599px) {
+    #year-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .year-item {
+        max-width: none;
+        border-radius: 8px;
+        padding: 8px;
+        min-height: 180px;
+        /* Ensure adequate height for 20x20 grid */
+    }
+
+    .year-label {
+        font-size: 12px;
+        padding: 3px 6px;
+        top: 6px;
+        right: 8px;
+    }
+
+    .activity-grid {
+        gap: 1px;
+        padding: 4px;
+        margin-top: 20px;
+        min-height: 140px;
+        /* Ensure grid has adequate space */
+    }
+
+    #year-grid-container {
+        padding: 10px 0;
+    }
+
+    /* Reduce hover effects on mobile */
+    .year-item:hover {
+        transform: none;
+    }
+
+    /* Ensure activity squares are touch-friendly */
+    .activity-square {
+        min-width: 3px;
+        min-height: 3px;
+    }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 360px) {
+    #year-grid {
+        gap: 10px;
+    }
+
+    .year-item {
+        padding: 6px;
+        min-height: 160px;
+        /* Ensure minimum height for 20x20 grid */
+    }
+
+    .activity-grid {
+        gap: 0.5px;
+        padding: 3px;
+        margin-top: 16px;
+        min-height: 120px;
+        /* Ensure squares remain visible */
+    }
+
+    .year-label {
+        font-size: 11px;
+        padding: 2px 5px;
+    }
+
+    /* Ensure activity squares remain visible on very small screens */
+    .activity-square {
+        min-width: 2px;
+        min-height: 2px;
+    }
+}
+
+/* ========== Touch Device Optimizations ========== */
+
+/* Touch feedback for mobile */
+@media (hover: none) and (pointer: coarse) {
+    .year-item:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+
+    .activity-square:not(.empty):active {
+        transform: scale(1.3);
+    }
+
+    /* Remove hover effects on touch devices */
+    .year-item:hover {
+        transform: none;
+        box-shadow: var(--year-item-shadow);
+    }
+
+    .activity-square:not(.empty):hover {
+        transform: none;
+        box-shadow: none;
+    }
+}
+
+/* Mobile-specific class for touch interactions */
+.year-item.touch-active {
+    transform: scale(0.98);
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.dark-mode .year-item.touch-active {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* ========== Mobile Performance Optimizations ========== */
+
+.mobile-optimized {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+.simplified-mobile .activity-grid {
+    gap: 1px;
+}
+
+/* Year info popup for mobile tap */
+.year-info-popup {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    animation: fadeIn 0.2s ease;
+    pointer-events: none;
+}
+
+.year-info-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.year-info-content h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.year-info-content p {
+    font-size: 14px;
+    margin: 0;
+    opacity: 0.9;
+}
+
+.close-info {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    line-height: 1;
+    pointer-events: all;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* ========== Accessibility ========== */
+
+/* Focus styles for keyboard navigation */
+.year-item:focus-visible {
+    outline: 2px solid #22c55e;
+    outline-offset: 2px;
+}
+
+.dark-mode .year-item:focus-visible {
+    outline-color: #4ade80;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .year-item:hover {
+        transform: none;
+    }
+
+    .activity-square:hover {
+        transform: none;
+    }
+}
+
+/* ========== Print Styles ========== */
+
+@media print {
+    .year-item {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .year-item:hover {
+        transform: none;
+        box-shadow: none;
+    }
+}

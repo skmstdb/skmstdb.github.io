@@ -1,0 +1,852 @@
+/* Heatmap Feature CSS - Visual Integration with Year Page Design */
+
+:root {
+    /* Heatmap-specific color variables that integrate with existing year page design */
+    --heatmap-bg: var(--year-grid-bg, #ffffff);
+    --heatmap-border: var(--grid-border-color, #e5e7eb);
+    --heatmap-shadow: var(--year-item-shadow, 0 4px 16px rgba(0, 0, 0, 0.1));
+    --heatmap-hover-shadow: var(--year-item-hover-shadow, 0 4px 16px rgba(0, 0, 0, 0.15));
+
+    /* Activity cell colors as specified in requirements */
+    --heatmap-default-color: #F5F1E8;
+    /* Requirement 3.1: Light beige for default days */
+    --heatmap-active-color: #90EE90;
+    /* Requirement 3.2: Light green for activity days */
+    --heatmap-today-color: #FFB6B6;
+    /* Requirement 3.3: Light red for today's date */
+    --heatmap-padding-color: #D3D3D3;
+    /* Requirement 3.4: Light gray for padding cells */
+    --heatmap-grid-line-color: #000000;
+    /* Requirement 3.5: Black for grid lines */
+
+    /* Text and UI colors */
+    --heatmap-text-color: var(--text-color, #333333);
+    --heatmap-label-color: var(--year-label-color, #666);
+
+    /* Animation and transition variables */
+    --heatmap-transition-duration: var(--transition-duration, 0.3s);
+    --heatmap-animation-easing: cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.dark-mode {
+    /* Dark mode color adaptations as specified in requirement 4.4 */
+    --heatmap-bg: var(--year-grid-bg, #161b22);
+    --heatmap-border: var(--grid-border-color, #404040);
+    --heatmap-shadow: var(--year-item-shadow, 0 4px 16px rgba(0, 0, 0, 0.3));
+    --heatmap-hover-shadow: var(--year-item-hover-shadow, 0 4px 16px rgba(0, 0, 0, 0.5));
+
+    /* Adapted colors for dark mode while maintaining visual hierarchy */
+    --heatmap-default-color: #2d3748;
+    --heatmap-active-color: #68d391;
+    --heatmap-today-color: #fc8181;
+    --heatmap-padding-color: #4a5568;
+    --heatmap-grid-line-color: #718096;
+
+    --heatmap-text-color: var(--text-color, #ffffff);
+    --heatmap-label-color: var(--year-label-color, #aaa);
+}
+
+/* Heatmap container - Auto-size based on content with max-width constraint */
+.heatmap-container {
+    width: fit-content;
+    /* Size based on actual content width */
+    max-width: 100%;
+    /* Don't exceed parent container width */
+    margin: 20px 0;
+    padding: 20px;
+    background: var(--heatmap-bg);
+    border-radius: 12px;
+    box-shadow: var(--heatmap-shadow);
+    border: 1px solid var(--heatmap-border);
+    display: block;
+    height: auto;
+    overflow-x: auto;
+    /* Show scrollbar when content exceeds width */
+    overflow-y: visible;
+    box-sizing: border-box;
+
+    /* Override parent grid's justify-items: center */
+    justify-self: stretch;
+    /* Use full width instead of centering */
+    grid-column: 1 / -1;
+    /* Span all columns */
+
+    /* Smooth transition animations */
+    opacity: 0;
+    transform: translateY(-20px) scaleY(0.8);
+    transform-origin: top center;
+    transition: all var(--heatmap-transition-duration) var(--heatmap-animation-easing);
+
+    position: relative;
+    z-index: 5;
+}
+
+.heatmap-container.expanded {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+}
+
+/* Enhanced hover state for better user feedback */
+.heatmap-container:hover {
+    box-shadow: var(--heatmap-hover-shadow);
+    transform: translateY(0) scaleY(1) translateZ(0);
+}
+
+/* Heatmap wrapper - Using test.html flex-based design for proper border handling */
+.heatmap-wrapper {
+    display: flex;
+    /* Use flex instead of inline-flex */
+    width: 100%;
+    /* Full width */
+    margin: 0;
+    /* No margin */
+}
+
+/* Week labels column (left side) */
+.heatmap-week-labels {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Main grid area (right side) */
+.heatmap-main-grid {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Grid row container */
+.heatmap-grid-row {
+    display: flex;
+}
+
+/* First row (month labels) should have default background */
+.heatmap-grid-row:first-child {
+    background: var(--heatmap-default-color);
+}
+
+/* First row cells should also have default background */
+.heatmap-grid-row:first-child .heatmap-cell {
+    background: var(--heatmap-default-color);
+}
+
+/* Remove border optimization - let all cells have full borders for consistency */
+
+/* Legacy grid support - keep for backward compatibility */
+.heatmap-grid {
+    display: grid;
+    gap: 0;
+    /* Changed from 1px to 0 to prevent line overlap */
+    width: 100%;
+    max-width: none;
+    /* Remove width constraint */
+    margin: 0 auto;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+
+    /* Grid structure: 8 rows (1 header + 7 weekdays), dynamic columns */
+    grid-template-rows: 30px repeat(7, 1fr);
+    min-height: 200px;
+
+    /* Smooth transitions for grid changes */
+    transition: all var(--heatmap-transition-duration) var(--heatmap-animation-easing);
+}
+
+/* Heatmap cells - Updated sizing to match test.html, NO BORDER RADIUS */
+.heatmap-cell {
+    width: 20px;
+    height: 20px;
+    border: 1px solid var(--heatmap-grid-line-color);
+    box-sizing: border-box;
+    background: var(--heatmap-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: normal;
+    color: var(--heatmap-text-color);
+    position: relative;
+    border-radius: 0;
+    /* NO border radius */
+    cursor: default;
+    /* Default cursor */
+    pointer-events: none;
+    /* Disable all pointer events */
+}
+
+/* Label cells (weekday labels in left column) - Match grid cell width */
+.heatmap-cell.label-cell {
+    width: 20px;
+    /* Match grid cell width instead of 30px */
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Empty corner cell */
+.heatmap-cell.empty-corner {
+    background: var(--heatmap-default-color);
+    /* Use default background color */
+}
+
+/* Month labels - Requirement 2.2: Numbers 1-12 at appropriate positions */
+.heatmap-cell.month-label {
+    background: var(--heatmap-default-color);
+    /* Same styling as default cells, only background differs */
+}
+
+/* Weekday labels - Requirement 2.3: 月火水木金土日 (Monday to Sunday) */
+.heatmap-cell.weekday-label {
+    background: var(--heatmap-bg);
+    /* Same styling as default cells, only background differs */
+}
+
+/* Activity cells - NO INTERACTIONS, NO ANIMATIONS */
+.heatmap-cell.activity-cell {
+    cursor: default;
+    transition: none;
+    pointer-events: none;
+    /* Completely disable pointer events */
+}
+
+/* Completely remove all hover effects */
+.heatmap-cell.activity-cell:hover {
+    transform: none !important;
+    z-index: auto !important;
+    box-shadow: none !important;
+}
+
+/* Cell type colors - Implementing requirements 3.1-3.4 exactly as specified */
+
+/* Requirement 3.1: Default days use #F5F1E8 (light beige) - NO EFFECTS */
+.heatmap-cell.default-cell {
+    background-color: var(--heatmap-default-color);
+    transition: none;
+    /* No transitions */
+    box-shadow: none;
+    /* No shadow */
+}
+
+/* Requirement 3.2: Activity days use #90EE90 (light green) - NO EFFECTS */
+.heatmap-cell.activity-cell-active {
+    background-color: var(--heatmap-active-color);
+    box-shadow: none;
+    /* NO shadow - same size as other cells */
+    transition: none;
+    /* No transitions */
+    border: 1px solid var(--heatmap-grid-line-color);
+    /* Same border */
+    border-radius: 0;
+    /* No border radius */
+}
+
+/* Requirement 3.3: Today's date - SAME SIZE, NO BORDER RADIUS, NO EFFECTS */
+.heatmap-cell.today-cell {
+    background-color: var(--heatmap-today-color);
+    border: 1px solid var(--heatmap-grid-line-color);
+    /* Same border as other cells */
+    border-radius: 0 !important;
+    /* NO border radius */
+    position: relative;
+    z-index: 1;
+    transition: none;
+    transform: none;
+    box-shadow: none;
+    /* No shadow */
+    pointer-events: none;
+    /* Disable pointer events */
+}
+
+/* Completely remove hover effect from today cell */
+.heatmap-cell.today-cell:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    z-index: 1 !important;
+    border: 1px solid var(--heatmap-grid-line-color) !important;
+}
+
+/* Requirement 3.4: Year-start padding cells use #D3D3D3 (light gray) - NO EFFECTS */
+.heatmap-cell.padding-cell {
+    background-color: var(--heatmap-padding-color);
+    /* Same styling as default cells, only background differs */
+    /* Removed opacity to match other cells */
+}
+
+/* Dark mode hover effects - DISABLED */
+.dark-mode .heatmap-cell.activity-cell:hover {
+    box-shadow: none;
+}
+
+.dark-mode .heatmap-cell.today-cell {
+    background-color: var(--heatmap-today-color);
+    border: 1px solid var(--heatmap-grid-line-color);
+}
+
+.dark-mode .heatmap-cell.today-cell:hover {
+    box-shadow: none;
+    border: 1px solid var(--heatmap-grid-line-color);
+}
+
+/* Responsive design - Requirement 5.1: Disable on mobile, optimize for different screen sizes */
+
+/* Large desktop screens - Enhanced spacing and sizing */
+@media (min-width: 1200px) {
+    .heatmap-container {
+        /* Removed max-width and margin auto to allow full width */
+        padding: 25px;
+    }
+
+    /* .heatmap-grid no longer needs max-width constraint */
+
+    .heatmap-cell.activity-cell {
+        width: 16px;
+        height: 16px;
+    }
+
+    .heatmap-cell {
+        font-size: 13px;
+        min-height: 18px;
+    }
+}
+
+/* Standard desktop and tablet - Requirement 5.3: Enable functionality */
+@media (min-width: 600px) and (max-width: 1199px) {
+    .heatmap-container {
+        margin: 20px auto;
+        padding: 20px;
+    }
+
+    .heatmap-cell.activity-cell {
+        width: 14px;
+        height: 14px;
+    }
+
+    .heatmap-cell {
+        font-size: 12px;
+        min-height: 16px;
+    }
+}
+
+/* Mobile devices - Requirement 5.1: Functionality disabled, but styles ready if needed */
+@media (max-width: 599px) {
+    .heatmap-container {
+        margin: 15px auto;
+        padding: 15px;
+        border-radius: 8px;
+        max-width: 95%;
+    }
+
+    .heatmap-grid {
+        max-width: 100%;
+        gap: 0.5px;
+        /* Tighter spacing for mobile */
+    }
+
+    .heatmap-cell.activity-cell {
+        width: 10px;
+        height: 10px;
+    }
+
+    .heatmap-cell {
+        font-size: 10px;
+        min-height: 14px;
+    }
+
+    .heatmap-cell.month-label,
+    .heatmap-cell.weekday-label {
+        padding: 2px;
+        font-size: 10px;
+    }
+
+    /* Disable hover effects on mobile */
+    .heatmap-cell.activity-cell:hover {
+        transform: none;
+        box-shadow: none;
+    }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+    .heatmap-container {
+        margin: 10px auto;
+        padding: 10px;
+        border-radius: 6px;
+    }
+
+    .heatmap-grid {
+        border-width: 1px;
+        /* Thinner borders on very small screens */
+    }
+
+    .heatmap-cell.activity-cell {
+        width: 8px;
+        height: 8px;
+        border-width: 0.5px;
+    }
+
+    .heatmap-cell {
+        font-size: 9px;
+        min-height: 12px;
+    }
+
+    .heatmap-cell.month-label,
+    .heatmap-cell.weekday-label {
+        font-size: 9px;
+        padding: 1px;
+    }
+
+    /* Completely disable hover effects on very small screens */
+    .heatmap-cell.activity-cell:hover {
+        transform: none;
+        box-shadow: none;
+    }
+}
+
+/* Animation for year items being pushed down - Smooth layout transitions */
+.year-item {
+    transition: transform var(--heatmap-transition-duration) var(--heatmap-animation-easing);
+    will-change: transform;
+    /* Optimize for animations */
+}
+
+/* Enhanced animation states for better visual feedback */
+.year-item.heatmap-target {
+    z-index: 10;
+    position: relative;
+}
+
+.year-item.heatmap-pushed {
+    transform: translateY(var(--heatmap-push-offset, 0));
+}
+
+/* Accessibility */
+.heatmap-cell.activity-cell:focus-visible {
+    outline: 2px solid #22c55e;
+    outline-offset: 2px;
+}
+
+.dark-mode .heatmap-cell.activity-cell:focus-visible {
+    outline-color: #4ade80;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+
+    .heatmap-container,
+    .heatmap-cell.activity-cell,
+    .year-item {
+        transition: none !important;
+        animation: none !important;
+    }
+
+    .heatmap-cell.activity-cell:hover {
+        transform: none;
+    }
+}
+
+/* Performance optimizations */
+.heatmap-container {
+    /* GPU acceleration for smooth animations */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+
+    /* Enhanced performance optimizations */
+    contain: layout style paint;
+    isolation: isolate;
+
+    /* Optimize for large datasets */
+    content-visibility: auto;
+    contain-intrinsic-size: 800px 300px;
+}
+
+.heatmap-grid {
+    /* Optimize grid rendering */
+    contain: layout style paint size;
+
+    /* Performance optimization for large grids */
+    transform: translateZ(0);
+    will-change: auto;
+    /* Only set when animating */
+}
+
+.heatmap-cell.activity-cell {
+    /* Optimize individual cell animations */
+    will-change: auto;
+    /* Only set during hover/animation */
+    contain: layout style paint;
+
+    /* Performance optimization for large numbers of cells */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+/* Performance optimization: Reduce repaints during animations */
+.heatmap-container.animating {
+    will-change: opacity, transform;
+}
+
+.heatmap-container.animating .heatmap-grid {
+    will-change: transform;
+}
+
+.heatmap-container.animating .heatmap-cell.activity-cell {
+    will-change: transform, box-shadow;
+}
+
+/* Performance optimization: Optimize for different device capabilities */
+@media (max-width: 599px) {
+    .heatmap-container {
+        /* Reduce GPU usage on mobile devices */
+        transform: none;
+        backface-visibility: visible;
+        perspective: none;
+
+        /* Optimize for mobile performance */
+        content-visibility: auto;
+        contain-intrinsic-size: 350px 200px;
+    }
+
+    .heatmap-cell.activity-cell {
+        /* Disable expensive effects on mobile */
+        will-change: auto;
+        transform: none;
+        backface-visibility: visible;
+    }
+
+    .heatmap-cell.activity-cell:hover {
+        /* Disable hover effects on mobile for better performance */
+        transform: none;
+        box-shadow: none;
+    }
+}
+
+/* Performance optimization: High refresh rate displays */
+@media (min-resolution: 120dpi) {
+    .heatmap-container {
+        /* Optimize for high DPI displays */
+        image-rendering: crisp-edges;
+    }
+
+    .heatmap-cell.activity-cell {
+        /* Ensure crisp rendering on high DPI */
+        image-rendering: crisp-edges;
+    }
+}
+
+/* Performance optimization: Reduce motion for better performance */
+@media (prefers-reduced-motion: reduce) {
+
+    .heatmap-container,
+    .heatmap-cell.activity-cell,
+    .year-item {
+        /* Disable all animations for better performance */
+        transition: none !important;
+        animation: none !important;
+        will-change: auto !important;
+        transform: none !important;
+    }
+
+    .heatmap-cell.activity-cell:hover {
+        transform: none !important;
+        box-shadow: none !important;
+    }
+}
+
+/* Performance optimization: Memory management for large grids */
+.heatmap-grid.large-dataset {
+    /* Optimize for datasets with >1000 activity days */
+    contain: strict;
+    content-visibility: auto;
+    contain-intrinsic-size: 700px 250px;
+}
+
+.heatmap-grid.large-dataset .heatmap-cell.activity-cell {
+    /* Reduce memory usage for large datasets */
+    will-change: auto;
+    contain: layout paint;
+}
+
+/* Performance optimization: Batch rendering optimizations */
+.heatmap-container.batch-rendering {
+    /* Optimize for batch DOM operations */
+    visibility: hidden;
+    opacity: 0;
+}
+
+.heatmap-container.batch-rendering.ready {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+/* Performance optimization: Optimize for different connection speeds */
+@media (prefers-reduced-data: reduce) {
+    .heatmap-container {
+        /* Reduce visual effects for slower connections */
+        box-shadow: none;
+        border-radius: 6px;
+    }
+
+    .heatmap-cell.activity-cell {
+        /* Simplify cell styling */
+        border-radius: 1px;
+        box-shadow: none;
+    }
+
+    .heatmap-cell.activity-cell:hover {
+        /* Disable hover effects */
+        transform: none;
+        box-shadow: none;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .heatmap-container {
+        border-width: 2px;
+    }
+
+    .heatmap-grid {
+        border-width: 2px;
+        gap: 2px;
+    }
+
+    .heatmap-cell.activity-cell {
+        border-width: 1px;
+    }
+
+    .heatmap-cell.today-cell {
+        outline: 2px solid currentColor;
+        outline-offset: 1px;
+    }
+}
+
+/* Print styles */
+@media print {
+    .heatmap-container {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        box-shadow: none;
+        border: 2px solid #000;
+        background: white !important;
+    }
+
+    .heatmap-cell {
+        background: white !important;
+        border: 1px solid #000 !important;
+    }
+
+    .heatmap-cell.activity-cell-active {
+        background: #ccc !important;
+    }
+
+    .heatmap-cell.today-cell {
+        background: #999 !important;
+    }
+
+    .heatmap-cell.padding-cell {
+        background: #f0f0f0 !important;
+    }
+
+    .heatmap-cell.activity-cell:hover {
+        transform: none;
+        box-shadow: none;
+    }
+}
+
+/* Focus management for keyboard navigation */
+.heatmap-container:focus-within {
+    outline: 2px solid var(--heatmap-active-color);
+    outline-offset: 2px;
+}
+
+/* Loading state styles */
+.heatmap-container.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.heatmap-container.loading .heatmap-grid {
+    filter: blur(1px);
+}
+
+/* Error state styles */
+.heatmap-container.error {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.heatmap-error-message {
+    text-align: center;
+    padding: 20px;
+    color: #ef4444;
+    font-size: 14px;
+}
+
+/* Integration with existing year page animations */
+.year-grid-animating .heatmap-container {
+    pointer-events: none;
+}
+
+/* Ensure proper stacking context */
+.heatmap-container {
+    isolation: isolate;
+}
+
+/* Dark mode specific enhancements */
+.dark-mode .heatmap-cell.today-cell {
+    box-shadow: 0 0 6px rgba(252, 129, 129, 0.8);
+}
+
+.dark-mode .heatmap-cell.activity-cell-active {
+    box-shadow: 0 0 3px rgba(104, 211, 145, 0.6);
+}
+
+.dark-mode .heatmap-container:hover {
+    box-shadow: var(--heatmap-hover-shadow);
+}
+
+/* Additional utility classes for enhanced functionality */
+
+/* Heatmap container states for different interaction modes */
+.heatmap-container.desktop-mode {
+    cursor: default;
+}
+
+.heatmap-container.mobile-disabled {
+    display: none;
+    /* Hidden on mobile as per requirement 5.1 */
+}
+
+/* Year item interaction states for better visual feedback */
+.year-item.heatmap-clickable {
+    cursor: pointer;
+}
+
+.year-item.heatmap-clickable:hover {
+    transform: translateY(-2px);
+    transition: transform var(--heatmap-transition-duration) var(--heatmap-animation-easing);
+}
+
+.year-item.heatmap-expanded {
+    box-shadow: var(--heatmap-hover-shadow);
+    z-index: 15;
+}
+
+/* Smooth transitions for responsive breakpoint changes */
+@media (min-width: 600px) {
+    .heatmap-container.mobile-disabled {
+        display: block;
+        /* Show on desktop/tablet as per requirement 5.3 */
+        animation: fadeInUp var(--heatmap-transition-duration) var(--heatmap-animation-easing);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Enhanced grid layout for better calendar structure */
+.heatmap-grid.calendar-layout {
+    /* Ensure proper calendar proportions */
+    aspect-ratio: 7/4;
+    /* Approximate ratio for calendar grid */
+    max-height: 300px;
+}
+
+/* Cell hover effects with proper z-index management */
+.heatmap-cell.activity-cell:hover {
+    z-index: auto !important;
+    position: relative;
+}
+
+/* Tooltip-like information display */
+.heatmap-cell[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 25;
+    pointer-events: none;
+    opacity: 0;
+    animation: tooltipFadeIn 0.2s ease forwards;
+}
+
+@keyframes tooltipFadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+/* Integration with existing page scroll behavior */
+.heatmap-container {
+    scroll-margin-top: 20px;
+    /* Ensure proper scroll positioning */
+}
+
+/* Ensure proper color contrast in all modes */
+@media (prefers-color-scheme: dark) {
+    :root:not(.dark-mode) .heatmap-container {
+        /* Respect system dark mode preference */
+        --heatmap-text-color: #e2e8f0;
+        --heatmap-label-color: #cbd5e0;
+    }
+}
+
+/* Final integration check - ensure no conflicts with existing styles */
+.year-item .heatmap-container {
+    /* Override any conflicting year-item styles */
+    margin: 20px 0;
+    width: 100%;
+    max-width: none;
+}
+
+/* Ensure proper spacing in the year grid layout */
+#year-grid .heatmap-container {
+    margin: 20px auto;
+    grid-column: 1 / -1;
+}
+
+/* Allow year-grid-container to overflow horizontally for heatmap */
+#year-grid-container {
+    overflow-x: visible !important;
+    /* Override any overflow hidden */
+}
+
+/* Performance optimization for large grids */
+.heatmap-grid {
+    /* Use CSS containment for better performance */
+    contain: layout style paint size;
+}
+
+/* Accessibility improvements */
+.heatmap-cell.activity-cell[tabindex] {
+    outline: none;
+}
+
+.heatmap-cell.activity-cell[tabindex]:focus {
+    outline: 2px solid var(--heatmap-active-color);
+    outline-offset: 1px;
+    z-index: 21;
+}
+
+/* Ensure smooth integration with existing page transitions */
+.page-transitioning .heatmap-container {
+    transition-delay: 0.1s;
+}

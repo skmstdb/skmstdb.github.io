@@ -10,17 +10,19 @@
         gtag('js', new Date());
         gtag('config', 'G-6C7BJGKMFT');
     </script>
-    
+
+    <!-- Meta Tags -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0">
     <meta name="description"
         content="堺雅人データベース【非公式】 / Sakai Masato Database [Unofficial]">
     <meta name="keywords"
         content="堺雅人, Sakai Masato, Masato Sakai, Database, heatmap, contribution graph, calendar, カレンダー">
-    
+
     <!-- Title -->
     <title>Sakai Masato Database</title>
-    
+
     <!-- Favicon for all devices and platforms -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
@@ -29,7 +31,7 @@
     <!-- Android Chrome -->
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png">
-    
+
     <!-- External Stylesheets and Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,8 +39,9 @@
         rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="navi/navi.css">
-    <link rel="stylesheet" href="css/03-news.css">
-    
+    <link rel="stylesheet" href="css/07-year.css">
+    <link rel="stylesheet" href="css/07-heatmap.css">
+
     <!-- Scripts and Other Resources -->
     <script src="js/mobileview.js"></script>
     <script src="js/visibility.js"></script>
@@ -53,18 +56,15 @@
     </aside>
 
     <div class="main-content-wrapper">
-        <div class="month-grid" id="month-grid">
-            <!-- Skeleton cells for loading feedback -->
-            <div class="month-cell skeleton"></div>
-            <div class="month-cell skeleton"></div>
-            <div class="month-cell skeleton"></div>
-            <div class="month-cell skeleton"></div>
-            <div class="month-cell skeleton"></div>
-            <div class="month-cell skeleton"></div>
+        <div id="year-grid-container">
+            <div id="year-grid">
+                <!-- Year grids will be populated by JavaScript -->
+            </div>
         </div>
     </div>
 
-    <script src="js/03-news.js"></script>
+    <script src="js/07-heatmap.js"></script>
+    <script src="js/07-year.js"></script>
 
 </body>
 

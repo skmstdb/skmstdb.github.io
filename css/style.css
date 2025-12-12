@@ -1,0 +1,440 @@
+:root {
+    --bg-color: #f6f4ef;
+    --sidebar-bg-color: #f2f3f4;
+    --text-color: black;
+    --link-color: black;
+    --link-hover-color: black;
+    --active-link-bg-color: black;
+    --active-link-text-color: #fff;
+    --box-shadow-color: rgba(0, 0, 0, 0.1);
+    --nav-item-bg-color: white;
+
+    /* Define transition duration */
+    --transition-duration: 0.3s;
+}
+
+.dark-mode {
+    --bg-color: #121212;
+    --sidebar-bg-color: #333;
+    --text-color: #fff;
+    --link-color: #fff;
+    --link-hover-color: #ddd;
+    --active-link-bg-color: #fff;
+    --active-link-text-color: black;
+    --box-shadow-color: rgba(255, 255, 255, 0.1);
+    --nav-item-bg-color: #444;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+html, body {
+    height: 100%;
+    overscroll-behavior-y: none;
+    overflow-x: hidden;
+}
+
+body {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color var(--transition-duration), color var(--transition-duration); /* Use variable */
+}
+
+/* Sidebar layout - position and size */
+.sidebar {
+    width: calc(100% / 7);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1000;
+}
+
+/* Main content wrapper layout - position and size */
+.main-content-wrapper {
+    width: calc(100% * 6 / 7);
+    margin-left: calc(100% / 7);
+    padding: 40px;
+    padding-bottom: 60px; /* Fallback for older browsers */
+    padding-bottom: max(60px, 5vh); /* Modern browsers with viewport-relative spacing */
+    box-sizing: border-box;
+    background-color: #f6f4ef; /* Fallback for older browsers */
+    background-color: var(--bg-color);
+    -webkit-transition: background-color 0.3s; /* Webkit prefix for older Safari */
+    -moz-transition: background-color 0.3s; /* Firefox prefix for older versions */
+    -o-transition: background-color 0.3s; /* Opera prefix for older versions */
+    transition: background-color 0.3s; /* Fallback duration */
+    transition: background-color var(--transition-duration); /* Use variable */
+    min-height: 100vh; /* Ensure full viewport coverage */
+}
+
+
+.content-header {
+    position: relative;
+    text-align: center;
+    margin-bottom: 50px;
+    position: relative;
+}
+
+.title {
+    position: relative;
+    z-index: 1;
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 30px;
+}
+
+/* 以下是开关组件样式，主要用于深色模式切换和 Activity 页面的筛选器 */
+.switch-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    gap: 10px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: black;
+}
+
+input:checked+.slider:before {
+    transform: translateX(26px);
+}
+
+.switch-label {
+    font-size: 14px;
+    font-family: "ヒラギノ明朝 ProN", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+    color: var(--text-color);
+}
+
+/* 深色模式切换按钮，仅用于深色模式功能 */
+#dark-mode-toggle {
+    position: absolute;
+    z-index: 100;
+    top: 15px;
+    right: 20px;
+    width: auto;
+    height: auto;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    color: var(--text-color);
+    transition: color var(--transition-duration); /* Use variable */
+}
+
+#dark-mode-toggle[data-mode="light"]::before {
+    content: "⏾";
+}
+
+#dark-mode-toggle[data-mode="dark"]::before {
+    content: "☀︎";
+}
+
+
+/* 导航高亮相关样式 */
+.sidebar nav a.active {
+    background-color: #000;
+    color: #fff;
+}
+
+
+.sidebar-nav-item a:hover {
+    text-decoration: underline;
+    color: var(--link-hover-color);
+}
+
+.sidebar-nav-item a.active {
+    color: var(--active-link-text-color);
+    background-color: var(--active-link-bg-color);
+    border-radius: 5px;
+}
+
+.footer {
+    font-size: 12px;
+    text-align: center;
+    margin-top: 20px;
+    color: var(--text-color);
+}
+
+@media (max-width: 767px) {
+    html,
+    body {
+        overflow-y: auto;
+        height: auto;
+    }
+
+    .main-content-wrapper {
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 80px 20px 80px 20px; /* Fallback for older browsers */
+        padding: 80px 20px max(80px, 8vh) 20px; /* Mobile bottom padding that scales with viewport height */
+        min-height: 100vh; /* Use min-height instead of fixed height */
+        /* iOS Safari specific fixes */
+        min-height: -webkit-fill-available; /* iOS Safari viewport fix */
+        overflow: visible; /* Allow page-level scrolling instead of wrapper scrolling */
+        -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
+        box-sizing: border-box;
+        /* Samsung Internet and Chrome Mobile fixes */
+        -webkit-transform: translateZ(0); /* Force hardware acceleration */
+        transform: translateZ(0);
+    }
+}
+
+    #dark-mode-toggle {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+    }
+}
+
+/* 汉堡菜单按钮样式在 navi.css 中定义，这里移除重复定义 */
+
+/* Large desktop screens */
+@media (min-width: 1440px) {
+    .main-content-wrapper {
+        padding-bottom: 80px; /* Fallback for older browsers */
+        padding-bottom: max(80px, 6vh); /* Extra spacing for large screens */
+    }
+}
+
+/* Standard desktop screens */
+@media (min-width: 1025px) and (max-width: 1439px) {
+    .main-content-wrapper {
+        padding-bottom: 60px; /* Fallback for older browsers */
+        padding-bottom: max(60px, 5vh); /* Desktop bottom spacing that scales with viewport height */
+    }
+}
+
+/* Small mobile screens */
+@media (max-width: 375px) {
+    .main-content-wrapper {
+        padding: 80px 15px 90px 15px; /* Fallback for older browsers */
+        padding: 80px 15px max(90px, 10vh) 15px; /* Extra spacing for very small screens */
+    }
+}
+
+@media (max-width: 1200px) {
+    .main-content {
+        padding: 20px;
+    }
+
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+    .sidebar {
+        width: calc(100% / 7);
+        position: fixed;
+        height: 100vh;
+    }
+
+    .main-content-wrapper {
+        width: calc(100% * 6 / 7);
+        margin-left: calc(100% / 7);
+        padding-bottom: 70px; /* Fallback for older browsers */
+        padding-bottom: max(70px, 6vh); /* Tablet-specific bottom spacing that scales with viewport height */
+    }
+
+    .hamburger {
+        display: none;
+    }
+
+    nav {
+        display: block !important;
+    }
+
+    .sidebar-nav {
+        flex-direction: column;
+    }
+
+    .sidebar-nav-item {
+        margin-bottom: 15px;
+    }
+
+    .footer {
+        position: static;
+        margin-top: 20px;
+        padding: 0;
+    }
+
+}
+
+/* 移动端特定样式 */
+@media (max-width: 767px) {
+    .sidebar {
+        width: 100%;
+        position: fixed;
+        height: 60px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 0 20px;
+    }
+
+    .logo-text {
+        margin-bottom: 0;
+        text-align: left;
+        display: block;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    nav {
+        display: none;
+        position: fixed;
+        top: 60px;
+        left: 0;
+        width: 100%;
+        background-color: var(--sidebar-bg-color);
+        flex-direction: column;
+        padding: 20px 0;
+        z-index: 999;
+    }
+
+    nav.active {
+        display: flex;
+    }
+
+    .main-content-wrapper {
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+        padding-top: 80px;
+        height: 100vh;
+        /* iOS Safari specific viewport fixes */
+        height: -webkit-fill-available;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
+        box-sizing: border-box;
+        /* Chrome Mobile and Samsung Internet fixes */
+        -webkit-transform: translateZ(0); /* Force hardware acceleration */
+        transform: translateZ(0);
+    }
+
+
+    .footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 10px;
+        background-color: var(--sidebar-bg-color);
+        z-index: 999;
+        text-align: center;
+    }
+
+    .sidebar-nav {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .sidebar-nav-item {
+        margin-bottom: 15px;
+    }
+
+    /* 移动端导航项目高亮样式 */
+    .sidebar-nav-item a.active {
+        background-color: black;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 0;
+    }
+}
+
+/* Mobile browser-specific fixes */
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+    .main-content-wrapper {
+        /* Fix for iOS Safari viewport height issues */
+        min-height: -webkit-fill-available;
+    }
+    
+    @media (max-width: 767px) {
+        .main-content-wrapper {
+            /* iOS Safari specific bottom spacing */
+            padding-bottom: max(80px, env(safe-area-inset-bottom, 8vh));
+            /* Account for home indicator on newer iPhones */
+            padding-bottom: max(80px, calc(8vh + env(safe-area-inset-bottom, 0px)));
+        }
+    }
+}
+
+/* Chrome Mobile and Samsung Internet fixes */
+@media screen and (-webkit-min-device-pixel-ratio: 0) and (max-width: 767px) {
+    .main-content-wrapper {
+        /* Chrome Mobile specific fixes */
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        /* Ensure proper rendering on Chrome Mobile */
+        will-change: transform;
+    }
+}
+
+/* Samsung Internet specific fixes */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    .main-content-wrapper {
+        /* Samsung Internet viewport calculation fixes */
+        min-height: 100vh;
+        min-height: calc(var(--vh, 1vh) * 100);
+    }
+}
+
+/* Firefox Mobile fixes */
+@-moz-document url-prefix() {
+    @media (max-width: 767px) {
+        .main-content-wrapper {
+            /* Firefox Mobile specific spacing */
+            padding-bottom: 80px;
+            min-height: 100vh;
+        }
+    }
+}

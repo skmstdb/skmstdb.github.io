@@ -1,0 +1,135 @@
+:root {
+    --about-content-bg-color: #f9f9f9; /* About 页面内容背景色 */
+}
+
+.dark-mode {
+    --about-content-bg-color: #444; /* About 页面深色模式内容背景色 */
+}
+
+.main-content {
+    max-width: 950px;
+    width: 100%;
+    margin: 0 auto;
+    padding-bottom: 60px; 
+    min-height: calc(100vh - 140px); 
+}
+
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+}
+
+.button-group a {
+    padding: 8px 20px;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    font-size: 16px;
+    text-decoration: none;
+    color: var(--link-color);
+    transition: color var(--transition-duration); /* Use variable */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.button-group a:hover {
+    background-color: transparent;
+    color: #666;
+}
+
+.button-group i {
+    margin-right: 5px;
+    font-size: 24px;
+}
+
+.about-content {
+    width: 70%;
+    margin: 0 auto 20px auto; /* 底部间距改为20px */
+    text-align: left;
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--about-content-bg-color);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px var(--box-shadow-color);
+    transition: background-color var(--transition-duration), color var(--transition-duration); /* Use variable */
+}
+
+.about-content p {
+    margin-bottom: 5px;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding-bottom: 80px; /* Fallback for older browsers */
+        padding-bottom: max(80px, 8vh); /* Mobile-specific bottom spacing that scales with viewport height */
+        min-height: calc(100vh - 80px); /* Adjust for mobile header */
+    }
+    
+    .about-content {
+        width: 100%;
+        margin-bottom: 20px; /* Reduced since main-content now handles bottom spacing */
+    }
+}
+
+/* Tablet-specific adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .main-content {
+        padding-bottom: 70px; /* Fallback for older browsers */
+        padding-bottom: max(70px, 6vh); /* Tablet-specific bottom spacing */
+    }
+}
+
+/* Large desktop adjustments */
+@media (min-width: 1440px) {
+    .main-content {
+        padding-bottom: 80px; /* Fallback for older browsers */
+        padding-bottom: max(80px, 6vh); /* Extra spacing for large screens */
+    }
+}
+
+/* Ensure iframe container has proper spacing when expanded */
+#report-issue-container {
+    margin-bottom: 40px; /* Add spacing below iframe when visible */
+}
+
+
+/* 官方链接样式 */
+.official-link {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60px; 
+}
+
+/* 同时具有 about-content 和 official-link 类的元素 */
+.about-content.official-link {
+    margin: 0 auto 20px auto; /* 保持与其他 about-content 相同的间距 */
+}
+
+.official-link:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.official-link p {
+    color: black;
+    text-align: center;
+    text-decoration: none;
+    font-weight: bold;
+    margin: 0; 
+}
+
+/* 暗黑模式适配 */
+.dark-mode .official-link p {
+    color: white;
+}

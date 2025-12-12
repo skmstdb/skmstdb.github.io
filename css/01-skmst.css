@@ -1,0 +1,456 @@
+:root {
+    /* Page-specific variables for Progress Panel */
+    --panel-bg: #ffffff;
+    --bar-bg: #e0e0e0;
+    --bar-fill: #333333;
+    --bar-text: #ffffff;
+}
+
+.dark-mode {
+    /* Dark mode for Progress Panel */
+    --panel-bg: #1e1e1e;
+    --bar-bg: #444444;
+    --bar-fill: #e0e0e0;
+    --bar-text: #1a1a1a;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+}
+
+body {
+    display: flex;
+    flex-direction: row;
+}
+
+/* Main content wrapper layout is defined in style.css */
+.main-content-wrapper {
+    height: 100vh;
+    position: relative;
+    z-index: 5;
+    box-sizing: border-box;
+}
+
+
+
+/* Progress tiles within grid */
+.progress-tile {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    /* Center content for rings */
+}
+
+/* Force all progress tiles to display in the first row */
+.progress-tile.sakai {
+    grid-column: span 2;
+    /* Span 2 cols - horizontal rectangle */
+    grid-row: span 1;
+}
+
+.progress-tile.now {
+    grid-column: span 4;
+    /* Span 4 cols - horizontal rectangle */
+    grid-row: span 1;
+}
+
+.progress-tile.running {
+    grid-column: span 1;
+    /* Span 1 col */
+    grid-row: span 1;
+}
+
+.progress-section {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.progress-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 0;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    width: 100%;
+    text-align: left;
+    padding-left: 5px;
+    padding-top: 0px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+}
+
+.progress-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Sakai tile uses horizontal layout (2 columns) */
+.progress-tile.sakai .progress-grid {
+    grid-template-columns: 1fr 1fr;
+}
+
+/* Now tile uses horizontal layout */
+.progress-tile.now .progress-grid {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.progress-item-ring {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.progress-ring-container {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+.progress-ring {
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+}
+
+.progress-ring-circle-bg {
+    fill: transparent;
+    stroke: var(--bar-bg);
+    stroke-width: 8;
+}
+
+.progress-ring-circle-fill {
+    fill: transparent;
+    stroke: var(--bar-fill);
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 226.19;
+    /* 2 * PI * 36 */
+    stroke-dashoffset: 226.19;
+    transition: stroke-dashoffset 1s ease-in-out;
+}
+
+.progress-text-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.progress-label-bottom {
+    margin-top: 8px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #666;
+    text-align: center;
+}
+
+.uptime-counter {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #333;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.uptime-label {
+    font-size: 0.75rem;
+    color: #999;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+/* Running Tile Specifics */
+.progress-tile.running {
+    position: relative;
+    /* Ensure absolute positioning works relative to this */
+}
+
+.progress-tile.running .progress-section {
+    align-items: flex-start;
+    /* Title stays top-left */
+}
+
+.progress-tile.running .uptime-label {
+    position: absolute;
+    bottom: 0.1px;
+    right: 0.1px;
+    margin: 0;
+    text-align: right;
+    width: auto;
+}
+
+/* Main content wrapper display properties for this page */
+.main-content-wrapper {
+    overflow-y: auto;
+    padding: 40px 40px 60px 40px; /* Add bottom padding for proper spacing */
+    min-height: 100vh; /* Ensure full viewport coverage */
+}
+
+/* --- Showcase View Styles (Carl Hauser Masonry Grid) --- */
+
+.showcase-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-auto-rows: 180px;
+    gap: 15px;
+    width: 100%;
+    min-height: calc(100vh - 140px); /* Ensure grid fills viewport with proper spacing */
+    grid-auto-flow: dense;
+    /* Fill gaps automatically */
+    background-color: #f6f4ef;
+    color: #333;
+    box-sizing: border-box;
+    padding-bottom: 40px; /* Add bottom padding to grid itself */
+}
+
+.showcase-item {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    /* Rounded corners */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 20px;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Size variations based on work type */
+.showcase-item[data-type*="映画"] {
+    grid-column: span 2;
+    grid-row: span 1;
+}
+
+.showcase-item[data-type*="TV"] {
+    grid-column: span 1;
+    grid-row: span 2;
+}
+
+.showcase-item[data-type*="舞台"],
+.showcase-item[data-type*="その他"],
+.showcase-item[data-type*="声の出演"] {
+    grid-column: span 1;
+    grid-row: span 1;
+}
+
+/* Multi-year works always display as 2x2 (4 cells) */
+.showcase-item[data-multi-year="true"] {
+    grid-column: span 2 !important;
+    grid-row: span 2 !important;
+}
+
+/* Recent works (within 30 days of start/end or active) override all sizes */
+.showcase-item[data-recent="true"] {
+    grid-column: span 2 !important;
+    grid-row: span 3 !important;
+}
+
+.showcase-item:hover {
+    background-color: #fafafa;
+    border-color: #999;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.showcase-content {
+    text-align: center;
+    width: 100%;
+}
+
+.showcase-title {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #222;
+    margin-bottom: 8px;
+}
+
+.showcase-item[data-type*="映画"] .showcase-title {
+    font-size: 1.8rem;
+}
+
+/* Vertical text for items where col span < row span 纵向文字 */
+.showcase-item.vertical-text .showcase-title {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    letter-spacing: 0.1em;
+    margin: 0 auto 8px auto;
+    /* Center horizontally */
+}
+
+.showcase-meta {
+    font-size: 0.75rem;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Dark mode adaptations */
+.dark-mode .showcase-list {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.dark-mode .progress-tile {
+    background-color: var(--panel-bg);
+    border-color: var(--bar-bg);
+}
+
+.dark-mode .progress-title {
+    color: var(--text-color);
+}
+
+.dark-mode .showcase-item {
+    background-color: var(--panel-bg);
+    border-color: var(--bar-bg);
+}
+
+.dark-mode .showcase-item:hover {
+    background-color: #2a2a2a;
+    border-color: #666;
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .showcase-title {
+    color: var(--text-color);
+}
+
+.dark-mode .showcase-meta {
+    color: #888;
+}
+
+.dark-mode .uptime-counter {
+    color: var(--text-color);
+}
+
+
+/* Mobile adjustments */
+@media screen and (max-width: 768px) {
+
+    html,
+    body {
+        overflow-y: auto;
+        height: auto;
+    }
+
+    body {
+        flex-direction: column;
+    }
+
+    .main-content-wrapper {
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
+        display: block;
+        padding: 80px 20px 80px 20px; /* Fallback for older browsers */
+        padding: 80px 20px max(80px, 8vh) 20px; /* Mobile-specific bottom spacing that scales with viewport height */
+        -webkit-box-sizing: border-box; /* Webkit prefix for older Safari */
+        -moz-box-sizing: border-box; /* Firefox prefix for older versions */
+        box-sizing: border-box;
+    }
+
+    /* Progress panel styles removed - using progress tiles in grid layout */
+
+    /* Fix showcase grid to ensure equal column widths and proper progress tile display */
+    .showcase-list {
+        grid-template-columns: repeat(2, 1fr); /* 2-column grid for mobile */
+        grid-auto-rows: minmax(150px, auto);
+        gap: 10px;
+        min-height: calc(100vh - 160px); /* Adjust for mobile header */
+        padding-bottom: 60px; /* Extra bottom spacing on mobile grid layout */
+    }
+
+    /* Reset progress tiles for mobile */
+    .progress-tile.sakai,
+    .progress-tile.running {
+        grid-column: span 2 !important;
+        grid-row: span 1 !important;
+    }
+
+    .progress-tile.now {
+        grid-column: span 2 !important;
+        grid-row: span 2 !important;
+        /* Needs more height for 2x2 grid */
+    }
+
+    /* Adjust Now tile internal grid for mobile to fit */
+    .progress-tile.now .progress-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    /* Force recent works to span 2 columns on mobile (instead of 3) */
+    .showcase-item[data-recent="true"] {
+        grid-column: span 2 !important;
+        grid-row: span 2 !important;
+        /* Adjust row span as needed, 2 is likely good */
+    }
+}
+
+/* Intermediate Breakpoint: When grid has ~3 columns (approx 769px to 1024px) */
+/* "Now" tile (span 4) won't fit in 3 columns, so reduce it to span 3 */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+    .main-content-wrapper {
+        padding: 40px 40px 70px 40px; /* Fallback for older browsers */
+        padding: 40px 40px max(70px, 6vh) 40px; /* Tablet-specific bottom spacing */
+    }
+    
+    .showcase-list {
+        padding-bottom: 50px; /* Tablet bottom spacing for grid */
+    }
+    
+    .progress-tile.now {
+        grid-column: span 3 !important;
+        /* Keep row span 1 */
+    }
+
+    /* Internal grid still 4 columns, they will just be closer together */
+}
+
+/* Large desktop adjustments */
+@media screen and (min-width: 1440px) {
+    .main-content-wrapper {
+        padding: 40px 40px 80px 40px; /* Fallback for older browsers */
+        padding: 40px 40px max(80px, 6vh) 40px; /* Extra spacing for large screens */
+    }
+    
+    .showcase-list {
+        padding-bottom: 60px; /* Extra bottom spacing for large screens */
+    }
+}

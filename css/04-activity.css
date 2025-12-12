@@ -1,0 +1,812 @@
+.main-content {
+    max-width: 98%;
+    width: 100%;
+    margin: 0 auto;
+    padding-bottom: 60px; /* Ensure adequate bottom spacing */
+    min-height: calc(100vh - 140px); /* Account for header and ensure content fills viewport */
+}
+
+.filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+#filter-row-1 {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+#filter-row-2 {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    /* Allow wrapping for filters */
+    gap: 0.5rem;
+    /* Space between filter items */
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    margin: 0 10px 10px;
+}
+
+.filter-item .legend-color {
+    margin-right: 5px;
+}
+
+.switch-label {
+    margin-right: 8px;
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    background-color: var(--background);
+    border-radius: 12px;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    margin-right: 0;
+}
+
+.filter-item .switch-label {
+    margin-right: 10px;
+    font-size: 0.9rem;
+}
+
+/* 为贡献图添加边框并保持滚动功能 */
+.contribution-graph {
+    border: 1px solid #444;
+    /* 浅色模式下的边框颜色为白色 */
+    border-radius: 8px;
+    padding: 15px;
+    margin: 20px auto 40px auto; /* Add bottom margin for proper spacing */
+    overflow-x: auto;
+    /* 添加水平滚动功能 */
+    width: fit-content;
+    /* 让宽度适应内容 */
+    max-width: 100%;
+    /* 确保不超出父容器 */
+}
+
+/* 深色模式下的边框颜色 */
+.dark-mode .contribution-graph {
+    border-color: #444;
+    /* 深色模式下的边框颜色为灰色 */
+}
+
+.graph-container {
+    display: table;
+    border-collapse: separate;
+    border-spacing: 3px;
+    width: max-content;
+    background-color: transparent;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    border: none;
+    table-layout: fixed;
+    /* Chrome特定修复 */
+    -webkit-border-horizontal-spacing: 3px;
+    -webkit-border-vertical-spacing: 3px;
+}
+
+.month-row {
+    display: table-row;
+    height: 28px;
+}
+
+.month-label {
+    display: table-cell;
+    padding: 0.25rem 0.4rem 0.25rem 0.25rem;
+    vertical-align: middle;
+    text-align: right;
+    font-weight: bold;
+    min-width: 48px;
+    border-right: 1px solid var(--border-color);
+    /* Chrome特定修复 */
+    box-sizing: border-box;
+}
+
+.year-container {
+    display: table-cell;
+    padding: 0;
+    vertical-align: top;
+    width: 28px;
+    height: 28px;
+    border-spacing: 2px;
+    padding-right: 2px;
+    /* Chrome特定修复 */
+    box-sizing: border-box;
+    position: relative;
+}
+
+.year-box {
+    height: 24px;
+    width: 24px;
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+    margin: 1px;
+    /* Chrome特定修复 */
+    box-sizing: border-box;
+    display: block;
+}
+
+.year-box-empty {
+    background-color: #ebedf0;
+    border: none;
+}
+
+.year-labels {
+    display: table-row;
+    text-align: center;
+    font-size: 0.7rem;
+}
+
+.year-digit {
+    display: table-cell;
+    padding: 0.1rem 0;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    width: 28px;
+    vertical-align: bottom;
+    white-space: nowrap;
+    line-height: 1;
+    font-size: 0.7rem;
+    /* Chrome特定修复 */
+    box-sizing: border-box;
+}
+
+/* New Year Header Styles */
+.year-header-row {
+    display: table-row;
+    height: 60px;
+    /* Adjust height for vertical text */
+}
+
+.year-header-spacer {
+    display: table-cell;
+    border-right: 1px solid var(--border-color);
+    box-sizing: border-box;
+    width: 48px;
+    min-width: 48px;
+}
+
+.year-header-cell {
+    display: table-cell;
+    vertical-align: middle;
+    /* Center vertically */
+    text-align: center;
+    /* Center horizontally */
+    width: 28px;
+    font-size: 0.75rem;
+    line-height: 1;
+    padding-bottom: 0;
+    border-bottom: 1px solid var(--border-color);
+    box-sizing: border-box;
+}
+
+.year-text {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    letter-spacing: 2px;
+    display: inline-block;
+}
+
+/* Chrome specific fix for new headers */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+    .year-header-spacer {
+        width: 48px !important;
+        min-width: 48px !important;
+    }
+}
+
+/* Mobile adjustments for headers */
+@media (max-width: 768px) {
+    .year-header-spacer {
+        width: 32px !important;
+        min-width: 32px !important;
+    }
+
+    .year-header-cell {
+        width: 24px;
+        font-size: 0.7rem;
+    }
+}
+
+.activity-segment {
+    position: absolute;
+    width: 100%;
+    /* Chrome特定修复 */
+    left: 0;
+    box-sizing: border-box;
+}
+
+/* Activity type colors */
+.activity-movie {
+    background-color: rgba(0, 123, 255, 0.5);
+}
+
+.activity-movie.high {
+    background-color: rgba(0, 123, 255, 0.9);
+}
+
+.activity-tv {
+    background-color: rgba(40, 167, 69, 0.5);
+}
+
+.activity-tv.high {
+    background-color: rgba(40, 167, 69, 0.9);
+}
+
+.activity-stage {
+    background-color: rgba(255, 193, 7, 0.5);
+}
+
+.activity-stage.high {
+    background-color: rgba(255, 193, 7, 0.9);
+}
+
+.activity-book {
+    background-color: rgba(255, 120, 0, 0.5);
+}
+
+.activity-book.high {
+    background-color: rgba(255, 120, 0, 0.9);
+}
+
+.activity-other {
+    background-color: rgba(111, 66, 193, 0.5);
+}
+
+.activity-other.high {
+    background-color: rgba(111, 66, 193, 0.9);
+}
+
+.activity-voice {
+    background-color: rgba(255, 105, 180, 0.5);
+}
+
+.activity-voice.high {
+    background-color: rgba(255, 105, 180, 0.9);
+}
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+    gap: 1rem;
+    justify-content: center;
+    background-color: var(--background);
+    border-radius: 12px;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-right: 1rem;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    margin-right: 0.5rem;
+    border-radius: 3px;
+}
+
+/* Chrome特定修复 - 添加媒体查询 */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+    .graph-container {
+        border-collapse: separate !important;
+        border-spacing: 3px !important;
+    }
+
+    .year-container {
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    .month-label {
+        min-width: 48px !important;
+    }
+
+    .year-digit-spacer {
+        width: 48px !important;
+        min-width: 48px !important;
+    }
+}
+
+/* Dark mode styles - only include necessary color adjustments */
+@media (prefers-color-scheme: dark) {
+    .year-box-empty {
+        background-color: #1f2428;
+        border: none;
+    }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .main-content {
+        padding-bottom: 80px; /* Fallback for older browsers */
+        padding-bottom: max(80px, 8vh); /* Mobile-specific bottom spacing that scales with viewport height */
+        min-height: calc(100vh - 80px); /* Adjust for mobile header */
+    }
+    
+    .month-label {
+        min-width: 32px;
+        font-size: 0.8rem;
+    }
+
+    .year-container {
+        width: 24px;
+        padding-right: 1px;
+        /* 移动端 year-container 高度将继承桌面端的 28px，或被Chrome特定规则覆盖 */
+    }
+
+    .year-box {
+        height: 20px;
+        width: 20px;
+        margin: 1px;
+    }
+
+    /* 新增：确保移动端 year-digit 宽度与 year-container 匹配 */
+    .year-digit {
+        width: 24px;
+    }
+
+    .contribution-graph {
+        width: 100%;
+        padding: 0.75rem;
+        margin: 20px auto 60px auto; /* Extra bottom spacing on mobile */
+    }
+
+    .works-detail-container {
+        margin: 20px auto 80px auto; /* Extra bottom spacing on mobile */
+    }
+
+    .legend {
+        gap: 0.5rem;
+        margin-bottom: 40px; /* Add spacing below legend on mobile */
+    }
+
+    .legend-item {
+        margin-right: 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .legend-color {
+        width: 15px;
+        height: 15px;
+    }
+
+    .filter-item {
+        margin-right: 0.5rem;
+    }
+
+    /* 在移动端隐藏种类筛选开关 */
+    #filter-row-1 {
+        display: none;
+    }
+
+    /* 确保主演筛选开关在移动端正确显示 */
+    #filter-row-2 {
+        width: 100%;
+    }
+
+    #filter-row-2 .filter-item {
+        margin: 0 auto;
+    }
+
+    /* Chrome移动端特定修复 */
+    @media screen and (-webkit-min-device-pixel-ratio:0) {
+        .year-container {
+            width: 24px !important;
+            /* 保持移动端Chrome特定宽度 */
+            /* 移动端Chrome year-container 高度将继承桌面Chrome的 28px !important */
+        }
+
+        .month-label {
+            min-width: 32px !important;
+        }
+
+        .year-digit-spacer {
+            width: 32px !important;
+            min-width: 32px !important;
+        }
+    }
+}
+
+/* Tablet-specific adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .main-content {
+        padding-bottom: 70px; /* Fallback for older browsers */
+        padding-bottom: max(70px, 6vh); /* Tablet-specific bottom spacing */
+    }
+    
+    .contribution-graph {
+        margin: 20px auto 50px auto; /* Tablet bottom spacing */
+    }
+    
+    .works-detail-container {
+        margin: 30px auto 70px auto; /* Tablet bottom spacing */
+    }
+}
+
+/* Large desktop adjustments */
+@media (min-width: 1440px) {
+    .main-content {
+        padding-bottom: 80px; /* Fallback for older browsers */
+        padding-bottom: max(80px, 6vh); /* Extra spacing for large screens */
+    }
+}
+
+/* 在桌面端隐藏元素 */
+.desktop-hidden {
+    display: none;
+}
+
+/* 在移动设备上显示 */
+@media (max-width: 767px) {
+    .desktop-hidden {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .legend {
+        padding: 0.5rem;
+        gap: 0.5rem;
+    }
+
+    .legend-item {
+        margin: 0 0.3rem;
+        white-space: nowrap;
+        font-size: 0.8rem;
+    }
+
+    .legend-color {
+        width: 15px;
+        height: 15px;
+        margin-right: 0.3rem;
+    }
+}
+
+/* 可点击的年份盒子样式 */
+.year-box.clickable {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.year-box.clickable:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+/* 作品详情容器样式 */
+.works-detail-container {
+    margin: 30px auto 60px auto; /* Ensure proper bottom clearance */
+    border: 1px solid var(--box-shadow-color);
+    border-radius: 8px;
+    padding: 20px;
+    background-color: var(--bg-color);
+    box-shadow: 0 2px 10px var(--box-shadow-color);
+    position: relative;
+    max-width: 1000px;
+    /* Fixed width to fit 3 items per row */
+    overflow: hidden;
+    font-family: "ヒiragano Mincho ProN", "Hiragino Mincho ProN", "Yu MinCho", "YuMincho", serif;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--box-shadow-color);
+    padding-bottom: 10px;
+}
+
+.close-detail {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-color);
+}
+
+.works-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.works-type-group {
+    margin-bottom: 20px;
+}
+
+.works-type-group h5 {
+    margin-bottom: 10px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.activity-movie-title {
+    background-color: #ff7675;
+    color: white;
+}
+
+.activity-tv-title {
+    background-color: #74b9ff;
+    color: white;
+}
+
+.activity-stage-title {
+    background-color: #55efc4;
+    color: black;
+}
+
+.activity-book-title {
+    background-color: #ffeaa7;
+    color: black;
+}
+
+.activity-other-title {
+    background-color: #b2bec3;
+    color: white;
+}
+
+.activity-voice-title {
+    background-color: #a29bfe;
+    color: white;
+}
+
+/* 作品行样式 - 让同类型作品在同一行显示 */
+.works-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+/* 作品卡片样式 */
+.work-card {
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 5px var(--box-shadow-color);
+    flex: 0 0 calc(33.333% - 15px);
+    min-width: 200px;
+    max-width: 300px;
+    color: var(--text-color);
+    font-family: "ヒiragano Mincho ProN", "Hiragino Mincho ProN", "Yu MinCho", "YuMincho", serif;
+}
+
+/* 卡片内的标题、角色和日期文本 */
+.work-title,
+.work-role,
+.work-date {
+    font-family: "ヒiragano Mincho ProN", "Hiragino Mincho ProN", "Yu MinCho", "YuMincho", serif;
+}
+
+.work-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.work-role {
+    /* 取消斜体显示 */
+    font-style: normal;
+    margin-top: 5px;
+    margin-bottom: 0;
+}
+
+.work-date {
+    font-size: 0.8em;
+    color: var(--text-color);
+    opacity: 0.8;
+    margin-bottom: 5px;
+}
+
+/* 让卡片颜色与活动图表一致 */
+.work-card.activity-movie {
+    background-color: rgba(0, 123, 255, 0.5);
+    border-left: 4px solid rgba(0, 123, 255, 0.9);
+}
+
+.work-card.activity-tv {
+    background-color: rgba(40, 167, 69, 0.5);
+    border-left: 4px solid rgba(40, 167, 69, 0.9);
+}
+
+.work-card.activity-stage {
+    background-color: rgba(255, 193, 7, 0.5);
+    border-left: 4px solid rgba(255, 193, 7, 0.9);
+}
+
+.work-card.activity-book {
+    background-color: rgba(255, 120, 0, 0.5);
+    border-left: 4px solid rgba(255, 120, 0, 0.9);
+}
+
+.work-card.activity-other {
+    background-color: rgba(111, 66, 193, 0.5);
+    border-left: 4px solid rgba(111, 66, 193, 0.9);
+}
+
+.work-card.activity-voice {
+    background-color: rgba(255, 105, 180, 0.5);
+    border-left: 4px solid rgba(255, 105, 180, 0.9);
+}
+
+/* 标题样式 */
+.works-type-group h5 {
+    margin-bottom: 10px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    display: inline-block;
+    color: white;
+}
+
+.activity-movie-title {
+    background-color: rgba(0, 123, 255, 0.9);
+}
+
+.activity-tv-title {
+    background-color: rgba(40, 167, 69, 0.9);
+}
+
+.activity-stage-title {
+    background-color: rgba(255, 193, 7, 0.9);
+    color: black !important;
+}
+
+.activity-book-title {
+    background-color: rgba(255, 120, 0, 0.9);
+    color: white !important;
+}
+
+.activity-other-title {
+    background-color: rgba(111, 66, 193, 0.9);
+}
+
+.activity-voice-title {
+    background-color: rgba(255, 105, 180, 0.9);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .work-card {
+        flex: 0 0 100%;
+        max-width: none;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .work-card {
+        flex: 0 0 calc(50% - 15px);
+    }
+}
+
+/* New styles for Year/Age View graphs */
+.year-view-row,
+.age-view-row {
+    display: table-row;
+    height: 28px;
+}
+
+.year-view-label,
+.age-view-label {
+    display: table-cell;
+    padding: 0.25rem 0.4rem 0.25rem 0.25rem;
+    vertical-align: middle;
+    text-align: right;
+    font-weight: bold;
+    min-width: 48px;
+    border-right: 1px solid var(--border-color);
+    box-sizing: border-box;
+}
+
+.year-view-cell,
+.age-view-cell {
+    display: table-cell;
+    padding: 0;
+    vertical-align: top;
+    width: 28px;
+    height: 28px;
+    border-spacing: 2px;
+    padding-right: 2px;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.year-box-year-view,
+.year-box-age-view {
+    height: 24px;
+    width: 24px;
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+    margin: 1px;
+    box-sizing: border-box;
+    display: block;
+}
+
+.year-box-year-view.clickable,
+.year-box-age-view.clickable {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.year-box-year-view.clickable:hover,
+.year-box-age-view.clickable:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Year/Age Digit Labels (0-9) */
+.digit-label-row {
+    display: table-row;
+    height: 16px;
+}
+
+.digit-label-spacer {
+    display: table-cell;
+    border-right: 1px solid var(--border-color);
+    box-sizing: border-box;
+    width: 48px;
+    min-width: 48px;
+}
+
+.digit-label-cell {
+    display: table-cell;
+    padding: 0.1rem 0;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    width: 28px;
+    vertical-align: bottom;
+    white-space: nowrap;
+    line-height: 1;
+    font-size: 0.7rem;
+    box-sizing: border-box;
+}
+
+/* Mobile responsiveness for new views */
+@media (max-width: 768px) {
+
+    .year-view-label,
+    .age-view-label {
+        min-width: 32px;
+        font-size: 0.8rem;
+    }
+
+    .year-view-cell,
+    .age-view-cell {
+        width: 24px;
+        padding-right: 1px;
+    }
+
+    .year-box-year-view,
+    .year-box-age-view {
+        height: 20px;
+        width: 20px;
+        margin: 1px;
+    }
+
+    .digit-label-cell {
+        width: 24px;
+    }
+
+    .digit-label-spacer {
+        width: 32px !important;
+        min-width: 32px !important;
+    }
+}
