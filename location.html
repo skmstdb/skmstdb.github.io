@@ -72,7 +72,7 @@
             border-radius: 12px;
             padding: 0.3cm;
             box-sizing: border-box;
-            display: flex;
+            display: none; /* 初始隐藏 */
             justify-content: center;
             align-items: center;
         }
@@ -314,7 +314,7 @@
         <div id="map-container">
             <div id="loading">地図を読み込んでいます...</div>
             <div id="map-wrapper">
-                <svg id="world-map" style="display: none;"></svg>
+                <svg id="world-map"></svg>
             </div>
             <div id="events-container">
                 <div id="events-grid"></div>
@@ -364,14 +364,13 @@
 
         function initMap() {
             const mapWrapper = document.getElementById('map-wrapper');
-            const availableWidth = mapWrapper.clientWidth;
-            const width = availableWidth;
+            const availableWidth = mapWrapper.parentElement.clientWidth - 40;
+            const width = Math.min(availableWidth, 1200);
             const height = width * 0.5;
 
             const svg = d3.select("#world-map")
                 .attr("viewBox", `0 0 ${width} ${height}`)
-                .attr("preserveAspectRatio", "xMidYMid meet")
-                .style("display", "none");
+                .attr("preserveAspectRatio", "xMidYMid meet");
 
             const projection = d3.geoNaturalEarth1()
                 .scale(width / 5.4)
@@ -491,8 +490,9 @@
                     })
                     .text(d => flagMapping[d.properties.name] || "");
 
+                // 隐藏loading,同时显示map-wrapper
                 document.getElementById('loading').style.display = 'none';
-                svg.style("display", "block");
+                mapWrapper.style.display = 'flex';
 
             }).catch(err => {
                 console.error("Data loading error:", err);
@@ -550,12 +550,12 @@
             });
         }
 
-        // 添加全局点击事件监听器，点击任意位置关闭卡片和国旗
+        // 添加全局点击事件监听器,点击任意位置关闭卡片和国旗
         document.addEventListener('click', (e) => {
             const container = document.getElementById('events-container');
             const mapWrapper = document.getElementById('map-wrapper');
 
-            // 如果点击的不是地图区域、卡片或国旗，则关闭
+            // 如果点击的不是地图区域、卡片或国旗,则关闭
             if (container.style.display === 'flex' &&
                 !container.contains(e.target) &&
                 !mapWrapper.contains(e.target)) {
