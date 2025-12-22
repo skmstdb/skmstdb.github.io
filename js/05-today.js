@@ -1,29 +1,23 @@
-// 格式化日期为日语显示格式 (JST) - 用于用户界面显示
 function formatDateForDisplay(date) {
     return formatJSTDateJapanese(date);
 }
 
-// 解析CSV数据
 async function parseCSV() {
     try {
         const response = await fetch('/data/biography.csv');
         const data = await response.text();
 
-        // 使用更可靠的CSV解析方法
         const rows = data.split('\n').filter(row => row.trim());
-        const header = rows[0].split(',').map(col => col.trim()); // 获取表头
+        const header = rows[0].split(',').map(col => col.trim());
 
         return rows.slice(1).map(row => {
-            // 使用更可靠的方式来分割CSV行，考虑引号内的逗号
             const columns = processCSVRow(row);
 
-            // 使用表头作为键来解析数据
             const eventData = {};
             for (let i = 0; i < header.length && i < columns.length; i++) {
                 eventData[header[i]] = columns[i] ? columns[i].trim() : '';
             }
 
-            // 解析DateDelete（多个日期用逗号分隔）
             const dateDeleteStr = eventData['DateDelete'] || '';
             const dateDeleteArray = dateDeleteStr
                 .split(',')
@@ -41,9 +35,9 @@ async function parseCSV() {
                 dateDelete: dateDeleteArray
             };
         }).filter(event =>
-            // Include all events with valid dates
-            ((event.startDate && !isNaN(event.startDate.getTime())) ||
-                (event.endDate && !isNaN(event.endDate.getTime())))
+        // Include all events with valid dates
+        ((event.startDate && !isNaN(event.startDate.getTime())) ||
+            (event.endDate && !isNaN(event.endDate.getTime())))
         );
     } catch (error) {
         console.error('Error loading CSV data:', error);
@@ -51,7 +45,6 @@ async function parseCSV() {
     }
 }
 
-// 处理CSV行，考虑引号内的逗号
 function processCSVRow(row) {
     const result = [];
     let insideQuotes = false;
@@ -70,21 +63,19 @@ function processCSVRow(row) {
         }
     }
 
-    // 添加最后一个值
     result.push(currentValue);
 
-    // 清理结果中的引号
     return result.map(value => value.replace(/^"(.*)"$/, '$1'));
 }
 
-// 检查日期是否匹配今天（只比较月和日）
 function isDateMatchingToday(date, today) {
-    if (!date) return false;
-    return date.getUTCMonth() === today.getUTCMonth() &&
-        date.getUTCDate() === today.getUTCDate();
+    if (!date || !today) return false;
+    const d1 = formatJSTDate(date);
+    const d2 = formatJSTDate(today);
+    if (!d1 || !d2) return false;
+    return d1.substring(5) === d2.substring(5);
 }
 
-// 检查日期是否在DateDelete列表中
 function isDateDeleted(selectedDate, dateDeleteArray) {
     if (!dateDeleteArray || dateDeleteArray.length === 0) return false;
     return dateDeleteArray.some(deleteDate =>
@@ -92,42 +83,29 @@ function isDateDeleted(selectedDate, dateDeleteArray) {
     );
 }
 
-// 计算周年数
 function calculateAnniversary(date, today) {
     return today.getUTCFullYear() - date.getUTCFullYear();
 }
 
-// 获取星期几的日语表示
 function getJapaneseWeekday(date) {
     const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
     return weekdays[date.getUTCDay()];
 }
 
-// 检查TV模式的weekday（支持单个数字、多个数字、负数）
 function isMatchingTVWeekday(date, weekdayStr) {
-    // TV模式: 1=星期一, 2=星期二, ..., 7=星期日
-    // 负数表示排除: -7=除星期日外的所有日期, -2=除星期二外的所有日期
-    // 多个数字用逗号分隔: 1,2=星期一和星期二
-
-    const actualDay = date.getUTCDay(); // 0=星期日, 1=星期一, ..., 6=星期六
-
-    // 将actualDay转换为1-7格式 (1=星期一, 7=星期日)
+    const actualDay = date.getUTCDay();
     const dayNum = actualDay === 0 ? 7 : actualDay;
-
-    // 分割weekday字符串（处理逗号分隔的情况）
     const weekdays = weekdayStr.split(',').map(w => w.trim());
 
     for (const wd of weekdays) {
         const num = parseInt(wd);
 
         if (num < 0) {
-            // 负数模式：排除指定的星期
             const excludeDay = Math.abs(num);
             if (dayNum !== excludeDay) {
-                return true; // 不是被排除的日期，匹配成功
+                return true;
             }
         } else if (num >= 1 && num <= 7) {
-            // 正数模式：匹配指定的星期
             if (dayNum === num) {
                 return true;
             }
@@ -137,20 +115,17 @@ function isMatchingTVWeekday(date, weekdayStr) {
     return false;
 }
 
-// 计算两个日期之间的天数差
 function getDaysDifference(date1, date2) {
     const timeDiff = Math.abs(date2 - date1);
     return Math.floor(timeDiff / (1000 * 60 * 60 * 24));
 }
 
-// 获取合适的整数倍（100/1000/10000）
 function getMilestoneInterval(days) {
     if (days >= 10000) return 10000;
     if (days >= 1000) return 1000;
     return 100;
 }
 
-// 检查是否是整数倍纪念日
 function checkMilestone(date, selectedDate) {
     const days = getDaysDifference(date, selectedDate);
     if (days === 0) return null;
@@ -162,7 +137,6 @@ function checkMilestone(date, selectedDate) {
     return null;
 }
 
-// 创建日期导航 (JST)
 function createDateNavigation() {
     const today = getJSTNow();
     const dateNavigation = document.getElementById('date-navigation');
@@ -187,85 +161,66 @@ function createDateNavigation() {
     dateNavigation.innerHTML = navigationHTML;
 }
 
-// 切换日期
 function changeDate(element) {
-    // 移除所有active类
     document.querySelectorAll('.date-item').forEach(item => {
         item.classList.remove('active');
     });
 
-    // 添加active类到当前元素
     element.classList.add('active');
 
-    // 获取选中的日期
     const selectedDate = new Date(element.getAttribute('data-date'));
 
-    // 更新显示
     loadEventsForDate(selectedDate);
 }
 
-
-// 為指定日期加載事件 (JST)
 async function loadEventsForDate(selectedDate) {
     const container = document.getElementById('today-container');
     const currentDateElement = document.getElementById('current-date');
-    const today = getJSTNow(); // 获取真正的今天 (JST)
+    const today = getJSTNow();
 
-    // 顯示選中日期
     currentDateElement.textContent = formatDateForDisplay(selectedDate);
 
     const events = await parseCSV();
-
-    // 筛选匹配的事件
     const dateEvents = [];
 
     for (const event of events) {
         let matchType = null;
         let milestone = null;
 
-        // 检查是否在DateDelete列表中
         if (isDateDeleted(selectedDate, event.dateDelete)) {
-            continue; // 跳过这个事件
+            continue;
         }
-
-        // 判断WorksType和weekday模式
         const worksType = event.worksType || '';
         const isTVMode = worksType === 'TV' && event.weekday && /^-?\d+([,，]\s*-?\d+)*$/.test(event.weekday.trim());
-        
-        // 检查TV作品是否正在播出期间（开始日期 <= 选中日期 <= 结束日期）
-        const isTVCurrentlyAiring = isTVMode && event.startDate && event.endDate && 
+
+        const isTVCurrentlyAiring = isTVMode && event.startDate && event.endDate &&
             selectedDate >= event.startDate && selectedDate <= event.endDate;
-        
-        // 1. 映画类型：检查DateStart与今天的间隔是否在30天内 Recent
-        if (worksType === '映画' && event.startDate && selectedDate >= event.startDate) {
-            const daysSinceStart = getDaysDifference(event.startDate, selectedDate);
-            if (daysSinceStart <= 33) {
-                matchType = 'film';
-            }
+
+        const daysSinceStart = (worksType === '映画' && event.startDate && selectedDate >= event.startDate)
+            ? getDaysDifference(event.startDate, selectedDate)
+            : -1;
+
+        if (worksType === '映画' && daysSinceStart >= 0 && daysSinceStart <= 33) {
+            matchType = 'film';
         }
-        // 2. TV模式的开始日期：只有正在播出期间才显示"初回"
         else if (isTVCurrentlyAiring && isDateMatchingToday(event.startDate, selectedDate)) {
             matchType = 'tv-start';
         }
-        // 3. TV模式的结束日期：只有正在播出期间才显示"最終回"
         else if (isTVCurrentlyAiring && isDateMatchingToday(event.endDate, selectedDate)) {
             matchType = 'tv-end';
         }
-        // 4. TV模式的中间日期：在DateStart到DateEnd之间（不包含开始和结束日期）的对应星期数显示"放送中"
-        else if (isTVCurrentlyAiring && 
+        else if (isTVCurrentlyAiring &&
             selectedDate > event.startDate &&
             selectedDate < event.endDate &&
             isMatchingTVWeekday(selectedDate, event.weekday)) {
             matchType = 'tv-weekday';
         }
-        // 5. 其他模式（包括已结束的TV作品）：检查是否是开始或结束日期当天
-        else if ((!isTVMode || !isTVCurrentlyAiring) && worksType !== '映画' && isDateMatchingToday(event.startDate, selectedDate)) {
+        else if ((!isTVMode || !isTVCurrentlyAiring) && isDateMatchingToday(event.startDate, selectedDate)) {
             matchType = 'start';
-        } else if ((!isTVMode || !isTVCurrentlyAiring) && worksType !== '映画' && isDateMatchingToday(event.endDate, selectedDate)) {
+        } else if ((!isTVMode || !isTVCurrentlyAiring) && isDateMatchingToday(event.endDate, selectedDate)) {
             matchType = 'end';
         }
 
-        // 6. 检查整数倍天数纪念日
         if (!matchType) {
             if (event.startDate) {
                 const startMilestone = checkMilestone(event.startDate, selectedDate);
@@ -290,12 +245,8 @@ async function loadEventsForDate(selectedDate) {
 
     let htmlContent = '';
 
-    // 只在今天（真正的当前日期）显示生日检查和即将开始/结束的事件
     if (isSameJSTDay(selectedDate, today)) {
-        // 檢查是否是堺雅人的生日（10月14日）
         const isBirthday = selectedDate.getUTCMonth() === 9 && selectedDate.getUTCDate() === 14; // 月份從0開始，所以10月是9
-
-        // 如果是生日，添加生日祝福
         if (isBirthday) {
             const age = selectedDate.getUTCFullYear() - 1973;
             htmlContent += `
@@ -304,7 +255,6 @@ async function loadEventsForDate(selectedDate) {
             </div>
             `;
         } else {
-            // 計算距離下一個生日的天數
             const nextBirthday = new Date(Date.UTC(selectedDate.getUTCFullYear(), 9, 14)); // 10月14日
             if (selectedDate > nextBirthday) {
                 nextBirthday.setUTCFullYear(nextBirthday.getUTCFullYear() + 1);
@@ -322,11 +272,9 @@ async function loadEventsForDate(selectedDate) {
             }
         }
 
-        // 查找即将开始或结束的事件
         htmlContent += getUpcomingEventsHTML(events, selectedDate);
     }
 
-    // 添加当天的事件
     if (dateEvents.length > 0) {
         htmlContent += createEventsHTML(dateEvents, selectedDate);
     }
@@ -334,20 +282,14 @@ async function loadEventsForDate(selectedDate) {
     container.innerHTML = htmlContent;
 }
 
-// 获取即将开始的事件HTML
 function getUpcomingEventsHTML(events, selectedDate) {
     let upcomingHTML = '';
 
-    // 筛选出开始日期在今天之后的事件
     const upcomingEvents = events.filter(event => {
-        // 跳过没有日期的事件
         if (!event.startDate) return false;
-
-        // 检查开始日期是否在今天之后
         return event.startDate > selectedDate;
     });
 
-    // 按日期排序（先显示最近的事件）
     upcomingEvents.sort((a, b) => {
         return a.startDate - b.startDate;
     });
@@ -356,7 +298,6 @@ function getUpcomingEventsHTML(events, selectedDate) {
     const eventsToShow = upcomingEvents.slice(0, 100);
 
     for (const event of eventsToShow) {
-        // 计算距离开始日期的天数
         const daysUntilStart = Math.ceil((event.startDate - selectedDate) / (1000 * 60 * 60 * 24));
         upcomingHTML += `
         <div class="today-item" onclick="window.open('${event.url}', '_blank')">
@@ -368,7 +309,6 @@ function getUpcomingEventsHTML(events, selectedDate) {
     return upcomingHTML;
 }
 
-// 创建事件HTML的辅助函数
 function createEventsHTML(events, selectedDate) {
     return events.map(event => {
         let anniversaryText = '';
@@ -376,14 +316,12 @@ function createEventsHTML(events, selectedDate) {
 
         switch (event.matchType) {
             case 'start':
-                // 开始日期当天
                 const startAnniversary = calculateAnniversary(event.startDate, selectedDate);
                 anniversaryText = startAnniversary === 0 ? 'Premiere' : `${startAnniversary}周年`;
                 dateText = `${formatDateForDisplay(event.startDate)} 公開`;
                 break;
 
             case 'end':
-                // 结束日期当天
                 const endAnniversary = calculateAnniversary(event.endDate, selectedDate);
                 anniversaryText = endAnniversary === 0 ? 'Finale' : `${endAnniversary}周年`;
                 dateText = `${formatDateForDisplay(event.endDate)} 終了`;
