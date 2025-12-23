@@ -107,7 +107,9 @@ body {
     border: 2px solid var(--border-color);
     border-radius: 20px;
     padding: 30px;
-    transition: all 0.3s ease;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+    opacity: 0;
+    visibility: hidden;
 }
 
 /* Calendar Grid */
