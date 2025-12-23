@@ -717,6 +717,13 @@ async function updateCalendar() {
     }
 
     updateNavigationButtons(year, month);
+
+    // Reveal calendar once content is ready
+    const container = document.querySelector('.calendar-container');
+    if (container) {
+        container.style.opacity = '1';
+        container.style.visibility = 'visible';
+    }
 }
 
 function generateYearCalendar(year, events) {
