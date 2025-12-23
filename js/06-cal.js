@@ -1,4 +1,10 @@
-// 解析CSV数据
+const CHARACTER_BIRTHDAYS = [
+    { name: '乃木憂助', month: 0, day: 25, startYear: 2024, url: 'https://h2col.notion.site/1b68a08476c780e78f0fe8e8e8441e1b' },
+    { name: '伊達一義', month: 5, day: 29, startYear: 2011, url: 'https://h2col.notion.site/1b68a08476c780caa667e03f4ffdffb8' },
+    { name: '木村一樹', month: 9, day: 11, startYear: 2008, url: 'https://h2col.notion.site/1b68a08476c78015ab14f23054250d11' },
+    { name: '半沢直樹', month: 11, day: 8, startYear: 2013, url: 'https://h2col.notion.site/1b68a08476c7804dba68d1ae0ae9e9cc' }
+];
+
 let currentViewMode = 'schedule'; // 'schedule', 'anniversary', 'year'
 
 async function parseCSV() {
@@ -7,15 +13,15 @@ async function parseCSV() {
         const response = await fetch('/data/biography.csv');
         const data = await response.text();
         const rows = data.split('\n').filter(row => row.trim());
-        
+
         if (rows.length < 2) return []; // Need at least header and one data row
-        
+
         // Extract header row and create column name mapping
         const headerRow = rows[0];
         const header = [];
         let current = '';
         let inQuotes = false;
-        
+
         for (let i = 0; i < headerRow.length; i++) {
             const char = headerRow[i];
             if (char === '"') {
@@ -113,15 +119,15 @@ async function parseAnniversaryCSV() {
         const response = await fetch('/data/biography.csv');
         const data = await response.text();
         const rows = data.split('\n').filter(row => row.trim());
-        
+
         if (rows.length < 2) return []; // Need at least header and one data row
-        
+
         // Extract header row and create column name mapping
         const headerRow = rows[0];
         const header = [];
         let current = '';
         let inQuotes = false;
-        
+
         for (let i = 0; i < headerRow.length; i++) {
             const char = headerRow[i];
             if (char === '"') {
@@ -226,12 +232,6 @@ function calculateAnniversaries(events, year, month) {
         }
 
         // 2. Day-count Anniversary (100, 200, ..., 1000, 2000, ...)
-        // Check if any significant day count falls in this month
-        // Iterate through days in the month to find matches? Or calculate directly?
-        // Calculating directly is better.
-
-        // We need to find if (targetDate - baseDate) is a significant number.
-        // Let's iterate through the days of the target month.
         const daysInMonth = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
 
         for (let d = 1; d <= daysInMonth; d++) {
@@ -281,9 +281,9 @@ async function parseOtherCSV() {
         const response = await fetch('/data/other.csv');
         const data = await response.text();
         const rows = data.split('\n').filter(row => row.trim());
-        
+
         if (rows.length < 2) return []; // Need at least header and one data row
-        
+
         const header = parseCSVRow(rows[0]).map(col => col.trim());
 
         const events = rows.slice(1).map(row => {
@@ -411,32 +411,6 @@ function renderEvents(calendarGrid, year, month, events) {
     const firstDay = new Date(Date.UTC(year, month, 1));
     const firstDayOfWeek = (firstDay.getUTCDay() + 6) % 7;
 
-    // 堺雅人さんの誕生日イベントを追加（10月14日）
-    if (month === 9) { // JavaScriptでは月は0から始まるため、10月は9
-        const birthdayDate = 14;
-        const birthdayIndex = birthdayDate + firstDayOfWeek - 1;
-
-        if (birthdayIndex >= 0 && birthdayIndex < dayElements.length) {
-            const dayElement = dayElements[birthdayIndex];
-
-            // 誕生日イベントのコンテナを作成
-            const birthdayContainer = document.createElement('a');
-            birthdayContainer.href = 'https://sakai-masato.com/';
-            birthdayContainer.target = '_blank'; // 在新标签页打开
-            birthdayContainer.classList.add('bento-container');
-            birthdayContainer.style.backgroundColor = 'rgba(46, 204, 113, 0.8)'; // 绿色背景
-
-            // 誕生日イベントの内容
-            const birthdayItem = document.createElement('div');
-            birthdayItem.classList.add('bento-item');
-            birthdayItem.textContent = '堺さんの誕生日 🎂';
-            birthdayContainer.appendChild(birthdayItem);
-
-            // カレンダーに追加
-            dayElement.appendChild(birthdayContainer);
-        }
-    }
-
     events.forEach(event => {
         const startDate = new Date(event.startDate);
         const endDate = new Date(event.endDate);
@@ -474,7 +448,7 @@ function renderEvents(calendarGrid, year, month, events) {
 
         const monthStart = createJSTDate(year, month, 1);
         const monthEnd = createJSTDate(year, month + 1, 0);
-        
+
         if (endDate < monthStart || startDate > monthEnd) {
             return;
         }
@@ -486,7 +460,11 @@ function renderEvents(calendarGrid, year, month, events) {
         let backgroundColor = 'rgba(52, 152, 219, 0.8)'; // 默认蓝色背景
 
         // 根据事件来源设置不同的背景色
-        if (event.source === 'other') {
+        if (event.source === 'sakai-birthday') {
+            backgroundColor = 'rgba(46, 204, 113, 0.8)'; // 绿色背景
+        } else if (event.source === 'character-birthday') {
+            backgroundColor = 'rgba(241, 196, 15, 0.8)'; // 黄色背景
+        } else if (event.source === 'other') {
             backgroundColor = '#43AA8B';
         } else if (event.source === 'anniversary') {
             backgroundColor = event.color || 'rgba(231, 76, 60, 0.8)';
@@ -543,7 +521,7 @@ function renderEvents(calendarGrid, year, month, events) {
                 const dateTime = date.getTime();
                 const startTime = startDate.getTime();
                 const endTime = endDate.getTime();
-                
+
                 if (dateTime >= startTime && dateTime <= endTime && shouldDisplay && !isExcludedDate) {
                     const dayIndex = day + firstDayOfWeek - 1;
                     if (dayIndex >= 0 && dayIndex < dayElements.length) {
@@ -696,8 +674,29 @@ async function updateCalendar() {
     const year = parseInt(yearSelect.value);
     const month = parseInt(monthSelect.value);
 
-    // All three view modes use biography.csv and other.csv
-    let events = await parseCSV(); // This already includes biography.csv + other.csv
+    let events = await parseCSV();
+
+    if (currentViewMode !== 'year') {
+        const specialBirthdays = CHARACTER_BIRTHDAYS
+            .filter(bday => year >= bday.startYear)
+            .map(bday => ({
+                startDate: createJSTDate(year, bday.month, bday.day),
+                endDate: createJSTDate(year, bday.month, bday.day),
+                title: `${bday.name}の誕生日`,
+                source: 'character-birthday',
+                url: bday.url
+            }));
+
+        specialBirthdays.push({
+            startDate: createJSTDate(year, 9, 14),
+            endDate: createJSTDate(year, 9, 14),
+            title: '堺さんの誕生日 🎂',
+            source: 'sakai-birthday',
+            url: 'https://sakai-masato.com/'
+        });
+
+        events = [...events, ...specialBirthdays];
+    }
 
     if (currentViewMode === 'year') {
         document.getElementById('calendar-title').textContent = `${year}年`;
@@ -747,12 +746,9 @@ function generateYearCalendar(year, events) {
         const lastDay = createJSTDate(year, monthIndex + 1, 0);
 
         // Monday start (0 is Monday, 6 is Sunday)
-        // Date.getUTCDay(): 0=Sun, 1=Mon... 6=Sat
-        // We want Mon=0, ..., Sun=6
         let firstDayOfWeek = firstDay.getUTCDay() - 1;
         if (firstDayOfWeek === -1) firstDayOfWeek = 6;
 
-        // Empty cells for previous month
         for (let i = 0; i < firstDayOfWeek; i++) {
             const emptyCell = document.createElement('div');
             emptyCell.className = 'year-day other-month';
@@ -824,40 +820,19 @@ function generateYearCalendar(year, events) {
                 dayCell.classList.add('has-event');
 
                 // Determine color class
-                // Priority: biography (main) > other > schedule (wait, biography IS main/schedule)
-                // Let's clarify:
-                // 'main' = biography.csv (blue)
-                // 'other' = other.csv (green)
-                // 'syukujitsu' = holidays (red)
-                // 'anniversary' = anniversary (red/purple)
-
-                // User said: "Priority reference biography.csv events"
-                // So if we have 'main' (biography), use blue.
-                // If we have 'other', use green.
-
                 const sources = new Set(dayEvents.map(e => e.source));
-                if (sources.has('main')) {
+                if (sources.has('sakai-birthday')) {
+                    dayCell.style.backgroundColor = 'rgba(46, 204, 113, 0.8)'; // Green
+                } else if (sources.has('character-birthday')) {
+                    dayCell.style.backgroundColor = 'rgba(241, 196, 15, 0.8)'; // Yellow
+                } else if (sources.has('main')) {
                     dayCell.classList.add('event-schedule');
                     dayCell.style.backgroundColor = 'rgba(52, 152, 219, 0.8)';
                 } else if (sources.has('other')) {
                     dayCell.classList.add('event-other');
                     dayCell.style.backgroundColor = '#43AA8B';
-                } else if (sources.has('syukujitsu')) {
-                    // Keep default or specific for holiday?
-                    // Usually holidays are red text, but here we are doing background.
-                    // Let's use light red for holiday if no other event?
-                    // Or maybe ignore holiday background if not requested?
-                    // The requirement was "biography.csv and other.csv".
-                    // Holidays are from syukujitsu.csv.
-                    // If we are in Year Mode, we load parseCSV (main+other).
-                    // We don't load syukujitsu unless we explicitly call it.
-                    // In my updateCalendar logic for Year Mode, I called parseCSV, parseAnniversary, parseOther.
-                    // Wait, parseCSV calls parseOtherCSV internally?
-                    // Let's check parseCSV.
-                    // Yes, line 56: const otherEvents = await parseOtherCSV();
-                    // So parseCSV returns main + other.
-                    // So we have 'main' and 'other'.
-                    // Priority: main > other.
+                }
+                else if (sources.has('syukujitsu')) {
                 }
 
                 // Tooltip
@@ -882,9 +857,9 @@ async function parseSyukujitsuCSV() {
         const response = await fetch('/data/syukujitsu.csv');
         const data = await response.text();
         const rows = data.split('\n').filter(row => row.trim());
-        
+
         if (rows.length < 2) return []; // Need at least header and one data row
-        
+
         const header = parseCSVRow(rows[0]).map(col => col.trim());
 
         const events = rows.slice(1).map(row => {
