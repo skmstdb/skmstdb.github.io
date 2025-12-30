@@ -36,42 +36,30 @@ function processCSVLine(line) {
         }
     }
 
-    // Push the last value
     result.push(currentValue);
     return result;
 }
 
-// This ensures that all dates from CSV are consistently YYYY-MM-DD (JST)
 function parseAndFormatDates(dateStringList) {
     if (!dateStringList) return [];
     return dateStringList.split(',').map(dateStr => {
         const dateObj = parseJSTDate(dateStr.trim());
-        return formatDate(dateObj); // Use our consistent formatDate
-    }).filter(d => d !== null); // Filter out any invalid or null formatted dates
+        return formatDate(dateObj);
+    }).filter(d => d !== null);
 }
 
-
-// Function to normalize worksType values
 function normalizeWorksType(worksType) {
     if (!worksType) return 'その他';
-
-    // Valid types in our application
     const validTypes = ['映画', 'TV', '舞台', 'BOOK', 'その他', '声の出演'];
-
     const trimmedType = worksType.trim();
-
     if (validTypes.includes(trimmedType)) {
         return trimmedType;
     }
-
     return 'その他';
 }
 
-// Function to get activity type class
 function getActivityTypeClass(worksType) {
-    // Normalize the input worksType first
     const normalizedType = normalizeWorksType(worksType);
-
     const mapping = {
         '映画': 'activity-movie',
         'TV': 'activity-tv',
@@ -80,36 +68,31 @@ function getActivityTypeClass(worksType) {
         'その他': 'activity-other',
         '声の出演': 'activity-voice'
     };
-
     return mapping[normalizedType] || 'activity-other';
 }
 
-// Function to get activity order
+// --- 更新：统一全局种类排序权重 ---
 function getActivityOrder(worksType) {
-    // Normalize the input worksType first
     const normalizedType = normalizeWorksType(worksType);
-
     const mapping = {
         '映画': 1,
         'TV': 2,
         '舞台': 3,
-        'BOOK': 4,
-        'その他': 5,
-        '声の出演': 6
+        'その他': 4,
+        '声の出演': 5,
+        'BOOK': 6
     };
-
     return mapping[normalizedType] || 99;
 }
 
-// --- Constants for Graph Generation ---
+// --- Constants ---
 const BIRTH_DATE = parseJSTDate('1973/10/14');
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '🎂', 'Nov', 'Dec'];
 const CURRENT_YEAR = getJSTYear();
 const START_YEAR_MONTH_VIEW = 1992;
-const START_YEAR_GLOBAL = 1970; // For Year View
-const AGE_START = 0; // For Age View
+const START_YEAR_GLOBAL = 1970;
+const AGE_START = 0;
 
-// --- Helper to get age at a specific date ---
 function getAgeAtDate(birthDate, targetDate) {
     let age = targetDate.getUTCFullYear() - birthDate.getUTCFullYear();
     const m = targetDate.getUTCMonth() - birthDate.getUTCMonth();
@@ -119,13 +102,11 @@ function getAgeAtDate(birthDate, targetDate) {
     return age;
 }
 
-// --- Common function to render graph HTML structure ---
 function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRoleOnly, selectedTypes) {
     const graphContainer = document.getElementById(containerId);
     if (!graphContainer) return;
 
-    graphContainer.innerHTML = ''; // Clear previous graph
-
+    graphContainer.innerHTML = '';
     const graphHTML = document.createElement('div');
     graphHTML.className = 'graph-container';
 
@@ -138,7 +119,6 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
 
         const yearHeaderRow = document.createElement('div');
         yearHeaderRow.className = 'year-header-row';
-
         const emptySpacer = document.createElement('div');
         emptySpacer.className = 'year-header-spacer';
         yearHeaderRow.appendChild(emptySpacer);
@@ -154,11 +134,9 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
         });
         graphHTML.appendChild(yearHeaderRow);
 
-        // Create month rows
         for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
             const monthRow = document.createElement('div');
             monthRow.className = 'month-row';
-
             const monthLabel = document.createElement('div');
             monthLabel.className = 'month-label';
             monthLabel.textContent = MONTH_NAMES[monthIndex];
@@ -168,55 +146,34 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
                 const key = `${year}-${monthIndex}`;
                 const yearCell = document.createElement('div');
                 yearCell.className = 'year-container';
-
                 const yearBox = document.createElement('div');
                 yearBox.className = 'year-box';
-
-                // worksForKey now directly holds the list of work items for this month
                 const worksForKey = dataMap[key];
 
                 if (worksForKey && worksForKey.length > 0) {
                     const totalWorksInCell = worksForKey.length; 
                     yearBox.setAttribute('data-total-works', totalWorksInCell);
-
-                    // NEW LOGIC: Group works by type and determine segment height based on distinct types
                     const groupedWorksByType = {};
                     worksForKey.forEach(work => {
                         const normalizedType = normalizeWorksType(work.WorksType);
-                        if (!groupedWorksByType[normalizedType]) {
-                            groupedWorksByType[normalizedType] = [];
-                        }
+                        if (!groupedWorksByType[normalizedType]) groupedWorksByType[normalizedType] = [];
                         groupedWorksByType[normalizedType].push(work);
                     });
-
-                    // Get distinct types and sort them for consistent order
                     const distinctTypes = Object.keys(groupedWorksByType).sort((a, b) =>
                         getActivityOrder(a) - getActivityOrder(b)
                     );
-
-                    // Calculate height per distinct type segment
                     const heightPerTypeSegment = 100 / distinctTypes.length;
-
-                    // Create segments based on types
                     distinctTypes.forEach((type, index) => {
                         const worksOfType = groupedWorksByType[type];
-                        const typeCount = worksOfType.length; // Count of works for this specific type
-
+                        const typeCount = worksOfType.length;
                         const activitySegment = document.createElement('div');
                         const typeClass = getActivityTypeClass(type);
-
-                        let highClass = '';
-                        if (typeCount >= 2) { // Apply 'high' class if this type has 2 or more works
-                            highClass = 'high';
-                        }
-
+                        let highClass = typeCount >= 2 ? 'high' : '';
                         activitySegment.className = `activity-segment ${typeClass} ${highClass}`;
                         activitySegment.style.height = `${heightPerTypeSegment}%`;
                         activitySegment.style.top = `${index * heightPerTypeSegment}%`;
-
                         yearBox.appendChild(activitySegment);
                     });
-
                     yearBox.classList.add('clickable');
                     yearBox.setAttribute('data-key', key);
                     yearBox.addEventListener('click', function () {
@@ -224,7 +181,7 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
                     });
                 } else {
                     yearBox.classList.add('year-box-empty');
-                    yearBox.setAttribute('data-total-works', 0); // Explicitly mark empty
+                    yearBox.setAttribute('data-total-works', 0);
                 }
                 yearCell.appendChild(yearBox);
                 monthRow.appendChild(yearCell);
@@ -233,13 +190,8 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
         }
 
     } else if (type === 'year' || type === 'age') {
-        const currentYearOrAge = type === 'year' ? CURRENT_YEAR : getAgeAtDate(BIRTH_DATE, getJSTNow());
-        const startValue = type === 'year' ? START_YEAR_GLOBAL : AGE_START;
-
-        // Decade labels (0-9)
         const digitLabelRow = document.createElement('div');
         digitLabelRow.className = 'digit-label-row';
-
         const digitSpacer = document.createElement('div');
         digitSpacer.className = 'digit-label-spacer';
         digitLabelRow.appendChild(digitSpacer);
@@ -252,72 +204,48 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
         }
         graphHTML.appendChild(digitLabelRow);
 
-        // Rows for decades
-        let currentDecadeStart = Math.floor(startValue / 10) * 10;
+        let currentDecadeStart = Math.floor((type === 'year' ? START_YEAR_GLOBAL : AGE_START) / 10) * 10;
         const lastRelevantValue = type === 'year' ? CURRENT_YEAR : getAgeAtDate(BIRTH_DATE, getJSTNow());
         const lastDecadeStart = Math.floor(lastRelevantValue / 10) * 10;
 
         for (let decadeStart = currentDecadeStart; decadeStart <= lastDecadeStart; decadeStart += 10) {
             const decadeRow = document.createElement('div');
             decadeRow.className = `${type}-view-row`;
-
             const decadeLabel = document.createElement('div');
             decadeLabel.className = `${type}-view-label`;
-            decadeLabel.textContent = type === 'year' ? `${decadeStart}s` : `${decadeStart}s`; // e.g., 1970s, 0s
+            decadeLabel.textContent = `${decadeStart}s`;
             decadeRow.appendChild(decadeLabel);
 
             for (let i = 0; i < 10; i++) {
-                const value = decadeStart + i; // This is the year or age
+                const value = decadeStart + i;
                 const yearOrAgeCell = document.createElement('div');
                 yearOrAgeCell.className = `${type}-view-cell`;
-
                 const yearOrAgeBox = document.createElement('div');
                 yearOrAgeBox.className = `${type === 'year' ? 'year-box-year-view' : 'year-box-age-view'}`;
-
-                // worksForKey now directly holds the list of work items for this year/age
                 const worksForKey = dataMap[value];
 
                 if (worksForKey && worksForKey.length > 0) {
-                    const totalWorksInCell = worksForKey.length;
-                    yearOrAgeBox.setAttribute('data-total-works', totalWorksInCell);
-
-                    // NEW LOGIC: Group works by type and determine segment height based on distinct types
+                    yearOrAgeBox.setAttribute('data-total-works', worksForKey.length);
                     const groupedWorksByType = {};
                     worksForKey.forEach(work => {
-                        const normalizedType = normalizeWorksType(work.WorksType);
-                        if (!groupedWorksByType[normalizedType]) {
-                            groupedWorksByType[normalizedType] = [];
-                        }
-                        groupedWorksByType[normalizedType].push(work);
+                        const nType = normalizeWorksType(work.WorksType);
+                        if (!groupedWorksByType[nType]) groupedWorksByType[nType] = [];
+                        groupedWorksByType[nType].push(work);
                     });
-
-                    // Get distinct types and sort them for consistent order
                     const distinctTypes = Object.keys(groupedWorksByType).sort((a, b) =>
                         getActivityOrder(a) - getActivityOrder(b)
                     );
-
-                    // Calculate height per distinct type segment
                     const heightPerTypeSegment = 100 / distinctTypes.length;
-
-                    // Create segments based on types
                     distinctTypes.forEach((type, index) => {
-                        const worksOfType = groupedWorksByType[type];
-                        const typeCount = worksOfType.length; // Count of works for this specific type
-
+                        const typeCount = groupedWorksByType[type].length;
                         const activitySegment = document.createElement('div');
                         const typeClass = getActivityTypeClass(type);
-
-                        let highClass = '';
-                        if (typeCount >= 2) { // Apply 'high' class if this type has 2 or more works
-                            highClass = 'high';
-                        }
-
+                        let highClass = typeCount >= 2 ? 'high' : '';
                         activitySegment.className = `activity-segment ${typeClass} ${highClass}`;
                         activitySegment.style.height = `${heightPerTypeSegment}%`;
                         activitySegment.style.top = `${index * heightPerTypeSegment}%`;
                         yearOrAgeBox.appendChild(activitySegment);
                     });
-
                     yearOrAgeBox.classList.add('clickable');
                     yearOrAgeBox.setAttribute('data-key', value);
                     yearOrAgeBox.addEventListener('click', function () {
@@ -325,7 +253,6 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
                     });
                 } else {
                     yearOrAgeBox.classList.add('year-box-empty');
-                    yearOrAgeBox.setAttribute('data-total-works', 0); // Explicitly mark empty
                 }
                 yearOrAgeCell.appendChild(yearOrAgeBox);
                 decadeRow.appendChild(yearOrAgeCell);
@@ -333,212 +260,124 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
             graphHTML.appendChild(decadeRow);
         }
     }
-
     graphContainer.appendChild(graphHTML);
 }
 
-
-// --- Unified Function to Process Relevant Dates for a Single Item ---
 function getFilteredActivityDates(item) {
     const startDate = parseJSTDate(item.DateStart);
-    if (!startDate) {
-        console.warn('Invalid DateStart for item:', item.Title, item.DateStart);
-        return new Set();
-    }
+    if (!startDate) return new Set();
     
     let endDate = startDate;
     if (item.DateEnd && item.DateEnd.trim() !== '') {
         const parsedEndDate = parseJSTDate(item.DateEnd);
-        if (parsedEndDate) {
-            endDate = parsedEndDate;
-        }
+        if (parsedEndDate) endDate = parsedEndDate;
     }
 
-    // Parse Weekday filter: 1=Mon, 7=Sun. Can be comma-separated.
-    // If empty/invalid, assume no weekday filter.
     const weekdayFilterRaw = item.Weekday ? item.Weekday.trim() : '';
-    let weekdayFilterSet = null; // Will store a Set of allowed weekdays (1-7) or null if no filter
-
+    let weekdayFilterSet = null;
     if (weekdayFilterRaw !== '') {
         const parsedWeekdays = weekdayFilterRaw.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n >= 1 && n <= 7);
-        if (parsedWeekdays.length > 0) {
-            weekdayFilterSet = new Set(parsedWeekdays);
-        } else {
-            // Only warn if the entire string was non-empty but parsed to no valid weekdays
-            console.warn('Invalid or empty Weekday values for item (after parsing):', item.Title, item.Weekday);
-        }
+        if (parsedWeekdays.length > 0) weekdayFilterSet = new Set(parsedWeekdays);
     }
 
-    // Dates to be unconditionally excluded (highest priority)
     const excludeDates = new Set(parseAndFormatDates(item.DateDelete));
-    // Dates to be unconditionally added (after range, before final exclusion)
     const additionalDates = parseAndFormatDates(item.DateAdd);
+    const relevantDates = new Set();
 
-    const relevantDates = new Set(); // Stores 'YYYY-MM-DD' strings
-
-    // 1. Process dates from DateStart to DateEnd, applying Weekday filter
     let currentIterateDate = new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), startDate.getUTCDate()));
     let safetyCounter = 0;
-    const MAX_ITERATIONS = 366 * 100; // Max 100 years to prevent infinite loops
-
-    while (currentIterateDate <= endDate && safetyCounter < MAX_ITERATIONS) {
-        // Get day of the week: 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    while (currentIterateDate <= endDate && safetyCounter < 36600) {
         let dayOfWeek = currentIterateDate.getUTCDay();
-        // Convert to 1=Monday, ..., 7=Sunday to match CSV Weekday column
         let csvDayOfWeek = (dayOfWeek === 0) ? 7 : dayOfWeek;
-
-        // Check if the current day passes the weekday filter
-        // If weekdayFilterSet is null, no restriction. Otherwise, check if csvDayOfWeek is in the set.
-        const passesWeekdayFilter = (weekdayFilterSet === null || weekdayFilterSet.has(csvDayOfWeek));
-
-        if (passesWeekdayFilter) {
+        if (weekdayFilterSet === null || weekdayFilterSet.has(csvDayOfWeek)) {
             const formattedDate = formatDate(currentIterateDate);
-            if (formattedDate) { // Make sure date is validly formatted
-                relevantDates.add(formattedDate);
-            }
+            if (formattedDate) relevantDates.add(formattedDate);
         }
-        currentIterateDate.setUTCDate(currentIterateDate.getUTCDate() + 1); // Move to next day
+        currentIterateDate.setUTCDate(currentIterateDate.getUTCDate() + 1);
         safetyCounter++;
     }
-
-    // 2. Add dates from 'DateAdd' column (independent of Weekday, but will be subject to final 'DateDelete' exclusion)
-    additionalDates.forEach(dateStr => {
-        relevantDates.add(dateStr);
-    });
-
-    // 3. Remove dates specified in 'DateDelete' column (highest priority exclusion)
-    excludeDates.forEach(dateStr => {
-        relevantDates.delete(dateStr);
-    });
-
+    additionalDates.forEach(dateStr => relevantDates.add(dateStr));
+    excludeDates.forEach(dateStr => relevantDates.delete(dateStr));
     return relevantDates;
 }
 
-
-// Function to create the contribution graph (Month View)
 function createMonthGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
-    // console.log('Creating Month Graph...');
-    const monthlyWorksMap = {}; // Stores detailed works for each month (key: "YYYY-M")
-
+    const monthlyWorksMap = {};
     data.forEach(item => {
-        // Filter by Note column: exclude rows containing 'memo' or 'uwasa'
         const note = item.Note || '';
         const noteWords = note.toLowerCase().split(',').map(word => word.trim());
-        if (noteWords.includes('memo') || noteWords.includes('uwasa')) {
-            return;
-        }
-
+        if (noteWords.includes('memo') || noteWords.includes('uwasa')) return;
         if (showLeadRoleOnly && item.Role !== '主演') return;
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
 
-        const filteredActivityDates = getFilteredActivityDates(item); // Get all active dates for this item
-
+        const filteredActivityDates = getFilteredActivityDates(item);
         filteredActivityDates.forEach(dateStr => {
-            const dateObj = parseJSTDate(dateStr); // Use parseJSTDate for consistent JST handling
-            if (!dateObj) return; // Skip invalid dates
-            const year = dateObj.getUTCFullYear();
-            const month = dateObj.getUTCMonth();
-            const key = `${year}-${month}`; // Key for month view
-
+            const dateObj = parseJSTDate(dateStr);
+            if (!dateObj) return;
+            const key = `${dateObj.getUTCFullYear()}-${dateObj.getUTCMonth()}`;
             if (!monthlyWorksMap[key]) monthlyWorksMap[key] = [];
             if (!monthlyWorksMap[key].some(work => work.Title === item.Title)) {
                 monthlyWorksMap[key].push(item);
             }
         });
     });
-
-    // Pass the same map for both dataMap and labelMap
     renderGraphStructure('contribution-graph', monthlyWorksMap, monthlyWorksMap, 'month', showLeadRoleOnly, selectedTypes);
 }
 
-// Function to create the Year View graph
 function createYearGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
-    // console.log('Creating Year Graph...');
-    const yearlyWorksMap = {}; // Stores detailed works for each year (key: "YYYY")
-
+    const yearlyWorksMap = {};
     data.forEach(item => {
-        // Filter by Note column: exclude rows containing 'memo' or 'uwasa'
         const note = item.Note || '';
         const noteWords = note.toLowerCase().split(',').map(word => word.trim());
-        if (noteWords.includes('memo') || noteWords.includes('uwasa')) {
-            return;
-        }
-
+        if (noteWords.includes('memo') || noteWords.includes('uwasa')) return;
         if (showLeadRoleOnly && item.Role !== '主演') return;
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
 
-        const filteredActivityDates = getFilteredActivityDates(item); // Get all active dates for this item
-
-        // Process unique years from filtered dates
+        const filteredActivityDates = getFilteredActivityDates(item);
         const yearsWithActivity = new Set();
         filteredActivityDates.forEach(dateStr => {
-            const dateObj = parseJSTDate(dateStr); // Use parseJSTDate for consistent JST handling
-            if (!dateObj) return; // Skip invalid dates
-            yearsWithActivity.add(dateObj.getUTCFullYear());
+            const dateObj = parseJSTDate(dateStr);
+            if (dateObj) yearsWithActivity.add(dateObj.getUTCFullYear());
         });
-
         yearsWithActivity.forEach(year => {
             if (!yearlyWorksMap[year]) yearlyWorksMap[year] = [];
-            // Ensure unique work item per year
-            if (!yearlyWorksMap[year].some(work => work.Title === item.Title)) {
-                yearlyWorksMap[year].push(item);
-            }
+            if (!yearlyWorksMap[year].some(work => work.Title === item.Title)) yearlyWorksMap[year].push(item);
         });
     });
-    // Pass the same map for both dataMap and labelMap
     renderGraphStructure('year-graph-container', yearlyWorksMap, yearlyWorksMap, 'year', showLeadRoleOnly, selectedTypes);
 }
 
-// Function to create the Age View graph
 function createAgeGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
-    // console.log('Creating Age Graph...');
-    const ageWorksMap = {}; // Stores detailed works for each age (key: "age")
-
+    const ageWorksMap = {};
     data.forEach(item => {
-        // Filter by Note column: exclude rows containing 'memo' or 'uwasa'
         const note = item.Note || '';
         const noteWords = note.toLowerCase().split(',').map(word => word.trim());
-        if (noteWords.includes('memo') || noteWords.includes('uwasa')) {
-            return;
-        }
-
+        if (noteWords.includes('memo') || noteWords.includes('uwasa')) return;
         if (showLeadRoleOnly && item.Role !== '主演') return;
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
 
-        const filteredActivityDates = getFilteredActivityDates(item); // Get all active dates for this item
-
-        // Process unique ages from filtered dates
+        const filteredActivityDates = getFilteredActivityDates(item);
         const agesWithActivity = new Set();
         filteredActivityDates.forEach(dateStr => {
-            const dateObj = parseJSTDate(dateStr); // Use parseJSTDate for consistent JST handling
-            if (!dateObj) return; // Skip invalid dates
-            agesWithActivity.add(getAgeAtDate(BIRTH_DATE, dateObj));
+            const dateObj = parseJSTDate(dateStr);
+            if (dateObj) agesWithActivity.add(getAgeAtDate(BIRTH_DATE, dateObj));
         });
-
         agesWithActivity.forEach(age => {
             if (!ageWorksMap[age]) ageWorksMap[age] = [];
-            // Ensure unique work item per age
-            if (!ageWorksMap[age].some(work => work.Title === item.Title)) {
-                ageWorksMap[age].push(item);
-            }
+            if (!ageWorksMap[age].some(work => work.Title === item.Title)) ageWorksMap[age].push(item);
         });
     });
-    // Pass the same map for both dataMap and labelMap
     renderGraphStructure('age-graph-container', ageWorksMap, ageWorksMap, 'age', showLeadRoleOnly, selectedTypes);
 }
 
-
 // --- Chart View Implementation ---
-let currentChartMode = 'year'; // year, decade, age, age-decade
+let currentChartMode = 'year';
 
 function createChartView(data, showLeadRoleOnly = false, selectedTypes = []) {
     const container = document.getElementById('chart-view-container');
     if (!container) return;
-
-    // Ensure container itself is strictly constrained
     container.style.width = '100%';
 
-    // 1. Render Controls (if not present)
     let controlsDiv = container.querySelector('.chart-controls');
     if (!controlsDiv) {
         controlsDiv = document.createElement('div');
@@ -560,8 +399,6 @@ function createChartView(data, showLeadRoleOnly = false, selectedTypes = []) {
             btn.textContent = mode.label;
             btn.className = 'chart-mode-btn';
             if (mode.id === currentChartMode) btn.classList.add('active');
-
-            // Basic styles for buttons (can be moved to CSS later)
             btn.style.padding = '5px 15px';
             btn.style.margin = '0 5px';
             btn.style.cursor = 'pointer';
@@ -571,30 +408,19 @@ function createChartView(data, showLeadRoleOnly = false, selectedTypes = []) {
 
             btn.addEventListener('click', () => {
                 currentChartMode = mode.id;
-                // Update button styles
-                container.querySelectorAll('.chart-mode-btn').forEach(b => {
-                    b.style.backgroundColor = '#fff';
-                    b.classList.remove('active');
-                });
+                container.querySelectorAll('.chart-mode-btn').forEach(b => b.style.backgroundColor = '#fff');
                 btn.style.backgroundColor = '#ddd';
-                btn.classList.add('active');
-
-                // Get current filter state dynamically
                 const currentShowLeadRoleOnly = document.getElementById('lead-role-filter').checked;
                 const currentSelectedTypes = Array.from(document.querySelectorAll('.type-filter'))
-                    .filter(input => input.checked)
-                    .map(input => input.dataset.type);
-
-                // Re-render chart with current filters
+                    .filter(input => input.checked).map(input => input.dataset.type);
                 renderChartContent(data, currentShowLeadRoleOnly, currentSelectedTypes);
             });
             controlsDiv.appendChild(btn);
         });
-        container.innerHTML = ''; // Clear previous
+        container.innerHTML = '';
         container.appendChild(controlsDiv);
     }
 
-    // 2. Render Chart Content Area
     let chartArea = container.querySelector('.chart-content');
     if (!chartArea) {
         chartArea = document.createElement('div');
@@ -602,12 +428,11 @@ function createChartView(data, showLeadRoleOnly = false, selectedTypes = []) {
         chartArea.style.display = 'flex';
         chartArea.style.alignItems = 'flex-end';
         chartArea.style.height = '540px';
-        chartArea.style.width = '100%'; // Match main-content width
-        chartArea.style.minWidth = '0'; // Prevent flex breakout
+        chartArea.style.width = '100%';
         chartArea.style.padding = '10px 0 30px 0';
         chartArea.style.overflowX = 'auto';
-        chartArea.style.justifyContent = 'space-between'; // Flexible spacing
-        chartArea.style.gap = '2px'; // Minimum gap
+        chartArea.style.justifyContent = 'space-between';
+        chartArea.style.gap = '2px';
         chartArea.style.boxSizing = 'border-box';
         container.appendChild(chartArea);
     }
@@ -620,112 +445,63 @@ function renderChartContent(data, showLeadRoleOnly, selectedTypes) {
     if (!chartArea) return;
     chartArea.innerHTML = '';
 
-    // Aggregate Data
-    const aggregatedData = {}; // key -> { total: 0, worksList: [], typeCounts: {} }
-
-    // Initialize Keys based on Range
+    const aggregatedData = {};
     let sortedKeys = [];
+
+    // --- Key generation based on fixed ranges ---
     if (currentChartMode === 'year') {
-        const start = 1992;
-        const end = CURRENT_YEAR;
-        for (let y = start; y <= end; y++) sortedKeys.push(y);
+        for (let y = 1992; y <= CURRENT_YEAR; y++) sortedKeys.push(y);
     } else if (currentChartMode === 'age') {
-        const start = 19;
-        const end = getAgeAtDate(BIRTH_DATE, getJSTNow());
-        for (let a = start; a <= end; a++) sortedKeys.push(a);
+        const endAge = getAgeAtDate(BIRTH_DATE, getJSTNow());
+        for (let a = 19; a <= endAge; a++) sortedKeys.push(a);
     } else if (currentChartMode === 'decade') {
-        const start = 1990;
-        const end = Math.floor(CURRENT_YEAR / 10) * 10;
-        for (let d = start; d <= end; d += 10) sortedKeys.push(d + 's');
+        for (let d = 1990; d <= Math.floor(CURRENT_YEAR / 10) * 10; d += 10) sortedKeys.push(d + 's');
     } else if (currentChartMode === '5-year') {
-        sortedKeys.push('1992-1994'); // Special first group
-        const start = 1995;
-        const end = CURRENT_YEAR;
-        for (let y = start; y <= end; y += 5) {
-            sortedKeys.push(`${y}-${y + 4}`);
-        }
+        sortedKeys.push('1992-1994');
+        for (let y = 1995; y <= CURRENT_YEAR; y += 5) sortedKeys.push(`${y}-${y + 4}`);
     } else if (currentChartMode === '5-year-age') {
+        const endAge = getAgeAtDate(BIRTH_DATE, getJSTNow());
+        for (let a = 19; a < 20; a++) {
+            sortedKeys.push(`${a}`);
+        }
+        for (let a = 20; a <= endAge; a += 5) {
+            sortedKeys.push(`${a}-${a + 4}`);
+        }
     } else if (currentChartMode === 'age-decade') {
-        const start = 10; // Assuming 19 is start age, so 10s is the decade
-        const end = Math.floor(getAgeAtDate(BIRTH_DATE, getJSTNow()) / 10) * 10;
-        for (let ad = start; ad <= end; ad += 10) sortedKeys.push(ad + 's');
+        const endAgeDecade = Math.floor(getAgeAtDate(BIRTH_DATE, getJSTNow()) / 10) * 10;
+        for (let ad = 10; ad <= endAgeDecade; ad += 10) sortedKeys.push(ad + 's');
     }
 
-    // Initialize aggregation map
-    if (currentChartMode !== '5-year-age') {
-        // For all modes except 5-year-age, initialize aggregatedData with all possible keys
-        sortedKeys.forEach(k => {
-            aggregatedData[k] = { total: 0, worksList: [], typeCounts: {} };
-        });
-    } else {
-        // For 5-year-age, we'll initialize aggregatedData dynamically as we find keys
-    }
+    sortedKeys.forEach(k => {
+        aggregatedData[k] = { total: 0, worksList: [], typeCounts: {} };
+    });
 
     data.forEach(item => {
-        // Filter by Note column: exclude rows containing 'memo' or 'uwasa'
         const note = item.Note || '';
-        const noteWords = note.toLowerCase().split(',').map(word => word.trim());
-        if (noteWords.includes('memo') || noteWords.includes('uwasa')) {
-            return;
-        }
-
+        if (note.toLowerCase().includes('memo') || note.toLowerCase().includes('uwasa')) return;
         if (showLeadRoleOnly && item.Role !== '主演') return;
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
 
-        // Determine Keys for this item
         const keys = new Set();
         const filteredActivityDates = getFilteredActivityDates(item);
-
         filteredActivityDates.forEach(dateStr => {
-            const dateObj = parseJSTDate(dateStr); // Use parseJSTDate for consistent JST handling
-            if (!dateObj) return; // Skip invalid dates
+            const dateObj = parseJSTDate(dateStr);
+            if (!dateObj) return;
             let key;
-            if (currentChartMode === 'year') {
-                key = dateObj.getUTCFullYear();
-            } else if (currentChartMode === 'decade') {
-                const year = dateObj.getUTCFullYear();
-                key = Math.floor(year / 10) * 10 + 's';
-            } else if (currentChartMode === '5-year') {
-                const year = dateObj.getUTCFullYear();
-                if (year < 1995) {
-                    key = '1992-1994';
-                } else {
-                    const blockStart = 1995 + Math.floor((year - 1995) / 5) * 5;
-                    key = `${blockStart}-${blockStart + 4}`;
-                }
+            if (currentChartMode === 'year') key = dateObj.getUTCFullYear();
+            else if (currentChartMode === 'decade') key = Math.floor(dateObj.getUTCFullYear() / 10) * 10 + 's';
+            else if (currentChartMode === '5-year') {
+                const y = dateObj.getUTCFullYear();
+                key = y < 1995 ? '1992-1994' : `${1995 + Math.floor((y - 1995) / 5) * 5}-${1995 + Math.floor((y - 1995) / 5) * 5 + 4}`;
             } else if (currentChartMode === '5-year-age') {
                 const age = getAgeAtDate(BIRTH_DATE, dateObj);
-                if (age >= 0) { // Process all valid ages
-                    if (age < 20) {
-                        key = `${age}`; // For ages less than 20, use the exact age
-                    } else {
-                        const blockStart = Math.floor(age / 5) * 5; // For ages 20+, use 5-year blocks
-                        key = `${blockStart}-${blockStart + 4}`;
-                    }
-                }
-            } else if (currentChartMode === 'age') {
-                key = getAgeAtDate(BIRTH_DATE, dateObj);
-            } else if (currentChartMode === 'age-decade') {
-                const age = getAgeAtDate(BIRTH_DATE, dateObj);
-                key = Math.floor(age / 10) * 10 + 's';
-            }
-            if (key !== undefined) {
-                // For 5-year-age mode, we need to initialize aggregatedData dynamically
-                if (currentChartMode === '5-year-age' && !aggregatedData[key]) {
-                    aggregatedData[key] = { total: 0, worksList: [], typeCounts: {} };
-                    // Also add to sortedKeys if not already present
-                    if (!sortedKeys.includes(key)) {
-                        sortedKeys.push(key);
-                    }
-                }
-                // Only add key if it exists in aggregatedData
-                if (aggregatedData[key]) {
-                    keys.add(key);
-                }
-            }
+                if (age >= 19) key = age < 20 ? `${age}` : `${Math.floor(age / 5) * 5}-${Math.floor(age / 5) * 5 + 4}`;
+            } else if (currentChartMode === 'age') key = getAgeAtDate(BIRTH_DATE, dateObj);
+            else if (currentChartMode === 'age-decade') key = Math.floor(getAgeAtDate(BIRTH_DATE, dateObj) / 10) * 10 + 's';
+            
+            if (key !== undefined && aggregatedData[key]) keys.add(key);
         });
 
-        // Add to aggregation
         keys.forEach(key => {
             if (!aggregatedData[key].worksList.some(w => w.Title === item.Title)) {
                 aggregatedData[key].worksList.push(item);
@@ -741,343 +517,185 @@ function renderChartContent(data, showLeadRoleOnly, selectedTypes) {
         return;
     }
 
-    // Sort keys for 5-year-age mode to ensure proper order
-    if (currentChartMode === '5-year-age') {
-        sortedKeys.sort((a, b) => {
-            // Extract the first number from each key (either single age or start of range)
-            const numA = parseInt(a.toString().split('-')[0]);
-            const numB = parseInt(b.toString().split('-')[0]);
-            return numA - numB;
-        });
-    }
-
-    // Find max total for scaling
     const maxTotal = Math.max(1, ...sortedKeys.map(k => aggregatedData[k].total));
-
-    // Prepare map for showWorksDetail
     const worksMapForDetail = {};
     sortedKeys.forEach(k => worksMapForDetail[k] = aggregatedData[k].worksList);
 
-    // Render Bars
+    // --- 更新：更新柱状图种类排序（顺序 1-6） ---
+    const typeOrder = ['映画', 'TV', '舞台', 'その他', '声の出演', 'BOOK'];
+
     sortedKeys.forEach(key => {
         const dataPoint = aggregatedData[key];
-
         const barContainer = document.createElement('div');
         barContainer.className = 'chart-bar-container';
         barContainer.style.flex = '1 0 auto';
-
-        // Conditional Min Width (Year/Age = Narrow, Decade/5-Year = Wide)
-        if (currentChartMode === 'year' || currentChartMode === 'age') {
-            barContainer.style.minWidth = '12px';
-        } else {
-            barContainer.style.minWidth = '30px';
-        }
-
+        barContainer.style.minWidth = (currentChartMode === 'year' || currentChartMode === 'age') ? '12px' : '30px';
         barContainer.style.maxWidth = '60px';
-        // barContainer.style.margin = '0 1px'; // REMOVE margin, rely on gap
         barContainer.style.display = 'flex';
-        barContainer.style.flexDirection = 'column-reverse'; // Bottom-up stacking
+        barContainer.style.flexDirection = 'column-reverse'; // 从下往上堆叠
         barContainer.style.alignItems = 'center';
         barContainer.style.height = '100%';
-        barContainer.style.position = 'relative';
         barContainer.style.cursor = 'pointer';
+        barContainer.style.position = 'relative';
 
-        if (dataPoint.total > 0) {
-            barContainer.addEventListener('click', () => {
-                showWorksDetail(key, worksMapForDetail, currentChartMode);
-            });
-        }
-
+        // Tooltip
         let tooltipText = `${key} (Total: ${dataPoint.total})`;
         if (dataPoint.total > 0) {
-            const types = Object.keys(dataPoint.typeCounts).sort((a, b) => getActivityOrder(a) - getActivityOrder(b));
-            types.forEach(t => {
-                tooltipText += `\n${t}: ${dataPoint.typeCounts[t]}`;
+            typeOrder.forEach(t => {
+                if (dataPoint.typeCounts[t]) {
+                    tooltipText += `\n${t}: ${dataPoint.typeCounts[t]}`;
+                }
             });
         }
         barContainer.title = tooltipText;
 
-        // Label (Visually at Bottom)
-        const label = document.createElement('div');
-        label.className = 'chart-bar-label';
-        label.textContent = key;
-        label.style.fontSize = '10px';
-        label.style.marginTop = '4px';
-        label.style.textAlign = 'center';
-        label.style.whiteSpace = 'nowrap';
-
-        // Vertical Text Logic - ONLY for Year view (4 digits in 12px)
-        if (currentChartMode === 'year') {
-            label.style.writingMode = 'vertical-rl';
-            label.style.marginTop = '8px';
+        if (dataPoint.total > 0) {
+            barContainer.addEventListener('click', () => showWorksDetail(key, worksMapForDetail, currentChartMode));
         }
 
-        // Bar Wrapper
+        const label = document.createElement('div');
+        label.className = 'chart-bar-label';
+        label.textContent = currentChartMode === 'year' ? String(key).slice(-2) : key;
+        label.style.fontSize = '10px';
+        label.style.marginTop = '4px';
+
         const barWrapper = document.createElement('div');
         barWrapper.style.width = '100%';
         barWrapper.style.height = dataPoint.total > 0 ? `${(dataPoint.total / maxTotal) * 85}%` : '0px';
-        barWrapper.style.minHeight = dataPoint.total > 0 ? '1px' : '0px';
         barWrapper.style.display = 'flex';
-        barWrapper.style.flexDirection = 'column-reverse'; // Stack segments bottom-up
-        barWrapper.style.position = 'relative';
-        barWrapper.style.borderBottom = '1px solid #999'; // X-axis line
+        barWrapper.style.flexDirection = 'column-reverse';
+        barWrapper.style.borderBottom = '1px solid #999';
 
-        const typeOrder = ['映画', 'TV', '舞台', 'BOOK', 'その他', '声の出演'];
         typeOrder.forEach(type => {
             const count = dataPoint.typeCounts[type];
             if (count) {
                 const segment = document.createElement('div');
-                const typeClass = getActivityTypeClass(type);
-                segment.className = `${typeClass} chart-bar-segment`;
+                segment.className = `${getActivityTypeClass(type)} chart-bar-segment`;
                 segment.style.width = '100%';
                 segment.style.flex = count;
                 segment.style.borderTop = '1px solid rgba(255,255,255,0.3)';
-                segment.style.boxSizing = 'border-box';
                 barWrapper.appendChild(segment);
             }
         });
 
-        // Total Count Label (Visually at Top)
         const countLabel = document.createElement('div');
         countLabel.textContent = dataPoint.total > 0 ? dataPoint.total : '';
         countLabel.style.fontSize = '9px';
-        countLabel.style.marginBottom = '2px';
-        countLabel.style.textAlign = 'center';
-        countLabel.style.height = '12px'; // Fixed height reservation
+        countLabel.style.height = '12px';
 
-        // Append in Order for column-reverse (Bottom to Top)
-        // 1. Label (Bottom)
         barContainer.appendChild(label);
-        // 2. Bar (Middle)
         barContainer.appendChild(barWrapper);
-        // 3. Count (Top)
         barContainer.appendChild(countLabel);
-
         chartArea.appendChild(barContainer);
     });
 }
 
-
-// Display Works Detail (Updated to handle different key types)
 function showWorksDetail(key, worksDataMap, viewType) {
     const detailContainer = document.getElementById('works-detail-container');
     const detailContent = detailContainer.querySelector('.detail-content');
-
     if (!detailContainer || !detailContent) return;
 
-    let works = [];
+    let works = worksDataMap[key] || [];
     let title = '';
-
     if (viewType === 'month') {
-        works = worksDataMap[key] || [];
-        const [year, month] = key.split('-');
-        title = `${year} ${MONTH_NAMES[parseInt(month)]}`;
-    } else if (viewType === 'year') {
-        works = worksDataMap[parseInt(key)] || []; // Ensure key is int for map lookup
-        title = `Year: ${key}`;
-    } else if (viewType === 'age') {
-        works = worksDataMap[parseInt(key)] || [];
-        title = `公開時年齢: ${key}`;
-    } else if (viewType === 'decade') {
-        works = worksDataMap[key] || [];
-        title = `Decade: ${key}`;
-    } else if (viewType === '5-year') {
-        works = worksDataMap[key] || [];
-        title = `Period: ${key}`;
-    } else if (viewType === '5-year-age') {
-        works = worksDataMap[key] || [];
-        title = `Age Period: ${key}`;
-    } else if (viewType === 'age-decade') {
-        works = worksDataMap[key] || [];
-        title = `Age Decade: ${key}`;
-    }
+        const [y, m] = key.split('-');
+        title = `${y} ${MONTH_NAMES[parseInt(m)]}`;
+    } else if (viewType === 'year') title = `Year: ${key}`;
+    else if (viewType === 'age') title = `公開時年齢: ${key}`;
+    else if (viewType === 'decade') title = `Decade: ${key}`;
+    else if (viewType === '5-year') title = `Period: ${key}`;
+    else if (viewType === '5-year-age') title = `Age Period: ${key}`;
+    else if (viewType === 'age-decade') title = `Age Decade: ${key}`;
 
     if (works.length === 0) {
         detailContent.innerHTML = `<p>No works found for ${title}.</p>`;
     } else {
         const worksByType = {};
         works.forEach(work => {
-            // Normalize WorksType before grouping
-            const normalizedType = normalizeWorksType(work.WorksType);
-            if (!worksByType[normalizedType]) {
-                worksByType[normalizedType] = [];
-            }
-            worksByType[normalizedType].push(work);
+            const nType = normalizeWorksType(work.WorksType);
+            if (!worksByType[nType]) worksByType[nType] = [];
+            worksByType[nType].push(work);
         });
 
         let html = `<h4>${title}</h4>`;
-
-        const typeOrder = {
-            '映画': 1, 'TV': 2, '舞台': 3, 'BOOK': 4, 'その他': 5, '声の出演': 6
+        
+        // --- 更新：详情面板种类排序逻辑（顺序 1-6） ---
+        const typeOrderMap = { 
+            '映画': 1, 
+            'TV': 2, 
+            '舞台': 3, 
+            'その他': 4, 
+            '声の出演': 5, 
+            'BOOK': 6 
         };
 
-        const sortedTypes = Object.keys(worksByType).sort((a, b) =>
-            (typeOrder[a] || 99) - (typeOrder[b] || 99)
+        const sortedTypes = Object.keys(worksByType).sort((a, b) => 
+            (typeOrderMap[a] || 99) - (typeOrderMap[b] || 99)
         );
 
         sortedTypes.forEach(type => {
-            let typeWorks = worksByType[type]; // Use let here as we'll reassign after sort
-
-            // Sort works within each type by DateStart ascending, then by Title ascending
+            let typeWorks = worksByType[type];
             typeWorks.sort((a, b) => {
-                const dateA = parseJSTDate(a.DateStart);
-                const dateB = parseJSTDate(b.DateStart);
-
-                // Handle null dates (put them at the end)
-                if (!dateA && !dateB) return 0;
-                if (!dateA) return 1;
-                if (!dateB) return -1;
-
-                // Sort by DateStart ascending
-                if (dateA.getTime() !== dateB.getTime()) {
-                    return dateA.getTime() - dateB.getTime();
-                }
-
-                // If DateStart is the same, sort by Title ascending
-                return a.Title.localeCompare(b.Title);
+                const dA = parseJSTDate(a.DateStart), dB = parseJSTDate(b.DateStart);
+                if (!dA && !dB) return 0; if (!dA) return 1; if (!dB) return -1;
+                return dA.getTime() !== dB.getTime() ? dA.getTime() - dB.getTime() : a.Title.localeCompare(b.Title);
             });
-
-            const typeClass = getActivityTypeClass(type);
-
-            html += `<div class="works-type-group">
-                <h5 class="${typeClass}-title">${type}</h5>
-                <div class="works-row ${typeClass}-row">`;
-
+            const tClass = getActivityTypeClass(type);
+            html += `<div class="works-type-group"><h5 class="${tClass}-title">${type}</h5><div class="works-row ${tClass}-row">`;
             typeWorks.forEach(work => {
-                let dateDisplay = work.DateStart;
-                if (work.DateEnd && work.DateEnd !== work.DateStart) {
-                    dateDisplay += ` ~ ${work.DateEnd}`;
-                }
-
-                html += `
-                <div class="work-card ${typeClass}">
-                    <div class="work-title">${work.Title}</div>
-                    <div class="work-date">${dateDisplay}</div>
-                    ${work.Role ? `<div class="work-role">${work.Role}</div>` : ''}
-                </div>
-                `;
+                let dDisp = work.DateStart + (work.DateEnd && work.DateEnd !== work.DateStart ? ` ~ ${work.DateEnd}` : '');
+                html += `<div class="work-card ${tClass}"><div class="work-title">${work.Title}</div><div class="work-date">${dDisp}</div>${work.Role ? `<div class="work-role">${work.Role}</div>` : ''}</div>`;
             });
-
             html += '</div></div>';
         });
-
         detailContent.innerHTML = html;
     }
-
     detailContainer.style.display = 'block';
     detailContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-
-// --- Main Logic for Loading and Filtering ---
 document.addEventListener('DOMContentLoaded', function () {
-    if (typeof loadNavbar === 'function') {
-        loadNavbar().then(() => {
-            if (typeof highlightCurrentPage === 'function') {
-                highlightCurrentPage();
-            }
-        });
-    }
-
     const leadRoleFilter = document.getElementById('lead-role-filter');
     const typeFilters = document.querySelectorAll('.type-filter');
-    const viewFilters = document.querySelectorAll('.view-filter'); // New: Year/Age view filters
+    const viewFilters = document.querySelectorAll('.view-filter');
+    let worksData = [];
 
-    let worksData = []; // Store fetched data globally
-
-    // Function to update the graph based on current filter selections
     function updateGraphView() {
         const showLeadRoleOnly = leadRoleFilter.checked;
-        const selectedTypes = Array.from(typeFilters)
-            .filter(input => input.checked)
-            .map(input => input.dataset.type);
+        const selectedTypes = Array.from(typeFilters).filter(i => i.checked).map(i => i.dataset.type);
+        const views = {
+            month: document.getElementById('contribution-graph'),
+            year: document.getElementById('year-graph-container'),
+            age: document.getElementById('age-graph-container'),
+            chart: document.getElementById('chart-view-container')
+        };
 
-        const monthGraph = document.getElementById('contribution-graph');
-        const yearGraph = document.getElementById('year-graph-container');
-        const ageGraph = document.getElementById('age-graph-container');
+        Object.values(views).forEach(v => { if(v) v.style.display = 'none'; });
 
-        const chartGraph = document.getElementById('chart-view-container');
-
-        const yearViewActive = document.getElementById('year-view-filter').checked;
-        const ageViewActive = document.getElementById('age-view-filter').checked;
-        const chartViewActive = document.getElementById('chart-view-filter') ? document.getElementById('chart-view-filter').checked : false;
-
-        monthGraph.style.display = 'none';
-        yearGraph.style.display = 'none';
-        ageGraph.style.display = 'none';
-        if (chartGraph) chartGraph.style.display = 'none';
-
-        if (yearViewActive) {
-            yearGraph.style.display = 'block';
-            createYearGraph(worksData, showLeadRoleOnly, selectedTypes);
-        } else if (ageViewActive) {
-            ageGraph.style.display = 'block';
-            createAgeGraph(worksData, showLeadRoleOnly, selectedTypes);
-        } else if (chartViewActive) {
-            if (chartGraph) {
-                chartGraph.style.display = 'block';
-                createChartView(worksData, showLeadRoleOnly, selectedTypes);
-            }
+        if (document.getElementById('year-view-filter').checked) {
+            views.year.style.display = 'block'; createYearGraph(worksData, showLeadRoleOnly, selectedTypes);
+        } else if (document.getElementById('age-view-filter').checked) {
+            views.age.style.display = 'block'; createAgeGraph(worksData, showLeadRoleOnly, selectedTypes);
+        } else if (document.getElementById('chart-view-filter')?.checked) {
+            views.chart.style.display = 'block'; createChartView(worksData, showLeadRoleOnly, selectedTypes);
         } else {
-            // Default to month view
-            monthGraph.style.display = 'block';
-            createMonthGraph(worksData, showLeadRoleOnly, selectedTypes);
+            views.month.style.display = 'block'; createMonthGraph(worksData, showLeadRoleOnly, selectedTypes);
         }
     }
 
-    // Fetch CSV data
     fetch('../data/biography.csv')
-        .then(response => response.text())
+        .then(res => res.text())
         .then(data => {
-            const allData = parseCSV(data); // Parse all data
-
-            // Store ALL data initially, filtering happens in create functions
-            worksData = allData;
-
-            // Normalize WorksType in the data
-            worksData.forEach(item => {
-                if (item.WorksType) {
-                    item.WorksType = normalizeWorksType(item.WorksType);
-                } else {
-                    item.WorksType = 'その他';
-                }
-            });
-
-            // Initial graph creation (default to month view)
+            worksData = parseCSV(data);
+            worksData.forEach(item => item.WorksType = normalizeWorksType(item.WorksType));
             updateGraphView();
-
-            // Add event listener for lead role filter
             leadRoleFilter.addEventListener('change', updateGraphView);
-
-            // Add event listener for type filters
-            typeFilters.forEach(filter => {
-                filter.addEventListener('change', updateGraphView);
-            });
-
-            // Add event listener for new view filters (Year/Age)
-            viewFilters.forEach(filter => {
-                filter.addEventListener('change', function () {
-                    // Ensure only one view filter is checked at a time
-                    viewFilters.forEach(otherFilter => {
-                        if (otherFilter !== this) {
-                            otherFilter.checked = false;
-                        }
-                    });
-                    updateGraphView();
-                });
-            });
-
-            // Add closing event for detail container
-            const closeButton = document.querySelector('#works-detail-container .close-detail');
-            if (closeButton) {
-                closeButton.addEventListener('click', function () {
-                    document.getElementById('works-detail-container').style.display = 'none';
-                });
-            }
-
-        })
-        .catch(error => {
-            console.error('Error loading works data:', error);
-            document.getElementById('contribution-graph').innerHTML = '<p>Failed to load activity data.</p>';
+            typeFilters.forEach(f => f.addEventListener('change', updateGraphView));
+            viewFilters.forEach(f => f.addEventListener('change', function() {
+                viewFilters.forEach(o => { if(o !== this) o.checked = false; });
+                updateGraphView();
+            }));
+            const closeBtn = document.querySelector('#works-detail-container .close-detail');
+            if (closeBtn) closeBtn.addEventListener('click', () => document.getElementById('works-detail-container').style.display = 'none');
         });
 });
