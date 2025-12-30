@@ -1,4 +1,3 @@
-// Improved function to parse CSV data with quote handling
 function parseCSV(text) {
     const lines = text.split('\n');
     const headers = processCSVLine(lines[0]);
@@ -19,7 +18,6 @@ function parseCSV(text) {
     return result;
 }
 
-// Helper function to process CSV lines with quotes
 function processCSVLine(line) {
     const result = [];
     let inQuotes = false;
@@ -43,10 +41,6 @@ function processCSVLine(line) {
     return result;
 }
 
-// formatDate is now defined in jst-utils.js
-
-
-// Helper function to parse and format a list of date strings (e.g., from 'Add' or 'Date' columns)
 // This ensures that all dates from CSV are consistently YYYY-MM-DD (JST)
 function parseAndFormatDates(dateStringList) {
     if (!dateStringList) return [];
@@ -64,16 +58,12 @@ function normalizeWorksType(worksType) {
     // Valid types in our application
     const validTypes = ['映画', 'TV', '舞台', 'BOOK', 'その他', '声の出演'];
 
-    // First trim whitespace
     const trimmedType = worksType.trim();
 
-    // Check if it's already a valid type (exact match)
     if (validTypes.includes(trimmedType)) {
         return trimmedType;
     }
 
-    // Default to "other" if no match
-    // console.warn('Unrecognized WorksType normalized to その他:', worksType); // Only warn if necessary
     return 'その他';
 }
 
@@ -146,8 +136,6 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
             years.push(year);
         }
 
-        // Create year headers - each digit of the year on a separate row
-        // Create year headers - single row with vertical text
         const yearHeaderRow = document.createElement('div');
         yearHeaderRow.className = 'year-header-row';
 
@@ -188,7 +176,7 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
                 const worksForKey = dataMap[key];
 
                 if (worksForKey && worksForKey.length > 0) {
-                    const totalWorksInCell = worksForKey.length; // 总作品数，用于格子背景颜色变化
+                    const totalWorksInCell = worksForKey.length; 
                     yearBox.setAttribute('data-total-works', totalWorksInCell);
 
                     // NEW LOGIC: Group works by type and determine segment height based on distinct types
@@ -290,7 +278,7 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
                 const worksForKey = dataMap[value];
 
                 if (worksForKey && worksForKey.length > 0) {
-                    const totalWorksInCell = worksForKey.length; // 总作品数，用于格子背景颜色变化
+                    const totalWorksInCell = worksForKey.length;
                     yearOrAgeBox.setAttribute('data-total-works', totalWorksInCell);
 
                     // NEW LOGIC: Group works by type and determine segment height based on distinct types
@@ -453,8 +441,6 @@ function createMonthGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
             const key = `${year}-${month}`; // Key for month view
 
             if (!monthlyWorksMap[key]) monthlyWorksMap[key] = [];
-            // Ensure unique work item per month. If a work spans multiple days within a month, it should only be counted once for that month.
-            // Check if a work with the same title already exists for this month to prevent duplicates
             if (!monthlyWorksMap[key].some(work => work.Title === item.Title)) {
                 monthlyWorksMap[key].push(item);
             }
@@ -551,7 +537,6 @@ function createChartView(data, showLeadRoleOnly = false, selectedTypes = []) {
 
     // Ensure container itself is strictly constrained
     container.style.width = '100%';
-    // container.style.overflow = 'hidden'; // Let chart-content handle scroll
 
     // 1. Render Controls (if not present)
     let controlsDiv = container.querySelector('.chart-controls');
@@ -660,11 +645,6 @@ function renderChartContent(data, showLeadRoleOnly, selectedTypes) {
             sortedKeys.push(`${y}-${y + 4}`);
         }
     } else if (currentChartMode === '5-year-age') {
-        const start = 20;
-        const end = getAgeAtDate(BIRTH_DATE, getJSTNow());
-        for (let a = start; a <= end; a += 5) {
-            sortedKeys.push(`${a}-${a + 4}`);
-        }
     } else if (currentChartMode === 'age-decade') {
         const start = 10; // Assuming 19 is start age, so 10s is the decade
         const end = Math.floor(getAgeAtDate(BIRTH_DATE, getJSTNow()) / 10) * 10;
@@ -672,9 +652,14 @@ function renderChartContent(data, showLeadRoleOnly, selectedTypes) {
     }
 
     // Initialize aggregation map
-    sortedKeys.forEach(k => {
-        aggregatedData[k] = { total: 0, worksList: [], typeCounts: {} };
-    });
+    if (currentChartMode !== '5-year-age') {
+        // For all modes except 5-year-age, initialize aggregatedData with all possible keys
+        sortedKeys.forEach(k => {
+            aggregatedData[k] = { total: 0, worksList: [], typeCounts: {} };
+        });
+    } else {
+        // For 5-year-age, we'll initialize aggregatedData dynamically as we find keys
+    }
 
     data.forEach(item => {
         // Filter by Note column: exclude rows containing 'memo' or 'uwasa'
@@ -710,9 +695,13 @@ function renderChartContent(data, showLeadRoleOnly, selectedTypes) {
                 }
             } else if (currentChartMode === '5-year-age') {
                 const age = getAgeAtDate(BIRTH_DATE, dateObj);
-                if (age >= 20) {
-                    const blockStart = 20 + Math.floor((age - 20) / 5) * 5;
-                    key = `${blockStart}-${blockStart + 4}`;
+                if (age >= 0) { // Process all valid ages
+                    if (age < 20) {
+                        key = `${age}`; // For ages less than 20, use the exact age
+                    } else {
+                        const blockStart = Math.floor(age / 5) * 5; // For ages 20+, use 5-year blocks
+                        key = `${blockStart}-${blockStart + 4}`;
+                    }
                 }
             } else if (currentChartMode === 'age') {
                 key = getAgeAtDate(BIRTH_DATE, dateObj);
@@ -720,7 +709,20 @@ function renderChartContent(data, showLeadRoleOnly, selectedTypes) {
                 const age = getAgeAtDate(BIRTH_DATE, dateObj);
                 key = Math.floor(age / 10) * 10 + 's';
             }
-            if (key !== undefined && aggregatedData[key]) keys.add(key);
+            if (key !== undefined) {
+                // For 5-year-age mode, we need to initialize aggregatedData dynamically
+                if (currentChartMode === '5-year-age' && !aggregatedData[key]) {
+                    aggregatedData[key] = { total: 0, worksList: [], typeCounts: {} };
+                    // Also add to sortedKeys if not already present
+                    if (!sortedKeys.includes(key)) {
+                        sortedKeys.push(key);
+                    }
+                }
+                // Only add key if it exists in aggregatedData
+                if (aggregatedData[key]) {
+                    keys.add(key);
+                }
+            }
         });
 
         // Add to aggregation
@@ -737,6 +739,16 @@ function renderChartContent(data, showLeadRoleOnly, selectedTypes) {
     if (sortedKeys.length === 0) {
         chartArea.innerHTML = '<p>No data available for current selection.</p>';
         return;
+    }
+
+    // Sort keys for 5-year-age mode to ensure proper order
+    if (currentChartMode === '5-year-age') {
+        sortedKeys.sort((a, b) => {
+            // Extract the first number from each key (either single age or start of range)
+            const numA = parseInt(a.toString().split('-')[0]);
+            const numB = parseInt(b.toString().split('-')[0]);
+            return numA - numB;
+        });
     }
 
     // Find max total for scaling
@@ -867,17 +879,6 @@ function showWorksDetail(key, worksDataMap, viewType) {
         works = worksDataMap[parseInt(key)] || [];
         title = `公開時年齢: ${key}`;
     } else if (viewType === 'decade') {
-        // worksDataMap passed from renderChartContent will be aggregatedData which stores { worksList: [...] }
-        // BUT wait, existing views pass a map of key -> Array.
-        // renderChartContent passes aggregatedData which is key -> Object.
-        // We need to handle this difference.
-        // Actually, let's make renderChartContent pass a simple key->List map to showWorksDetail
-        // OR update showWorksDetail to handle list directly.
-        // For simplicity, let's assume worksDataMap[key] returns the list of works.
-        // We will adapt renderChartContent to pass the correct structure.
-
-        // However, in renderChartContent below, I will construct a `worksMap` specifically for this.
-
         works = worksDataMap[key] || [];
         title = `Decade: ${key}`;
     } else if (viewType === '5-year') {
@@ -970,9 +971,6 @@ function showWorksDetail(key, worksDataMap, viewType) {
 
 // --- Main Logic for Loading and Filtering ---
 document.addEventListener('DOMContentLoaded', function () {
-    // console.log('Activity visualization initializing...');
-
-    // Assuming loadNavbar and highlightCurrentPage are defined elsewhere
     if (typeof loadNavbar === 'function') {
         loadNavbar().then(() => {
             if (typeof highlightCurrentPage === 'function') {
