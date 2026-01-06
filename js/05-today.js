@@ -121,8 +121,8 @@ function getDaysDifference(date1, date2) {
 }
 
 function getMilestoneInterval(days) {
-    if (days >= 10000) return 10000;
-    if (days >= 1000) return 1000;
+    if (days >= 10000) return 5000;
+    if (days >= 1000) return 500;
     return 100;
 }
 
