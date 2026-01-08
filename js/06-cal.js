@@ -193,8 +193,8 @@ function calculateAnniversaries(events, year, month) {
 function isSignificantDay(days) {
     if (days < 100) return false;
     if (days < 1000) return days % 100 === 0;
-    if (days < 10000) return days % 1000 === 0;
-    return days % 10000 === 0;
+    if (days < 10000) return days % 500 === 0;
+    return days % 5000 === 0;
 }
 
 async function parseOtherCSV() {
