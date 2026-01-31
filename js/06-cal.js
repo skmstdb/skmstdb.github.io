@@ -1,4 +1,4 @@
-const CHARACTER_BIRTHDAYS = [
+const special_memo = [
     { name: '乃木憂助の誕生日', month: 0, day: 25, startYear: 2024, url: 'https://h2col.notion.site/1b68a08476c780e78f0fe8e8e8441e1b' },
     { name: '伊達一義の誕生日', month: 5, day: 29, startYear: 2011, url: 'https://h2col.notion.site/1b68a08476c780caa667e03f4ffdffb8' },
     { name: '木村一樹の誕生日', month: 9, day: 11, startYear: 2008, url: 'https://h2col.notion.site/1b68a08476c78015ab14f23054250d11' },
@@ -9,17 +9,16 @@ let currentViewMode = 'schedule'; // 'schedule', 'anniversary', 'year'
 
 function calculateSakaiMilestones(year, month) {
     const milestones = [];
-    // 1973年10月14日 (JS月份0-11，10月是9)
-    const startDate = createJSTDate(1973, 9, 14); 
-    
+    const startDate = createJSTDate(1973, 9, 14);
+
     const lastDayOfMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
 
     for (let d = 1; d <= lastDayOfMonth; d++) {
         const currentDate = createJSTDate(year, month, d);
-        
+
         const diffTime = currentDate.getTime() - startDate.getTime();
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        
+
         const dayCount = diffDays + 1;
 
         // 每100天提醒一次
@@ -279,8 +278,7 @@ function generateCalendar(year, month, events) {
     }
 
     const totalDaysDisplayed = firstDayOfWeek + lastDay.getUTCDate();
-    const totalCells = totalDaysDisplayed <= 35 ? 35 : 42;
-    const remainingCells = totalCells - totalDaysDisplayed;
+    const remainingCells = (7 - (totalDaysDisplayed % 7)) % 7;
     for (let day = 1; day <= remainingCells; day++) {
         const date = createJSTDate(year, month + 1, day);
         calendarGrid.appendChild(createDayElement(day, date, true));
@@ -451,25 +449,27 @@ async function updateCalendar() {
         const sakaiMilestones = calculateSakaiMilestones(year, month);
         events = [...events, ...sakaiMilestones];
 
-        const specialBirthdays = CHARACTER_BIRTHDAYS
-            .filter(bday => year >= bday.startYear)
-            .map(bday => ({
-                startDate: createJSTDate(year, bday.month, bday.day),
-                endDate: createJSTDate(year, bday.month, bday.day),
-                title: `${bday.name}`,
-                source: 'character-birthday',
-                url: bday.url
-            }));
+        if (currentViewMode === 'anniversary') {
+            const specialDays = special_memo
+                .filter(bday => year >= bday.startYear)
+                .map(bday => ({
+                    startDate: createJSTDate(year, bday.month, bday.day),
+                    endDate: createJSTDate(year, bday.month, bday.day),
+                    title: `${bday.name}`,
+                    source: 'character-birthday',
+                    url: bday.url
+                }));
+            events = [...events, ...specialDays];
+        }
 
-        specialBirthdays.push({
+        const sakaiBirthday = {
             startDate: createJSTDate(year, 9, 14),
             endDate: createJSTDate(year, 9, 14),
             title: '堺さんの誕生日 🎂',
             source: 'sakai-birthday',
             url: 'https://sakai-masato.com/'
-        });
-
-        events = [...events, ...specialBirthdays];
+        };
+        events = [...events, sakaiBirthday];
     }
 
     // 根据模式进行渲染
@@ -549,7 +549,7 @@ function generateYearCalendar(year, events) {
             if (dayEvents.length > 0) {
                 dayCell.classList.add('has-event');
                 const sources = new Set(dayEvents.map(e => e.source));
-                
+
                 if (sources.has('sakai-birthday') || sources.has('sakai-milestone')) {
                     dayCell.style.backgroundColor = 'rgba(46, 204, 113, 0.8)';
                 } else if (sources.has('character-birthday')) {
