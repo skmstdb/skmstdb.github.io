@@ -17,7 +17,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="堺雅人データベース【非公式】 / Sakai Masato Database [Unofficial]">
     <meta name="keywords"
-        content="堺雅人, Sakai Masato, Masato Sakai, Database, heatmap, contribution graph, calendar, カレンダー">
+        content="堺雅人, Sakai Masato, Masato Sakai, Database, heatmap, contribution graph, calendar, カレンダー, ロケ地">
 
     <!-- Title -->
     <title>Sakai Masato Database</title>
@@ -72,18 +72,20 @@
             border-radius: 12px;
             padding: 0.3cm;
             box-sizing: border-box;
-            display: none; /* 初始隐藏 */
+            display: none;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
+            position: relative;
         }
 
         #world-map {
             width: 100%;
             height: auto;
             display: block;
+            touch-action: none;
         }
 
-        /* 深色模式 - 地图边框 */
         @media (prefers-color-scheme: dark) {
             #map-wrapper {
                 border-color: #666;
@@ -98,16 +100,18 @@
             width: 100%;
             max-width: 1200px;
             display: none;
-            flex-direction: column;
+            flex-direction: row;
             gap: 20px;
             padding: 20px;
             box-sizing: border-box;
+            align-items: flex-start;
         }
 
         #events-grid {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
+            flex: 1;
         }
 
         .event-card {
@@ -146,15 +150,14 @@
         }
 
         #flags-section {
-            width: 100%;
             display: flex;
             gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
-            padding: 20px;
-            border: 2px solid black;
-            border-radius: 12px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 10px;
             box-sizing: border-box;
+            min-width: fit-content;
         }
 
         .flag-item {
@@ -192,10 +195,6 @@
             .event-card:hover {
                 box-shadow: 0 8px 16px rgba(255, 255, 255, 0.1);
             }
-
-            #flags-section {
-                border-color: #666;
-            }
         }
 
         body.dark-mode .event-card {
@@ -218,10 +217,6 @@
 
         body.dark-mode .event-card:hover {
             box-shadow: 0 8px 16px rgba(255, 255, 255, 0.1);
-        }
-
-        body.dark-mode #flags-section {
-            border-color: #666;
         }
 
         @media (max-width: 768px) {
@@ -302,6 +297,78 @@
             color: white;
             font-size: 20px;
         }
+
+        /* Zoom Controls */
+        .zoom-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #333;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .zoom-btn:hover {
+            background: #f0f0f0;
+            transform: scale(1.05);
+        }
+
+        .zoom-btn:active {
+            transform: scale(0.95);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .zoom-btn {
+                background: #2a2a2a;
+                border-color: #666;
+                color: #e0e0e0;
+            }
+
+            .zoom-btn:hover {
+                background: #3a3a3a;
+            }
+        }
+
+        body.dark-mode .zoom-btn {
+            background: #2a2a2a;
+            border-color: #666;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .zoom-btn:hover {
+            background: #3a3a3a;
+        }
+
+        @media (max-width: 480px) {
+            .zoom-controls {
+                top: 5px;
+                right: 5px;
+                gap: 6px;
+            }
+
+            .zoom-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
+            }
+        }
     </style>
 </head>
 
@@ -314,11 +381,16 @@
         <div id="map-container">
             <div id="loading">地図を読み込んでいます...</div>
             <div id="map-wrapper">
+                <div class="zoom-controls">
+                    <button class="zoom-btn" id="zoom-in" title="放大">+</button>
+                    <button class="zoom-btn" id="zoom-out" title="缩小">−</button>
+                    <button class="zoom-btn" id="zoom-reset" title="重置">⟲</button>
+                </div>
                 <svg id="world-map"></svg>
             </div>
             <div id="events-container">
-                <div id="events-grid"></div>
                 <div id="flags-section"></div>
+                <div id="events-grid"></div>
             </div>
         </div>
     </div>
@@ -326,35 +398,22 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
     <script>
-        const nameMapping = {
-            "Japan": "Japan",
-            "China": "China",
-            "Mainland China": "China",
-            "France": "France",
-            "Israel": "Israel",
-            "Egypt": "Egypt",
-            "Scotland": "United Kingdom",
-            "Germany": "Germany",
-            "United States": "United States of America",
-            "United Kingdom": "United Kingdom",
-            "Macau China": "China",
-            "Mongolia": "Mongolia",
-            "Azerbaijan": "Azerbaijan",
-            "Thailand": "Thailand",
-        };
-
-        const flagMapping = {
-            "Japan": "🇯🇵",
-            "China": "🇨🇳",
-            "France": "🇫🇷",
-            "Israel": "🇮🇱",
-            "Egypt": "🇪🇬",
-            "United Kingdom": "🇬🇧",
-            "Germany": "🇩🇪",
-            "United States of America": "🇺🇸",
-            "Mongolia": "🇲🇳",
-            "Azerbaijan": "🇦🇿",
-            "Thailand": "🇹🇭",
+        const countryConfig = {
+            "Japan": { name: "Japan", flag: "🇯🇵" },
+            "China": { name: "China", flag: "🇨🇳" },
+            "Mainland China": { name: "China", flag: "🇨🇳" },
+            "Macau China": { name: "China", flag: "🇨🇳" },
+            "France": { name: "France", flag: "🇫🇷" },
+            "Israel": { name: "Israel", flag: "🇮🇱" },
+            "Egypt": { name: "Egypt", flag: "🇪🇬" },
+            "Scotland": { name: "United Kingdom", flag: "🇬🇧" },
+            "United Kingdom": { name: "United Kingdom", flag: "🇬🇧" },
+            "Germany": { name: "Germany", flag: "🇩🇪" },
+            "United States": { name: "United States of America", flag: "🇺🇸" },
+            "United States of America": { name: "United States of America", flag: "🇺🇸" },
+            "Mongolia": { name: "Mongolia", flag: "🇲🇳" },
+            "Azerbaijan": { name: "Azerbaijan", flag: "🇦🇿" },
+            "Thailand": { name: "Thailand", flag: "🇹🇭" },
         };
 
         let allLocationData = [];
@@ -373,6 +432,34 @@
             const svg = d3.select("#world-map")
                 .attr("viewBox", `0 0 ${width} ${height}`)
                 .attr("preserveAspectRatio", "xMidYMid meet");
+
+            const g = svg.append("g");
+
+            const zoom = d3.zoom()
+                .scaleExtent([1, 8])
+                .on('zoom', (event) => {
+                    g.attr('transform', event.transform);
+                });
+
+            svg.call(zoom);
+
+            document.getElementById('map-wrapper').addEventListener('wheel', (event) => {
+                event.preventDefault();
+            }, { passive: false });
+            document.getElementById('zoom-in').addEventListener('click', () => {
+                svg.transition().duration(300).call(zoom.scaleBy, 1.5);
+            });
+
+            document.getElementById('zoom-out').addEventListener('click', () => {
+                svg.transition().duration(300).call(zoom.scaleBy, 0.67);
+            });
+
+            document.getElementById('zoom-reset').addEventListener('click', () => {
+                svg.transition().duration(500).call(
+                    zoom.transform,
+                    d3.zoomIdentity
+                );
+            });
 
             const projection = d3.geoNaturalEarth1()
                 .scale(width / 5.4)
@@ -418,15 +505,16 @@
 
                     if (row.Name && row.Name.includes("Location")) {
                         locs.forEach(loc => {
-                            const mappedName = nameMapping[loc];
-                            if (mappedName && flagMapping[mappedName]) {
-                                locationFlagsMap.set(mappedName, row.Url);
+                            const config = countryConfig[loc];
+                            if (config) {
+                                locationFlagsMap.set(config.name, row.Url);
                             }
                         });
                     } else {
                         locs.forEach(loc => {
-                            const mappedName = nameMapping[loc];
-                            if (mappedName) {
+                            const config = countryConfig[loc];
+                            if (config) {
+                                const mappedName = config.name;
                                 if (!activeCountries.has(mappedName)) {
                                     activeCountries.set(mappedName, []);
                                 }
@@ -456,12 +544,12 @@
                 const countries = topojson.feature(worldData, worldData.objects.countries).features;
                 const land = topojson.feature(worldData, worldData.objects.land);
 
-                svg.append("path")
+                g.append("path")
                     .datum(land)
                     .attr("class", "continent")
                     .attr("d", path);
 
-                svg.selectAll(".active-country")
+                g.selectAll(".active-country")
                     .data(countries.filter(d => activeCountries.has(d.properties.name)))
                     .enter()
                     .append("path")
@@ -480,7 +568,7 @@
                         }
                     });
 
-                svg.selectAll(".flag-label")
+                g.selectAll(".flag-label")
                     .data(countries.filter(d => activeCountries.has(d.properties.name)))
                     .enter()
                     .append("text")
@@ -490,7 +578,10 @@
                         if (!centroid[0] || !centroid[1]) return "translate(0,0)";
                         return `translate(${centroid[0]}, ${centroid[1]})`;
                     })
-                    .text(d => flagMapping[d.properties.name] || "");
+                    .text(d => {
+                        const config = countryConfig[d.properties.name];
+                        return config ? config.flag : "";
+                    });
 
                 // 隐藏loading,同时显示map-wrapper
                 document.getElementById('loading').style.display = 'none';
@@ -511,14 +602,15 @@
             flagsSection.innerHTML = '';
             container.style.display = 'flex';
 
-            // 只显示被点击国家的国旗
-            const flag = flagMapping[countryName];
-            const url = locationFlagsMap.get(countryName);
+            const flagCountryName = countryName === "Taiwan" ? "China" : countryName;
+            const config = countryConfig[flagCountryName];
+            const flag = config ? config.flag : null;
+            const url = locationFlagsMap.get(flagCountryName);
             if (flag) {
                 const flagItem = document.createElement('span');
                 flagItem.className = 'flag-item';
                 flagItem.textContent = flag;
-                flagItem.title = countryName;
+                flagItem.title = flagCountryName;
 
                 flagItem.addEventListener('click', (e) => {
                     e.stopPropagation();
