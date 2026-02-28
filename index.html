@@ -2,39 +2,28 @@
 <html lang="ja">
 
 <head>
-    <!-- Analytics and Tracking -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-6C7BJGKMFT"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-
         gtag('config', 'G-6C7BJGKMFT');
     </script>
-    
-    <!-- Meta Tags -->
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="description"
-        content="堺雅人データベース【非公式】 / Sakai Masato Database [Unofficial]">
-    <meta name="keywords"
-        content="堺雅人, Sakai Masato, Masato Sakai, Database, heatmap, contribution graph, calendar, カレンダー">
-    
-    <!-- Title -->
+    <meta name="description" content="堺雅人データベース【非公式】 / Sakai Masato Database [Unofficial]">
+    <meta name="keywords" content="堺雅人, Sakai Masato, Masato Sakai, Database">
     <title>Sakai Masato Database</title>
-    
-    <!-- Favicon for all devices and platforms -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
-    <link rel="shortcut icon" type="image/png" sizes="32x32" href="/favicon.png">
-    <!-- Android Chrome -->
-    <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png">
 
-    <!-- Scripts and Other Resources -->
-    <script src="js/timezone.js"></script>
-    <script src="js/00-index.js"></script>
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
+
+    <!-- Site globals: color vars + dark mode -->
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/mobileview.js"></script>
+    <script src="js/darkmode.js"></script>
+
     <style>
         :root {
             --bg-color: #f6f4ef;
@@ -50,206 +39,220 @@
             }
         }
 
-        * {
+        /* ── Full-screen layout ── */
+        html,
+        body {
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+            background-color: var(--bg-color);
+            position: fixed;
+        }
+
+        html,
+        body,
+        * {
+            font-family: "ヒラギノ明朝 ProN", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
         }
 
         body {
-            font-family: "ヒラギノ明朝 ProN", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
-            background-color: var(--bg-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: var(--text-color);
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            /* Prevent scrolling */
-            position: fixed;
-            /* Lock body in place */
-            padding: 0;
-            margin: 0;
             transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        .container {
-            width: 100vw;
-            height: 100vh;
-            display: grid;
+        /* ── Outer wrapper: two panels, 70% of page height ── */
+        .hp-layout {
+            display: flex;
+            flex-direction: row;
+            width: calc(100% - 80px);
+            height: 70vh;
             gap: 20px;
-            padding: 20px;
             box-sizing: border-box;
-            overflow: hidden;
+            align-items: stretch;
+            justify-content: center;
         }
 
-        /* Desktop layout: 4 columns, 3 rows */
-        @media (min-width: 769px) {
-            .container {
-                grid-template-columns: repeat(4, 1fr);
-                grid-template-rows: repeat(3, 1fr);
-            }
-
-            .database {
-                grid-column: span 2;
-                grid-row: span 2;
-            }
-
-            .birthday-countdown {
-                grid-column: span 1;
-            }
-
-            .date-countdown {
-                grid-column: span 1;
-            }
-
-            .work1 {
-                grid-column: span 2;
-            }
-
-            .calendar {
-                grid-column: span 2;
-                grid-row: span 2;
-            }
-        }
-
-        /* Mobile layout: only show database */
-        @media (max-width: 768px) {
-            .container {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-            }
-
-            .grid-item:not(.database) {
-                display: none;
-            }
-
-            .grid-item.database {
-                width: 80%;
-                max-width: 400px;
-            }
-        }
-
-        .grid-item {
-            background-color: var(--bg-color);
+        /* ────────────────────────
+           LEFT: entry block
+        ──────────────────────── */
+        .hp-block {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
             border: 4px solid var(--border-color);
             border-radius: 20px;
             padding: 30px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
+            text-decoration: none;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            cursor: pointer;
+            box-sizing: border-box;
             transition: all 0.3s ease;
-            min-height: 150px;
         }
 
-        .grid-item.hoverable:hover {
+        .hp-block:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            cursor: pointer;
         }
 
-        .disclaimer {
-            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
-            line-height: 1.6;
-            align-items: flex-start;
-            text-align: left;
+        .hp-block:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
-        .birthday-countdown .title {
-            font-size: clamp(1rem, 1.6vw, 1.2rem);
-            margin-bottom: 10px;
-            font-weight: 300;
+        .dark-mode .hp-block {
+            border-color: var(--border-color);
         }
 
-        .birthday-countdown .days {
-            font-size: clamp(1.5rem, 3vw, 2.5rem);
-            font-weight: bold;
-            color: var(--text-color);
-        }
-
-        .birthday-special {
-            font-size: clamp(1.8rem, 3.5vw, 2.5rem) !important;
-            font-weight: bold;
-            background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: rainbow 3s ease-in-out infinite;
-        }
-
-        @keyframes rainbow {
-
-            0%,
-            100% {
-                filter: hue-rotate(0deg);
-            }
-
-            50% {
-                filter: hue-rotate(180deg);
-            }
-        }
-
-        .database {
+        .hp-block-title {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
             font-size: clamp(2rem, 5.5vw, 4rem);
-            font-family: " ";
             font-weight: bold;
+            line-height: 1.3;
             letter-spacing: 2px;
             text-align: left;
-            align-items: center;
-            justify-content: center;
         }
 
-        .database-text {
-            text-align: left;
+        /* ────────────────────────
+           RIGHT: carousel
+        ──────────────────────── */
+        .hp-carousel-outer {
+            flex: 1;
+            border: 4px solid var(--border-color);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            box-sizing: border-box;
+            background-color: var(--bg-color);
+            transition: all 0.3s ease;
         }
 
-        .date-countdown {
-            font-size: 1.2rem;
-            font-weight: bold;
+        .hp-carousel-outer:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
-        .date-countdown .label {
-            font-size: clamp(1rem, 1.6vw, 1.2rem);
-            margin-bottom: 10px;
-            opacity: 0.8;
+        .hp-carousel-outer:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
-        .date-countdown #dateCountdown {
-            font-size: clamp(1.5rem, 3vw, 2.5rem);
-            font-weight: bold;
+        .dark-mode .hp-carousel-outer {
+            border-color: var(--border-color);
         }
 
-        .work1 {
-            font-size: clamp(1.2rem, 2.5vw, 1.8rem);
-            font-weight: 500;
-        }
-
-        .calendar {
-            font-size: clamp(1.5rem, 3vw, 2rem);
-            font-weight: bold;
+        .carousel-track {
             display: flex;
+            height: 100%;
+            will-change: transform;
+        }
+
+        .carousel-slide {
+            flex-shrink: 0;
+            height: 100%;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            text-align: center;
+            padding: 30px 24px;
+            box-sizing: border-box;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: background-color 0.3s;
         }
 
-        @media (max-width: 768px) {
-            .grid-item {
-                padding: 20px;
-                min-height: 120px;
-            }
-
-            /* Font sizes are now handled by clamp() */
+        .carousel-slide:hover {
+            background-color: rgba(0, 0, 0, 0.025);
         }
 
-        /* Modal Styles */
+        .dark-mode .carousel-slide:hover {
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+
+        .slide-name {
+            font-size: clamp(1rem, 2.5vw, 2rem);
+            font-weight: bold;
+            line-height: 1.4;
+            margin-bottom: 14px;
+            white-space: normal;
+        }
+
+        .slide-info {
+            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+            line-height: 1.7;
+            opacity: 1;
+        }
+
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--text-color);
+            opacity: 0.22;
+            padding: 12px;
+            transition: opacity 0.2s;
+            z-index: 10;
+            line-height: 1;
+        }
+
+        .carousel-btn:hover {
+            opacity: 0.75;
+        }
+
+        .carousel-btn.prev {
+            left: 6px;
+        }
+
+        .carousel-btn.next {
+            right: 6px;
+        }
+
+        /* dots */
+        .carousel-dots {
+            position: absolute;
+            bottom: 18px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--text-color);
+            opacity: 0.2;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            transition: opacity 0.25s, transform 0.25s;
+        }
+
+        .dot.active {
+            opacity: 0.65;
+            transform: scale(1.45);
+        }
+
+        /* ── Disclaimer modal ── */
         .modal-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+            inset: 0;
             background-color: rgba(0, 0, 0, 0.5);
             display: none;
             justify-content: center;
@@ -259,6 +262,7 @@
 
         .modal-card {
             background-color: var(--bg-color);
+            color: var(--text-color);
             border: 4px solid var(--border-color);
             border-radius: 20px;
             padding: 40px;
@@ -286,10 +290,6 @@
             opacity: 0.7;
         }
 
-        .modal-content {
-            margin-bottom: 30px;
-        }
-
         .modal-text {
             font-size: 1.1rem;
             line-height: 1.6;
@@ -297,15 +297,11 @@
             text-align: left;
         }
 
-        .modal-text.english {
-            margin-bottom: 25px;
+        .modal-text:last-of-type {
+            margin-bottom: 30px;
         }
 
-        .modal-text.japanese {
-            margin-bottom: 0;
-        }
-
-        .modal-button {
+        .modal-btn {
             background-color: var(--bg-color);
             border: 3px solid var(--border-color);
             border-radius: 15px;
@@ -318,162 +314,317 @@
             font-family: inherit;
         }
 
-        .modal-button:hover {
+        .modal-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
+
+        /* ── Mobile ── */
+        @media (max-width: 768px) {
+
+            html,
+            body {
+                overflow: hidden;
+                height: 100vh;
+                position: fixed;
+            }
+
+            body {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .hp-layout {
+                flex-direction: column;
+                width: 80%;
+                max-width: 400px;
+                height: auto;
+                max-height: 80vh;
+                padding: 16px 0;
+                align-items: center;
+                justify-content: center;
+                gap: 20px;
+            }
+
+            .hp-block {
+                width: 100%;
+                min-height: 150px;
+            }
+
+            /* Fix carousel height explicitly on mobile */
+            .hp-carousel-outer {
+                width: 100%;
+                height: 250px;
+                min-height: 250px;
+            }
+
+            .carousel-track {
+                height: 250px;
+            }
+
+            .carousel-slide {
+                height: 250px !important;
+                min-height: 250px !important;
+            }
+
+            .hp-block-title {
+                font-size: clamp(24px, 8vw, 36px);
+            }
+
+            .slide-name {
+                white-space: normal;
+                font-size: 16px;
+            }
+
+            .slide-info {
+                font-size: 13px;
+            }
+
+            .hp-block:hover,
+            .hp-carousel-outer:hover {
+                transform: translateY(-3px);
+            }
+        }
     </style>
-    <!-- Calendar Specific Styles -->
-    <link rel="stylesheet" href="css/00-index.css">
 </head>
 
 <body>
-    <div class="container">
-        <!-- Row 1 & 2 Left: Database (2x2) -->
-        <div class="grid-item database hoverable" onclick="showDisclaimer('skmst.html')">
-            <div class="database-text">
-                <div>SAKAI MASATO</div>
-                <div>DATABASE</div>
-            </div>
+
+    <div class="hp-layout">
+
+        <!-- LEFT: entry block -->
+        <div class="hp-block" onclick="showDisclaimer('skmst.html')">
+            <div class="hp-block-title">SAKAI MASATO<br>DATABASE</div>
         </div>
 
-        <!-- Row 1 Right: Countdowns (1x1 each) -->
-        <div class="grid-item birthday-countdown hoverable"
-            onclick="window.open('https://sakai-masato.com/', '_blank')">
-            <div class="title" id="birthdayTitle">His Birthday</div>
-            <div class="days" id="birthdayDays"> </div>
+        <!-- RIGHT: infinite carousel -->
+        <div class="hp-carousel-outer" id="carouselOuter">
+            <div class="carousel-track" id="track"></div>
+
+            <button class="carousel-btn prev" id="prevBtn" aria-label="Previous">←</button>
+            <button class="carousel-btn next" id="nextBtn" aria-label="Next">→</button>
+
+            <div class="carousel-dots" id="dotsEl"></div>
         </div>
 
-        <div class="grid-item date-countdown hoverable"
-            onclick="window.open('https://amzn.asia/d/0f3WNmyn', '_blank')">
-            <div class="label">平場の月</div>
-            <div class="label">Blu-ray ＆ DVD 4月24日(金)発売決定</div>
-            <div id="dateCountdown"> </div>
-        </div>
-
-        <div class="grid-item calendar hoverable"
-            onclick="if(!event.target.closest('.cal-event')) showDisclaimer('today.html')">
-            <div class="calendar-wrapper">
-                <div class="calendar-header" id="miniCalTitle">Loading...</div>
-                <div class="calendar-grid" id="miniCalGrid">
-                    <!-- Grid content will be injected by JS -->
-                </div>
-            </div>
-        </div>
-
-        <div class="grid-item work1 hoverable" onclick="window.open('https://www.tbs.co.jp/VIVANT_tbs/', '_blank')">
-            VIVANT in 2026
-        </div>
     </div>
 
     <!-- Disclaimer Modal -->
     <div class="modal-overlay" id="disclaimerModal">
         <div class="modal-card">
             <button class="modal-close" onclick="closeDisclaimer()">&times;</button>
-            <div class="modal-content">
-                <div class="modal-text english">
-                    This site is NOT an official site, with NO affiliation with Mr. Sakai Masato or his management.
-                </div>
-                <div class="modal-text japanese">
-                    当サイトは非公式であり、堺さんおよび関係各所とは一切関係ございません。
-                </div>
-            </div>
-            <button class="modal-button" onclick="acceptDisclaimer()">OK</button>
+            <p class="modal-text">This site is NOT an official site, with NO affiliation with Mr. Sakai Masato or his
+                management.</p>
+            <p class="modal-text">当サイトは非公式であり、堺さんおよび関係各所とは一切関係ございません。</p>
+            <button class="modal-btn" onclick="acceptDisclaimer()">OK</button>
         </div>
     </div>
 
     <script>
-        let pendingRedirect = null;
+        const SLIDES = [
+            {
+                name: '大河ドラマ『篤姫』ブルーレイ BOX',
+                info: '2026年3月27日 発売',
+                url: 'https://amzn.asia/d/00Yc8zWj'
+            },
+            {
+                name: '『平場の月』Blu-ray &amp; DVD',
+                info: '2026年4月24日 発売',
+                url: 'https://amzn.asia/d/000fz4v8'
+            },
+            {
+                name: '日曜劇場『VIVANT』',
+                info: 'comeback in 2026',
+                url: 'https://www.tbs.co.jp/VIVANT_tbs/'
+            },
+            {
+                name: 'PARCO PRODUCE 舞台『スリーゴースト』',
+                info: '2026年10月 PARCO劇場<br>2026年11-12月 全国ツアー（大阪、福岡、愛知、岡山、宮崎）',
+                url: 'https://stage.parco.jp/program/threeghosts/'
+            }
+        ];
 
+        const N = SLIDES.length;   // 4
+        const TOTAL = N + 2;          // 6 (including two clones)
+
+        const track = document.getElementById('track');
+        const outer = document.getElementById('carouselOuter');
+        const dotsEl = document.getElementById('dotsEl');
+
+        // ── Build slides in DOM ──
+        (function buildDOM() {
+            const order = [SLIDES[N - 1], ...SLIDES, SLIDES[0]];
+
+            order.forEach(s => {
+                const a = document.createElement('a');
+                a.href = s.url;
+                a.target = '_blank';
+                a.className = 'carousel-slide';
+                a.innerHTML = `<div class="slide-name">${s.name}</div><div class="slide-info">${s.info}</div>`;
+                track.appendChild(a);
+            });
+
+            // Track is TOTAL × outer width
+            track.style.width = `${TOTAL * 100}%`;
+
+            // Each slide = 1/TOTAL of track = 100% of outer
+            document.querySelectorAll('.carousel-slide').forEach(s => {
+                s.style.width = `${100 / TOTAL}%`;
+            });
+        })();
+
+        // ── Build dots ──
+        SLIDES.forEach((_, i) => {
+            const b = document.createElement('button');
+            b.className = 'dot' + (i === 0 ? ' active' : '');
+            b.dataset.i = i;
+            b.addEventListener('click', e => { e.stopPropagation(); jumpTo(i, true); });
+            dotsEl.appendChild(b);
+        });
+
+        // ── State ──
+        let trackPos = 1;
+        let realIdx = 0;
+        let busy = false;
+        let timer;
+
+        function translate(pos, animate) {
+            track.style.transition = animate
+                ? 'transform 0.55s cubic-bezier(0.65, 0, 0.35, 1)'
+                : 'none';
+            track.style.transform = `translateX(-${(pos / TOTAL) * 100}%)`;
+        }
+
+        translate(trackPos, false);
+
+        function updateDots(idx) {
+            document.querySelectorAll('.dot').forEach((d, i) => {
+                d.classList.toggle('active', i === idx);
+            });
+        }
+
+        function goNext(manual) {
+            if (busy) return;
+            busy = true;
+
+            const nextPos = trackPos + 1;
+            const nextReal = (realIdx + 1) % N;
+
+            translate(nextPos, true);
+            updateDots(nextReal);
+
+            track.addEventListener('transitionend', function handler() {
+                track.removeEventListener('transitionend', handler);
+                trackPos = nextPos;
+                realIdx = nextReal;
+
+                if (trackPos === TOTAL - 1) {
+                    trackPos = 1;
+                    translate(trackPos, false);
+                }
+                busy = false;
+            });
+
+            if (manual) resetTimer();
+        }
+
+        function goPrev(manual) {
+            if (busy) return;
+            busy = true;
+
+            const prevPos = trackPos - 1;
+            const prevReal = (realIdx - 1 + N) % N;
+
+            translate(prevPos, true);
+            updateDots(prevReal);
+
+            track.addEventListener('transitionend', function handler() {
+                track.removeEventListener('transitionend', handler);
+                trackPos = prevPos;
+                realIdx = prevReal;
+
+                if (trackPos === 0) {
+                    trackPos = N;
+                    translate(trackPos, false);
+                }
+                busy = false;
+            });
+
+            if (manual) resetTimer();
+        }
+
+        function jumpTo(idx, manual) {
+            if (busy || idx === realIdx) return;
+            busy = true;
+
+            trackPos = idx + 1;
+            realIdx = idx;
+
+            translate(trackPos, true);
+            updateDots(realIdx);
+
+            track.addEventListener('transitionend', function handler() {
+                track.removeEventListener('transitionend', handler);
+                busy = false;
+            });
+
+            if (manual) resetTimer();
+        }
+
+        // ── Auto-play ──
+        function startTimer() {
+            timer = setInterval(() => goNext(false), 4500);
+        }
+        function resetTimer() {
+            clearInterval(timer);
+            startTimer();
+        }
+        startTimer();
+
+        // ── Controls ──
+        document.getElementById('nextBtn').addEventListener('click', e => { e.stopPropagation(); goNext(true); });
+        document.getElementById('prevBtn').addEventListener('click', e => { e.stopPropagation(); goPrev(true); });
+
+        // Touch swipe
+        let tx = 0;
+        outer.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+        outer.addEventListener('touchend', e => {
+            const dx = e.changedTouches[0].clientX - tx;
+            if (Math.abs(dx) > 40) dx < 0 ? goNext(true) : goPrev(true);
+        });
+
+        // Keyboard
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') goNext(true);
+            if (e.key === 'ArrowLeft') goPrev(true);
+        });
+
+        // Prevent navigation during busy transition
+        document.querySelectorAll('.carousel-slide').forEach(a => {
+            a.addEventListener('click', e => { if (busy) e.preventDefault(); });
+        });
+
+        /* ── Disclaimer ── */
+        let pendingRedirect = null;
         function showDisclaimer(url) {
             pendingRedirect = url;
             document.getElementById('disclaimerModal').style.display = 'flex';
         }
-
         function closeDisclaimer() {
             document.getElementById('disclaimerModal').style.display = 'none';
             pendingRedirect = null;
         }
-
         function acceptDisclaimer() {
-            if (pendingRedirect) {
-                window.location.href = pendingRedirect;
-            }
+            if (pendingRedirect) window.location.href = pendingRedirect;
             closeDisclaimer();
         }
-
-        // Close modal when clicking outside the card
-        document.getElementById('disclaimerModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeDisclaimer();
-            }
+        document.getElementById('disclaimerModal').addEventListener('click', function (e) {
+            if (e.target === this) closeDisclaimer();
         });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeDisclaimer();
-            }
-        });
-
-        function updateCountdowns() {
-            const today = getJSTNow();
-            const currentYear = today.getUTCFullYear();
-
-            // Birthday countdown (October 14)
-            const birthdayTitle = document.getElementById('birthdayTitle');
-            const birthdayDays = document.getElementById('birthdayDays');
-
-            // Check if today is the birthday (October 14th)
-            const todayMonth = today.getUTCMonth();
-            const todayDate = today.getUTCDate();
-
-            if (todayMonth === 9 && todayDate === 14) {
-                // Today is October 14th - birthday!
-                birthdayTitle.textContent = '';
-                birthdayDays.textContent = '堺さん お誕生日おめでとうございます！';
-                birthdayDays.classList.add('birthday-special');
-            } else {
-                // Calculate next birthday
-                let nextBirthday = new Date(Date.UTC(currentYear, 9, 14)); // Month is 0-indexed
-                if (today > nextBirthday) {
-                    nextBirthday = new Date(Date.UTC(currentYear + 1, 9, 14));
-                }
-                const birthdayDiff = Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24));
-                birthdayTitle.textContent = '堺さんの誕生日';
-                birthdayDays.textContent = `${birthdayDiff} Days Left`;
-                birthdayDays.classList.remove('birthday-special');
-            }
-
-            // Date countdown (November 14, 2025)
-            const targetDate = new Date(Date.UTC(2025, 10, 14)); // Month is 0-indexed
-            const dateDiff = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
-            const dateCountdown = document.getElementById('dateCountdown');
-
-            if (dateDiff === 0) {
-                dateCountdown.textContent = 'D-Day';
-            } else if (dateDiff > 0) {
-                dateCountdown.textContent = `D-${dateDiff}`;
-            } else {
-                const daysPast = Math.abs(dateDiff);
-                dateCountdown.textContent = `${daysPast} Days ago`;
-            }
-        }
-
-        function scheduleNextUpdate() {
-            const msUntilMidnight = getMillisecondsUntilJSTMidnight();
-            const delay = msUntilMidnight + 1000;
-
-            console.log(`Next update scheduled in ${delay} ms (approx ${delay / 1000 / 60} minutes)`);
-
-            setTimeout(() => {
-                updateCountdowns();
-                scheduleNextUpdate(); // Schedule next day
-            }, delay);
-        }
-
-        updateCountdowns();
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDisclaimer(); });
     </script>
+
 </body>
 
 </html>
