@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <!-- Analytics and Tracking -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6C7BJGKMFT"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-6C7BJGKMFT');
+    </script>
+
+    <!-- Meta Tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="堺雅人データベース【非公式】 / Sakai Masato Database [Unofficial]">
+    <meta name="keywords" content="堺雅人, Sakai Masato, Masato Sakai, Database, Award, 受賞歴">
+
+    <!-- Title -->
+    <title>Sakai Masato Database</title>
+
+    <!-- Favicon for all devices and platforms -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
+    <link rel="shortcut icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <!-- Android Chrome -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png">
+
+    <!-- External Stylesheets and Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="navi/navi.css">
+    <link rel="stylesheet" href="css/09-award.css">
+
+    <!-- Scripts and Other Resources -->
+    <script src="js/mobileview.js"></script>
+    <script src="js/visibility.js"></script>
+    <script src="js/darkmode.js"></script>
+    <script src="navi/navHighlight.js"></script>
+    <script src="js/timezone.js"></script>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <!-- Navbar content will be loaded here -->
+    </aside>
+
+    <div class="main-content-wrapper">
+        <div class="content-header">
+            <h1 class="title">AWARDS</h1>
+            <div class="stats-summary" id="stats-summary">
+                <!-- Stats will be injected here -->
+            </div>
+        </div>
+
+        <div id="award-container">
+            <!-- Skeleton loading -->
+            <div class="award-category-section">
+                <div class="awards-grid">
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/09-award.js"></script>
+</body>
+
+</html>
