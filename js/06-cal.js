@@ -242,15 +242,35 @@ function parseCSVRow(row) {
     return result.map(value => value.replace(/^"(.*)"$/, '$1'));
 }
 
+function getWeekNumber(date) {
+    const target = new Date(date.getTime());
+    const yearStart = createJSTDate(target.getUTCFullYear(), 0, 1);
+    const dayOfWeekYearStart = yearStart.getUTCDay() || 7;
+    const daysToFirstSunday = 7 - dayOfWeekYearStart;
+    const firstSunday = createJSTDate(target.getUTCFullYear(), 0, 1 + daysToFirstSunday);
+
+    if (target.getTime() <= firstSunday.getTime()) {
+        return 1;
+    }
+
+    const diffDays = Math.round((target.getTime() - firstSunday.getTime()) / 86400000);
+    return Math.floor((diffDays - 1) / 7) + 2;
+}
+
 function generateCalendar(year, month, events) {
     const calendarGrid = document.querySelector('.calendar-grid');
     calendarGrid.className = 'calendar-grid';
     calendarGrid.innerHTML = '';
 
+    const cornerHeader = document.createElement('div');
+    cornerHeader.className = 'calendar-day-header';
+    cornerHeader.textContent = '';
+    calendarGrid.appendChild(cornerHeader);
+
     const days = ['月', '火', '水', '木', '金', '土', '日'];
     days.forEach(day => {
         const header = document.createElement('div');
-        header.className = 'calendar-day-header';
+        header.className = 'calendar-day-header day-of-week';
         header.textContent = day;
         calendarGrid.appendChild(header);
     });
@@ -265,26 +285,50 @@ function generateCalendar(year, month, events) {
     const today = getJSTNow();
     const isCurrentMonth = today.getUTCFullYear() === year && today.getUTCMonth() === month;
 
+    const daysArray = [];
+
     for (let i = 0; i < firstDayOfWeek; i++) {
         const day = prevMonthLastDay - firstDayOfWeek + i + 1;
         const date = createJSTDate(year, month - 1, day);
-        calendarGrid.appendChild(createDayElement(day, date, true));
+        daysArray.push({ day, date, isOtherMonth: true, isToday: false });
     }
 
     for (let day = 1; day <= lastDay.getUTCDate(); day++) {
         const date = createJSTDate(year, month, day);
         const isToday = isCurrentMonth && today.getUTCDate() === day;
-        calendarGrid.appendChild(createDayElement(day, date, false, isToday));
+        daysArray.push({ day, date, isOtherMonth: false, isToday });
     }
 
     const totalDaysDisplayed = firstDayOfWeek + lastDay.getUTCDate();
     const remainingCells = (7 - (totalDaysDisplayed % 7)) % 7;
     for (let day = 1; day <= remainingCells; day++) {
         const date = createJSTDate(year, month + 1, day);
-        calendarGrid.appendChild(createDayElement(day, date, true));
+        daysArray.push({ day, date, isOtherMonth: true, isToday: false });
+    }
+
+    for (let i = 0; i < daysArray.length; i += 7) {
+        const thursday = daysArray[i + 3].date;
+        const weekNum = getWeekNumber(thursday);
+
+        const weekCell = document.createElement('div');
+        weekCell.className = 'week-number-cell';
+        weekCell.textContent = weekNum;
+        calendarGrid.appendChild(weekCell);
+
+        for (let j = 0; j < 7; j++) {
+            const data = daysArray[i + j];
+            calendarGrid.appendChild(createDayElement(data.day, data.date, data.isOtherMonth, data.isToday));
+        }
     }
 
     if (events && events.length > 0) renderEvents(calendarGrid, year, month, events);
+
+    requestAnimationFrame(() => {
+        const headerCell = calendarGrid.querySelector('.day-of-week');
+        if (headerCell) {
+            calendarGrid.style.setProperty('--week-col-width', `${headerCell.offsetHeight}px`);
+        }
+    });
 }
 
 function renderEvents(calendarGrid, year, month, events) {
@@ -664,6 +708,16 @@ document.addEventListener('DOMContentLoaded', async function () {
         muts.forEach(m => { if (m.attributeName === 'class') applyDarkModeToCalendar(); });
     });
     obs.observe(document.body, { attributes: true });
+
+    window.addEventListener('resize', () => {
+        const calendarGrid = document.querySelector('.calendar-grid');
+        if (calendarGrid && !calendarGrid.classList.contains('year-mode-grid')) {
+            const headerCell = calendarGrid.querySelector('.day-of-week');
+            if (headerCell) {
+                calendarGrid.style.setProperty('--week-col-width', `${headerCell.offsetHeight}px`);
+            }
+        }
+    });
 
     document.getElementById('prev-month').addEventListener('click', () => navigateMonth('prev'));
     document.getElementById('next-month').addEventListener('click', () => navigateMonth('next'));
