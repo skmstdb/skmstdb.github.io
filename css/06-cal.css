@@ -148,7 +148,7 @@ body {
 /* Calendar Grid */
 .calendar-grid {
     display: grid;
-    grid-template-columns: var(--week-col-width, 50px) repeat(7, 1fr);
+    grid-template-columns: var(--week-col-width, 15px) repeat(7, 1fr);
     gap: 2px;
     background-color: var(--border-color);
     overflow: hidden;
