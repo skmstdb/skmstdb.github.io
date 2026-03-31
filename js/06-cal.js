@@ -718,11 +718,17 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     window.addEventListener('resize', () => {
         const calendarGrid = document.querySelector('.calendar-grid');
-        if (calendarGrid && !calendarGrid.classList.contains('year-mode-grid')) {
+        if (!calendarGrid || calendarGrid.classList.contains('year-mode-grid')) return;
+
+        if (window.innerWidth > 768) {
+            // Desktop: match week-column width to the day-header cell height (square)
             const headerCell = calendarGrid.querySelector('.day-of-week');
             if (headerCell) {
                 calendarGrid.style.setProperty('--week-col-width', `${headerCell.offsetHeight}px`);
             }
+        } else {
+            // Mobile: always remove the inline value so CSS fixed 24px applies
+            calendarGrid.style.removeProperty('--week-col-width');
         }
     });
 
