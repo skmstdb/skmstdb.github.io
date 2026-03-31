@@ -242,19 +242,19 @@ function parseCSVRow(row) {
     return result.map(value => value.replace(/^"(.*)"$/, '$1'));
 }
 
+// ISO 8601: Week 1 = the week containing the year's first Thursday.
+// Weeks start on Monday. Uses the date passed in (UTC).
 function getWeekNumber(date) {
-    const target = new Date(date.getTime());
-    const yearStart = createJSTDate(target.getUTCFullYear(), 0, 1);
-    const dayOfWeekYearStart = yearStart.getUTCDay() || 7;
-    const daysToFirstSunday = 7 - dayOfWeekYearStart;
-    const firstSunday = createJSTDate(target.getUTCFullYear(), 0, 1 + daysToFirstSunday);
-
-    if (target.getTime() <= firstSunday.getTime()) {
-        return 1;
-    }
-
-    const diffDays = Math.round((target.getTime() - firstSunday.getTime()) / 86400000);
-    return Math.floor((diffDays - 1) / 7) + 2;
+    // Work in UTC to stay consistent with createJSTDate outputs
+    const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+    // Shift so Monday=0 … Sunday=6
+    const dayOfWeek = (d.getUTCDay() + 6) % 7;
+    // Move to the Thursday of this week (ISO anchor day)
+    d.setUTCDate(d.getUTCDate() - dayOfWeek + 3);
+    // January 4 is always in ISO Week 1
+    const jan4 = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+    // How many weeks from Week 1's Thursday to this Thursday?
+    return 1 + Math.round((d.getTime() - jan4.getTime()) / 604800000);
 }
 
 function generateCalendar(year, month, events) {
@@ -323,12 +323,19 @@ function generateCalendar(year, month, events) {
 
     if (events && events.length > 0) renderEvents(calendarGrid, year, month, events);
 
-    requestAnimationFrame(() => {
-        const headerCell = calendarGrid.querySelector('.day-of-week');
-        if (headerCell) {
-            calendarGrid.style.setProperty('--week-col-width', `${headerCell.offsetHeight}px`);
-        }
-    });
+    // Only apply dynamic square sizing on non-mobile viewports.
+    // On mobile the CSS default (--week-col-width: 15px) applies instead.
+    if (window.innerWidth > 768) {
+        requestAnimationFrame(() => {
+            const headerCell = calendarGrid.querySelector('.day-of-week');
+            if (headerCell) {
+                calendarGrid.style.setProperty('--week-col-width', `${headerCell.offsetHeight}px`);
+            }
+        });
+    } else {
+        // Remove any inline value so the CSS variable default takes over
+        calendarGrid.style.removeProperty('--week-col-width');
+    }
 }
 
 function renderEvents(calendarGrid, year, month, events) {
