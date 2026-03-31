@@ -45,12 +45,15 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
     overscroll-behavior-y: contain;
-    -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
-    will-change: scroll-position;       /* promote to its own GPU layer */
+    -webkit-overflow-scrolling: touch;
+    /* iOS momentum scrolling */
+    will-change: scroll-position;
+    /* promote to its own GPU layer */
 }
 
 /* ── Mobile: restore global scroll (sidebar is a top bar, not a side panel) ── */
 @media (max-width: 767px) {
+
     html,
     body {
         height: auto;
