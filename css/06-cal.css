@@ -22,6 +22,14 @@
     box-sizing: border-box;
 }
 
+/* ── Scroll isolation: lock the outer shell, scroll inside the wrapper ── */
+html,
+body {
+    height: 100vh;
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
 body {
     font-family: "ヒラギノ明朝 ProN", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
     background-color: var(--bg-color);
@@ -29,6 +37,31 @@ body {
     transition: background-color 0.3s ease, color 0.3s ease;
     margin: 0;
     padding: 0;
+}
+
+/* Right panel becomes the independent scroll container */
+.main-content-wrapper {
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
+    will-change: scroll-position;       /* promote to its own GPU layer */
+}
+
+/* ── Mobile: restore global scroll (sidebar is a top bar, not a side panel) ── */
+@media (max-width: 767px) {
+    html,
+    body {
+        height: auto;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .main-content-wrapper {
+        height: auto;
+        overflow-y: visible;
+    }
 }
 
 /* Main Content */
@@ -115,7 +148,7 @@ body {
 /* Calendar Grid */
 .calendar-grid {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: var(--week-col-width, 50px) repeat(7, 1fr);
     gap: 2px;
     background-color: var(--border-color);
     overflow: hidden;
@@ -133,6 +166,17 @@ body {
     font-weight: bold;
     font-size: 1.1rem;
     border-top: 2px solid var(--border-color);
+}
+
+/* Week Number Column */
+.week-number-cell {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.1rem;
 }
 
 /* Calendar Days */
