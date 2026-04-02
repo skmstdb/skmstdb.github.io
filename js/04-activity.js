@@ -87,7 +87,7 @@ function getActivityOrder(worksType) {
 
 // --- Constants ---
 const BIRTH_DATE = parseJSTDate('1973/10/14');
-const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '🎂', 'Nov', 'Dec'];
+const MONTH_NAMES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 const CURRENT_YEAR = getJSTYear();
 const START_YEAR_MONTH_VIEW = 1992;
 const START_YEAR_GLOBAL = 1970;
@@ -102,7 +102,7 @@ function getAgeAtDate(birthDate, targetDate) {
     return age;
 }
 
-function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRoleOnly, selectedTypes) {
+function renderGraphStructure(containerId, dataMap, labelMap, type) {
     const graphContainer = document.getElementById(containerId);
     if (!graphContainer) return;
 
@@ -126,10 +126,10 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
         years.forEach(year => {
             const yearCell = document.createElement('div');
             yearCell.className = 'year-header-cell';
-            const yearSpan = document.createElement('span');
-            yearSpan.className = 'year-text';
-            yearSpan.textContent = String(year);
-            yearCell.appendChild(yearSpan);
+            const yearBox = document.createElement('div');
+            yearBox.className = 'label-cell year-label-box';
+            yearBox.textContent = String(year).slice(-2);
+            yearCell.appendChild(yearBox);
             yearHeaderRow.appendChild(yearCell);
         });
         graphHTML.appendChild(yearHeaderRow);
@@ -137,10 +137,13 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
         for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
             const monthRow = document.createElement('div');
             monthRow.className = 'month-row';
-            const monthLabel = document.createElement('div');
-            monthLabel.className = 'month-label';
-            monthLabel.textContent = MONTH_NAMES[monthIndex];
-            monthRow.appendChild(monthLabel);
+            const monthLabelCell = document.createElement('div');
+            monthLabelCell.className = 'month-label';
+            const monthBox = document.createElement('div');
+            monthBox.className = 'label-cell month-label-box';
+            monthBox.textContent = MONTH_NAMES[monthIndex];
+            monthLabelCell.appendChild(monthBox);
+            monthRow.appendChild(monthLabelCell);
 
             years.forEach(year => {
                 const key = `${year}-${monthIndex}`;
@@ -151,7 +154,7 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
                 const worksForKey = dataMap[key];
 
                 if (worksForKey && worksForKey.length > 0) {
-                    const totalWorksInCell = worksForKey.length; 
+                    const totalWorksInCell = worksForKey.length;
                     yearBox.setAttribute('data-total-works', totalWorksInCell);
                     const groupedWorksByType = {};
                     worksForKey.forEach(work => {
@@ -199,7 +202,10 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
         for (let i = 0; i < 10; i++) {
             const digitCell = document.createElement('div');
             digitCell.className = 'digit-label-cell';
-            digitCell.textContent = i;
+            const digitBox = document.createElement('div');
+            digitBox.className = 'label-cell';
+            digitBox.textContent = i;
+            digitCell.appendChild(digitBox);
             digitLabelRow.appendChild(digitCell);
         }
         graphHTML.appendChild(digitLabelRow);
@@ -211,10 +217,13 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
         for (let decadeStart = currentDecadeStart; decadeStart <= lastDecadeStart; decadeStart += 10) {
             const decadeRow = document.createElement('div');
             decadeRow.className = `${type}-view-row`;
-            const decadeLabel = document.createElement('div');
-            decadeLabel.className = `${type}-view-label`;
-            decadeLabel.textContent = `${decadeStart}s`;
-            decadeRow.appendChild(decadeLabel);
+            const decadeLabelCell = document.createElement('div');
+            decadeLabelCell.className = `${type}-view-label`;
+            const decadeBox = document.createElement('div');
+            decadeBox.className = 'label-cell';
+            decadeBox.textContent = `${String(decadeStart).slice(-2)}s`;
+            decadeLabelCell.appendChild(decadeBox);
+            decadeRow.appendChild(decadeLabelCell);
 
             for (let i = 0; i < 10; i++) {
                 const value = decadeStart + i;
@@ -266,7 +275,7 @@ function renderGraphStructure(containerId, dataMap, labelMap, type, showLeadRole
 function getFilteredActivityDates(item) {
     const startDate = parseJSTDate(item.DateStart);
     if (!startDate) return new Set();
-    
+
     let endDate = startDate;
     if (item.DateEnd && item.DateEnd.trim() !== '') {
         const parsedEndDate = parseJSTDate(item.DateEnd);
@@ -301,13 +310,20 @@ function getFilteredActivityDates(item) {
     return relevantDates;
 }
 
-function createMonthGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
+// 非主演筛选作用的类型
+const NON_LEAD_APPLICABLE_TYPES = ['映画', 'TV', '舞台', 'その他', '声の出演'];
+
+function createMonthGraph(data, showLeadRoleOnly = false, selectedTypes = [], showNonLeadOnly = false) {
     const monthlyWorksMap = {};
     data.forEach(item => {
         const note = item.Note || '';
         const noteWords = note.toLowerCase().split(',').map(word => word.trim());
         if (noteWords.includes('memo') || noteWords.includes('uwasa')) return;
-        if (showLeadRoleOnly && item.Role !== '主演') return;
+        if (showLeadRoleOnly || showNonLeadOnly) {
+            const matchLead = showLeadRoleOnly && item.Role === '主演';
+            const matchNonLead = showNonLeadOnly && item.Role !== '主演' && NON_LEAD_APPLICABLE_TYPES.includes(item.WorksType);
+            if (!matchLead && !matchNonLead) return;
+        }
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
 
         const filteredActivityDates = getFilteredActivityDates(item);
@@ -321,16 +337,21 @@ function createMonthGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
             }
         });
     });
-    renderGraphStructure('contribution-graph', monthlyWorksMap, monthlyWorksMap, 'month', showLeadRoleOnly, selectedTypes);
+    renderGraphStructure('contribution-graph', monthlyWorksMap, monthlyWorksMap, 'month');
 }
 
-function createYearGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
+
+function createYearGraph(data, showLeadRoleOnly = false, selectedTypes = [], showNonLeadOnly = false) {
     const yearlyWorksMap = {};
     data.forEach(item => {
         const note = item.Note || '';
         const noteWords = note.toLowerCase().split(',').map(word => word.trim());
         if (noteWords.includes('memo') || noteWords.includes('uwasa')) return;
-        if (showLeadRoleOnly && item.Role !== '主演') return;
+        if (showLeadRoleOnly || showNonLeadOnly) {
+            const matchLead = showLeadRoleOnly && item.Role === '主演';
+            const matchNonLead = showNonLeadOnly && item.Role !== '主演' && NON_LEAD_APPLICABLE_TYPES.includes(item.WorksType);
+            if (!matchLead && !matchNonLead) return;
+        }
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
 
         const filteredActivityDates = getFilteredActivityDates(item);
@@ -344,16 +365,20 @@ function createYearGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
             if (!yearlyWorksMap[year].some(work => work.Title === item.Title)) yearlyWorksMap[year].push(item);
         });
     });
-    renderGraphStructure('year-graph-container', yearlyWorksMap, yearlyWorksMap, 'year', showLeadRoleOnly, selectedTypes);
+    renderGraphStructure('year-graph-container', yearlyWorksMap, yearlyWorksMap, 'year');
 }
 
-function createAgeGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
+function createAgeGraph(data, showLeadRoleOnly = false, selectedTypes = [], showNonLeadOnly = false) {
     const ageWorksMap = {};
     data.forEach(item => {
         const note = item.Note || '';
         const noteWords = note.toLowerCase().split(',').map(word => word.trim());
         if (noteWords.includes('memo') || noteWords.includes('uwasa')) return;
-        if (showLeadRoleOnly && item.Role !== '主演') return;
+        if (showLeadRoleOnly || showNonLeadOnly) {
+            const matchLead = showLeadRoleOnly && item.Role === '主演';
+            const matchNonLead = showNonLeadOnly && item.Role !== '主演' && NON_LEAD_APPLICABLE_TYPES.includes(item.WorksType);
+            if (!matchLead && !matchNonLead) return;
+        }
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
 
         const filteredActivityDates = getFilteredActivityDates(item);
@@ -367,13 +392,13 @@ function createAgeGraph(data, showLeadRoleOnly = false, selectedTypes = []) {
             if (!ageWorksMap[age].some(work => work.Title === item.Title)) ageWorksMap[age].push(item);
         });
     });
-    renderGraphStructure('age-graph-container', ageWorksMap, ageWorksMap, 'age', showLeadRoleOnly, selectedTypes);
+    renderGraphStructure('age-graph-container', ageWorksMap, ageWorksMap, 'age');
 }
 
 // --- Chart View Implementation ---
 let currentChartMode = 'year';
 
-function createChartView(data, showLeadRoleOnly = false, selectedTypes = []) {
+function createChartView(data, showLeadRoleOnly = false, selectedTypes = [], showNonLeadOnly = false) {
     const container = document.getElementById('chart-view-container');
     if (!container) return;
     container.style.width = '100%';
@@ -411,9 +436,10 @@ function createChartView(data, showLeadRoleOnly = false, selectedTypes = []) {
                 container.querySelectorAll('.chart-mode-btn').forEach(b => b.style.backgroundColor = '#fff');
                 btn.style.backgroundColor = '#ddd';
                 const currentShowLeadRoleOnly = document.getElementById('lead-role-filter').checked;
+                const currentShowNonLeadOnly = document.getElementById('non-lead-role-filter')?.checked || false;
                 const currentSelectedTypes = Array.from(document.querySelectorAll('.type-filter'))
                     .filter(input => input.checked).map(input => input.dataset.type);
-                renderChartContent(data, currentShowLeadRoleOnly, currentSelectedTypes);
+                renderChartContent(data, currentShowLeadRoleOnly, currentSelectedTypes, currentShowNonLeadOnly);
             });
             controlsDiv.appendChild(btn);
         });
@@ -437,10 +463,10 @@ function createChartView(data, showLeadRoleOnly = false, selectedTypes = []) {
         container.appendChild(chartArea);
     }
 
-    renderChartContent(data, showLeadRoleOnly, selectedTypes);
+    renderChartContent(data, showLeadRoleOnly, selectedTypes, showNonLeadOnly);
 }
 
-function renderChartContent(data, showLeadRoleOnly, selectedTypes) {
+function renderChartContent(data, showLeadRoleOnly, selectedTypes, showNonLeadOnly = false) {
     const chartArea = document.querySelector('#chart-view-container .chart-content');
     if (!chartArea) return;
     chartArea.innerHTML = '';
@@ -479,7 +505,11 @@ function renderChartContent(data, showLeadRoleOnly, selectedTypes) {
     data.forEach(item => {
         const note = item.Note || '';
         if (note.toLowerCase().includes('memo') || note.toLowerCase().includes('uwasa')) return;
-        if (showLeadRoleOnly && item.Role !== '主演') return;
+        if (showLeadRoleOnly || showNonLeadOnly) {
+            const matchLead = showLeadRoleOnly && item.Role === '主演';
+            const matchNonLead = showNonLeadOnly && item.Role !== '主演' && NON_LEAD_APPLICABLE_TYPES.includes(item.WorksType);
+            if (!matchLead && !matchNonLead) return;
+        }
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
 
         const keys = new Set();
@@ -498,7 +528,7 @@ function renderChartContent(data, showLeadRoleOnly, selectedTypes) {
                 if (age >= 19) key = age < 20 ? `${age}` : `${Math.floor(age / 5) * 5}-${Math.floor(age / 5) * 5 + 4}`;
             } else if (currentChartMode === 'age') key = getAgeAtDate(BIRTH_DATE, dateObj);
             else if (currentChartMode === 'age-decade') key = Math.floor(getAgeAtDate(BIRTH_DATE, dateObj) / 10) * 10 + 's';
-            
+
             if (key !== undefined && aggregatedData[key]) keys.add(key);
         });
 
@@ -618,18 +648,18 @@ function showWorksDetail(key, worksDataMap, viewType) {
         });
 
         let html = `<h4>${title}</h4>`;
-        
+
         // --- 更新：详情面板种类排序逻辑（顺序 1-6） ---
-        const typeOrderMap = { 
-            '映画': 1, 
-            'TV': 2, 
-            '舞台': 3, 
-            'その他': 4, 
-            '声の出演': 5, 
-            'BOOK': 6 
+        const typeOrderMap = {
+            '映画': 1,
+            'TV': 2,
+            '舞台': 3,
+            'その他': 4,
+            '声の出演': 5,
+            'BOOK': 6
         };
 
-        const sortedTypes = Object.keys(worksByType).sort((a, b) => 
+        const sortedTypes = Object.keys(worksByType).sort((a, b) =>
             (typeOrderMap[a] || 99) - (typeOrderMap[b] || 99)
         );
 
@@ -656,12 +686,14 @@ function showWorksDetail(key, worksDataMap, viewType) {
 
 document.addEventListener('DOMContentLoaded', function () {
     const leadRoleFilter = document.getElementById('lead-role-filter');
+    const nonLeadRoleFilter = document.getElementById('non-lead-role-filter');
     const typeFilters = document.querySelectorAll('.type-filter');
     const viewFilters = document.querySelectorAll('.view-filter');
     let worksData = [];
 
     function updateGraphView() {
         const showLeadRoleOnly = leadRoleFilter.checked;
+        const showNonLeadOnly = nonLeadRoleFilter ? nonLeadRoleFilter.checked : false;
         const selectedTypes = Array.from(typeFilters).filter(i => i.checked).map(i => i.dataset.type);
         const views = {
             month: document.getElementById('contribution-graph'),
@@ -670,16 +702,16 @@ document.addEventListener('DOMContentLoaded', function () {
             chart: document.getElementById('chart-view-container')
         };
 
-        Object.values(views).forEach(v => { if(v) v.style.display = 'none'; });
+        Object.values(views).forEach(v => { if (v) v.style.display = 'none'; });
 
         if (document.getElementById('year-view-filter').checked) {
-            views.year.style.display = 'block'; createYearGraph(worksData, showLeadRoleOnly, selectedTypes);
+            views.year.style.display = 'block'; createYearGraph(worksData, showLeadRoleOnly, selectedTypes, showNonLeadOnly);
         } else if (document.getElementById('age-view-filter').checked) {
-            views.age.style.display = 'block'; createAgeGraph(worksData, showLeadRoleOnly, selectedTypes);
+            views.age.style.display = 'block'; createAgeGraph(worksData, showLeadRoleOnly, selectedTypes, showNonLeadOnly);
         } else if (document.getElementById('chart-view-filter')?.checked) {
-            views.chart.style.display = 'block'; createChartView(worksData, showLeadRoleOnly, selectedTypes);
+            views.chart.style.display = 'block'; createChartView(worksData, showLeadRoleOnly, selectedTypes, showNonLeadOnly);
         } else {
-            views.month.style.display = 'block'; createMonthGraph(worksData, showLeadRoleOnly, selectedTypes);
+            views.month.style.display = 'block'; createMonthGraph(worksData, showLeadRoleOnly, selectedTypes, showNonLeadOnly);
         }
     }
 
@@ -689,10 +721,16 @@ document.addEventListener('DOMContentLoaded', function () {
             worksData = parseCSV(data);
             worksData.forEach(item => item.WorksType = normalizeWorksType(item.WorksType));
             updateGraphView();
+
+            // 刷新图层视图
             leadRoleFilter.addEventListener('change', updateGraphView);
+            if (nonLeadRoleFilter) {
+                nonLeadRoleFilter.addEventListener('change', updateGraphView);
+            }
+
             typeFilters.forEach(f => f.addEventListener('change', updateGraphView));
-            viewFilters.forEach(f => f.addEventListener('change', function() {
-                viewFilters.forEach(o => { if(o !== this) o.checked = false; });
+            viewFilters.forEach(f => f.addEventListener('change', function () {
+                viewFilters.forEach(o => { if (o !== this) o.checked = false; });
                 updateGraphView();
             }));
             const closeBtn = document.querySelector('#works-detail-container .close-detail');
