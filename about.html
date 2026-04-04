@@ -62,22 +62,21 @@
         body {
             margin: 0;
             padding: 0;
-            height: 100vh;
-            min-height: 100vh;
+            height: 100%;
+            width: 100%;
             overflow: hidden;
         }
 
         body {
             display: flex;
+            flex-direction: row;
         }
 
         .main-content-wrapper {
             height: 100vh;
-            min-height: 0;
+            position: relative;
+            z-index: 5;
             overflow-y: auto;
-            overflow-x: hidden;
-            overscroll-behavior-y: contain;
-            -webkit-overflow-scrolling: touch;
             padding: 40px 40px 60px 40px;
         }
 
@@ -287,7 +286,20 @@
         }
 
         @media (max-width: 767px) {
+            html,
+            body {
+                overflow-y: auto;
+                height: auto;
+            }
+
+            body {
+                flex-direction: column;
+            }
+
             .main-content-wrapper {
+                height: auto;
+                min-height: 100vh;
+                overflow: visible;
                 width: 100%;
                 margin-left: 0;
                 padding: 88px 20px 80px 20px;
