@@ -15,6 +15,7 @@
     <!-- Meta Tags -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="堺雅人データベース【非公式】 / Sakai Masato Database [Unofficial]">
 
     <!-- Title -->
     <title>Sakai Masato Database</title>
@@ -24,21 +25,312 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
     <link rel="shortcut icon" type="image/png" sizes="32x32" href="/favicon.png">
-    <!-- Android Chrome -->
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png">
 
     <!-- External Stylesheets and Fonts -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/08-about.css">
-    <link rel="stylesheet" href="/navi/navi.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="navi/navi.css">
 
     <!-- Scripts and Other Resources -->
     <script src="js/mobileview.js"></script>
     <script src="js/visibility.js"></script>
     <script src="js/darkmode.js"></script>
     <script src="navi/navHighlight.js"></script>
+    <script src="js/timezone.js"></script>
+    <style>
+        :root {
+            --about-tile-bg: #f9f9f9;
+            --about-tile-border: transparent;
+            --about-tile-hover-border: transparent;
+            --about-divider-color: rgba(0, 0, 0, 0.16);
+            --about-muted: #666;
+            --about-text-size: clamp(0.88rem, 0.24vw + 0.8rem, 0.95rem);
+            --about-tile-size: clamp(128px, calc(((100vw * 6 / 7) - 140px) / 5), 180px);
+            --about-gap: 15px;
+        }
+
+        .dark-mode {
+            --about-tile-bg: #444;
+            --about-tile-border: transparent;
+            --about-tile-hover-border: transparent;
+            --about-divider-color: rgba(255, 255, 255, 0.2);
+            --about-muted: #b3b3b3;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+        }
+
+        body {
+            display: flex;
+        }
+
+        .main-content-wrapper {
+            overflow-y: auto;
+            padding: 40px 40px 60px 40px;
+            min-height: 100vh;
+        }
+
+        .about-page {
+            width: 100%;
+            min-height: calc(100vh - 80px);
+        }
+
+        .about-layout {
+            display: flex;
+            flex-direction: column;
+            gap: var(--about-gap);
+            width: 100%;
+            align-items: center;
+        }
+
+        .about-top-row,
+        .about-bottom-row {
+            display: grid;
+            gap: var(--about-gap);
+            width: 100%;
+            justify-content: center;
+        }
+
+        .about-top-row {
+            grid-template-columns: repeat(5, var(--about-tile-size));
+            align-items: start;
+        }
+
+        .about-bottom-row {
+            grid-template-columns: repeat(5, var(--about-tile-size));
+        }
+
+        .about-tile {
+            width: 100%;
+            background-color: var(--about-tile-bg);
+            border: 1px solid var(--about-tile-border);
+            border-radius: 10px;
+            box-sizing: border-box;
+            padding: 24px;
+            position: relative;
+            color: var(--text-color);
+            overflow: hidden;
+            box-shadow: 0 2px 5px var(--box-shadow-color);
+            transition: background-color var(--transition-duration), color var(--transition-duration), transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+
+        .about-disclaimer {
+            grid-column: 1 / span 4;
+            min-height: calc(var(--about-tile-size) * 3 + var(--about-gap) * 2);
+            overflow: visible;
+        }
+
+        .about-tile-inner {
+            width: 100%;
+            height: 100%;
+        }
+
+        .about-disclaimer .about-tile-inner {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: 18px;
+        }
+
+        .about-disclaimer p {
+            font-size: clamp(1rem, 0.3vw + 0.92rem, 1.1rem);
+            line-height: 2;
+            color: var(--text-color);
+        }
+
+        .about-jst-note {
+            margin-top: 8px;
+            padding-top: 14px;
+            border-top: 1px solid var(--about-divider-color);
+        }
+
+        .about-link,
+        .about-report,
+        .about-running {
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .about-official {
+            grid-column: 5;
+            grid-row: 1;
+        }
+
+        .about-link,
+        .about-report {
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+        }
+
+        .about-link:hover,
+        .about-link:focus-visible,
+        .about-report:hover,
+        .about-report:focus-visible {
+            background-color: var(--about-tile-bg);
+            border-color: var(--about-tile-hover-border);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 18px var(--box-shadow-color);
+            outline: none;
+        }
+
+        .about-jst-note,
+        .about-link-label,
+        .about-uptime-counter {
+            font-size: var(--about-text-size);
+            font-weight: 700;
+            line-height: 1.65;
+            color: #222;
+        }
+
+        .about-link-label,
+        .about-uptime-counter {
+            width: 100%;
+            text-align: center;
+        }
+
+        .about-progress-section {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .about-uptime-counter {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            white-space: nowrap;
+        }
+
+        .about-uptime-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #999;
+            position: absolute;
+            right: 0.1px;
+            bottom: 0.1px;
+            margin: 0;
+            text-align: right;
+        }
+
+        .about-report-container {
+            width: 100%;
+            height: 80vh;
+            margin-top: 15px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 6px 18px var(--box-shadow-color);
+        }
+
+        .about-report-container iframe {
+            width: 100%;
+            height: 100%;
+            transform-origin: 0 0;
+            transform: scale(1);
+            border: 0;
+        }
+
+        .dark-mode .about-jst-note,
+        .dark-mode .about-link-label,
+        .dark-mode .about-uptime-counter {
+            color: #f3f3f3;
+        }
+
+        .dark-mode .about-link:hover,
+        .dark-mode .about-link:focus-visible,
+        .dark-mode .about-report:hover,
+        .dark-mode .about-report:focus-visible {
+            background-color: #4a4a4a;
+            box-shadow: 0 8px 18px rgba(255, 255, 255, 0.08);
+        }
+
+        .dark-mode .about-uptime-label {
+            color: var(--about-muted);
+        }
+
+        @media (max-width: 1024px) {
+            :root {
+                --about-tile-size: clamp(120px, calc(((100vw * 6 / 7) - 125px) / 4), 160px);
+            }
+
+            .about-top-row {
+                grid-template-columns: repeat(4, var(--about-tile-size));
+            }
+
+            .about-bottom-row {
+                grid-template-columns: repeat(4, var(--about-tile-size));
+            }
+
+            .about-disclaimer {
+                grid-column: 1 / span 4;
+            }
+
+            .about-official {
+                grid-column: 1 / span 4;
+                grid-row: auto;
+                max-width: var(--about-tile-size);
+                justify-self: start;
+            }
+        }
+
+        @media (max-width: 767px) {
+
+            html,
+            body {
+                overflow-y: auto;
+                height: auto;
+            }
+
+            .main-content-wrapper {
+                overflow: visible;
+                width: 100%;
+                margin-left: 0;
+                padding: 88px 20px 80px 20px;
+                min-height: calc(100vh - 60px);
+            }
+
+            .about-top-row,
+            .about-bottom-row {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .about-disclaimer {
+                grid-column: 1;
+                min-height: auto;
+            }
+
+            .about-link,
+            .about-report,
+            .about-running {
+                aspect-ratio: auto;
+                min-height: 96px;
+            }
+
+            .about-official {
+                grid-column: 1;
+                max-width: none;
+                justify-self: stretch;
+            }
+
+            .about-report-container {
+                height: 70vh;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -47,93 +339,138 @@
     </aside>
 
     <div class="main-content-wrapper">
-        <main class="main-content">
-            <div class="content-header">
-                <h1 class="title">ABOUT</h1>
+        <main class="about-page">
+            <div class="about-layout">
+                <div class="about-top-row">
+                    <section class="about-tile about-disclaimer" aria-label="Disclaimer">
+                        <div class="about-tile-inner">
+                            <p>This site is NOT an official site, with NO affiliation with Mr. Sakai Masato or his
+                                management.</p>
+                            <p>All media on this site belong to their respective copyright owners. I have NO intention
+                                of infringing on any copyrights and all content is used under the 'Fair Use' copyright
+                                laws.</p>
+                            <p>If there is any infringement, please contact me, and I will remove the content promptly.
+                            </p>
+                            <p>All materials presented here are sourced from publicly accessible information on the
+                                internet.</p>
+                            <p>If you notice any errors or omissions in the content of this website, please do NOT
+                                hesitate to let me know. I welcome and appreciate your feedback to help improve the
+                                accuracy and completeness of the information provided.</p>
+                            <p class="about-jst-note">Dates are displayed in Japan Standard Time (JST, GMT+9).</p>
+                        </div>
+                    </section>
 
-                <div class="button-group">
-                    <a href="https://www.youtube.com/@H2COL43" target="_blank">
-                        <i class="fab fa-youtube"></i>
-                    </a>
-                    <a href="https://x.com/h2col43" target="_blank">
-                        <i class="fab fa-x-twitter"></i>
-                    </a>
-                    <a href="mailto:skmst@protonmail.com" target="_blank">
-                        <i class="fa-regular fa-envelope"></i>
+                    <a class="about-tile about-link about-official" href="https://sakai-masato.com/" target="_blank"
+                        rel="noopener noreferrer">
+                        <span class="about-link-label">堺さんの公式HP</span>
                     </a>
                 </div>
-            </div>
-            <div class="about-content">
-                <p>Dates are displayed in Japan Standard Time (JST, GMT+9).<p>
+
+                <div class="about-bottom-row">
+                    <a class="about-tile about-link" href="https://www.youtube.com/@H2COL43" target="_blank"
+                        rel="noopener noreferrer">
+                        <span class="about-link-label">Youtube</span>
+                    </a>
+
+                    <a class="about-tile about-link" href="https://x.com/h2col43" target="_blank"
+                        rel="noopener noreferrer">
+                        <span class="about-link-label">X / Twitter</span>
+                    </a>
+
+                    <a class="about-tile about-link" href="mailto:skmstinfo@protonmail.com">
+                        <span class="about-link-label">Contact</span>
+                    </a>
+
+                    <section class="about-tile about-running" aria-label="Running">
+                        <div class="about-progress-section">
+                            <div class="about-uptime-label">Since 2025.02.27</div>
+                            <div class="about-uptime-counter" id="uptime-days">0 Days</div>
+                        </div>
+                    </section>
+
+                    <button class="about-tile about-report" id="report-issue-trigger" type="button">
+                        <span class="about-link-label">Report an Issue</span>
+                    </button>
+                </div>
             </div>
 
-            <div class="about-content">
-                <p>This site is NOT an official site, with NO affiliation with Mr. Sakai Masato or his management.</p>
-                <p>All media on this site belong to their respective copyright owners. I have NO intention of infringing
-                    on any copyrights and all content is used under the 'Fair Use' copyright laws.</p>
-                <p>If there is any infringement, please contact me, and I will remove the content promptly.</p>
-                <p>All materials presented here are sourced from publicly accessible information on the internet.</p>
-                <p>If you notice any errors or omissions in the content of this website, please do NOT hesitate to let
-                    me know. I welcome and appreciate your feedback to help improve the accuracy and completeness of the
-                    information provided.</p>
-            </div>
-
-            <div class="about-content official-link" onclick="toggleReportIssue()" style="cursor: pointer;">
-                <p>Report an Issue</p>
-            </div>
-
-            <div id="report-issue-container"
-                style="display: none; width: 100%; height: 80vh; margin-top: 15px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                <iframe src="https://h2col.notion.site/ebd//18e8a08476c780d0bfeadee886962819?pm=s" frameborder="0"
+            <div class="about-report-container" id="report-issue-container" hidden>
+                <iframe src="https://h2col.notion.site/ebd/18e8a08476c780d0bfeadee886962819?pm=s" frameborder="0"
                     allowfullscreen sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                    style="width: 100%; height: 100%; transform-origin: 0 0; transform: scale(1);">
+                    title="Report an Issue">
                 </iframe>
-            </div>
-
-            <script>
-                function toggleReportIssue() {
-                    const container = document.getElementById('report-issue-container');
-
-                    if (container.style.display === 'none') {
-                        container.style.display = 'block';
-                        
-                        // 自动滚动到弹窗位置
-                        setTimeout(() => {
-                            container.scrollIntoView({ 
-                                behavior: 'smooth', 
-                                block: 'start' 
-                            });
-                        }, 100); // 稍微延迟以确保弹窗已完全显示
-                        
-                        // 添加全局点击监听器，延迟添加以避免立即触发
-                        setTimeout(() => {
-                            document.addEventListener('click', closeReportIssueOnClickOutside);
-                        }, 0);
-                    } else {
-                        container.style.display = 'none';
-                        // 移除全局点击监听器
-                        document.removeEventListener('click', closeReportIssueOnClickOutside);
-                    }
-                }
-
-                function closeReportIssueOnClickOutside(event) {
-                    const container = document.getElementById('report-issue-container');
-                    const trigger = document.querySelector('.about-content.official-link[onclick*="toggleReportIssue"]');
-
-                    // 如果点击的不是弹窗容器内部，也不是触发按钮，则关闭弹窗
-                    if (!container.contains(event.target) && !trigger.contains(event.target)) {
-                        container.style.display = 'none';
-                        document.removeEventListener('click', closeReportIssueOnClickOutside);
-                    }
-                }
-            </script>
-
-            <div class="about-content official-link" onclick="window.open('https://sakai-masato.com/', '_blank')">
-                <p>堺さんの公式HP</p>
             </div>
         </main>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            updateUptimeDays();
+            setInterval(updateUptimeDays, 60000);
+            initializeReportIssue();
+        });
+
+        function updateUptimeDays() {
+            const uptimeDays = document.getElementById('uptime-days');
+            if (!uptimeDays) return;
+
+            const now = getJSTNow();
+            const launchDate = createJSTDate(2025, 1, 27);
+            const diffTime = Math.abs(now - launchDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            uptimeDays.textContent = `${diffDays} Days`;
+        }
+
+        function initializeReportIssue() {
+            const trigger = document.getElementById('report-issue-trigger');
+            const container = document.getElementById('report-issue-container');
+
+            if (!trigger || !container) return;
+
+            trigger.addEventListener('click', function (event) {
+                event.stopPropagation();
+
+                const isHidden = container.hasAttribute('hidden');
+
+                if (isHidden) {
+                    container.removeAttribute('hidden');
+
+                    setTimeout(() => {
+                        container.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }, 100);
+
+                    setTimeout(() => {
+                        document.addEventListener('click', closeReportIssueOnClickOutside);
+                    }, 0);
+                } else {
+                    closeReportIssue();
+                }
+            });
+        }
+
+        function closeReportIssue() {
+            const container = document.getElementById('report-issue-container');
+            if (!container) return;
+
+            container.setAttribute('hidden', '');
+            document.removeEventListener('click', closeReportIssueOnClickOutside);
+        }
+
+        function closeReportIssueOnClickOutside(event) {
+            const container = document.getElementById('report-issue-container');
+            const trigger = document.getElementById('report-issue-trigger');
+
+            if (!container || !trigger) return;
+
+            if (!container.contains(event.target) && !trigger.contains(event.target)) {
+                closeReportIssue();
+            }
+        }
+    </script>
 </body>
 
 </html>
