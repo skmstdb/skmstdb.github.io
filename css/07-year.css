@@ -1,8 +1,30 @@
 /* Year Grid System CSS */
 
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+}
+
+body {
+    display: flex;
+    flex-direction: row;
+    min-height: 100vh;
+}
+
+.main-content-wrapper {
+    height: 100vh;
+    position: relative;
+    z-index: 5;
+    overflow-y: auto;
+}
+
 :root {
     --year-grid-bg: #ffffff;
-    --year-grid-border: #ddd;
     --year-label-color: #666;
     --activity-square-color: #22c55e;
     --empty-square-color: transparent;
@@ -27,16 +49,14 @@
     margin: 0 auto;
     padding: 20px 0;
     overflow-x: visible;
-    /* Allow heatmap to extend beyond container width */
 }
 
 /* Grid layout - responsive columns */
 #year-grid {
     display: grid;
     gap: 20px;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     justify-items: start;
-    /* Changed from center - heatmap uses full width */
 }
 
 /* Year item - each grid cell */
@@ -54,6 +74,7 @@
     flex-direction: column;
     justify-self: center;
     /* Center year-item specifically */
+    cursor: pointer;
 }
 
 .year-item:hover {
@@ -86,13 +107,13 @@
     flex: 1;
     display: grid;
     grid-template-columns: repeat(20, 1fr);
-    grid-template-rows: repeat(20, 1fr);
+    grid-template-rows: repeat(19, 1fr);
     gap: 1.5px;
     padding: 6px;
     margin-top: 24px;
-    aspect-ratio: 1;
+    aspect-ratio: 20/19;
     /* Maintain square aspect ratio */
-    min-height: 200px;
+    min-height: 190px;
     /* Ensure minimum size for visibility */
 }
 
@@ -125,166 +146,6 @@
     opacity: 0.5;
 }
 
-/* Error state */
-.year-item.error-grid {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #999;
-}
-
-.error-message {
-    text-align: center;
-    padding: 20px;
-    font-size: 14px;
-}
-
-/* Fallback grid */
-.year-item.fallback-grid {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.fallback-message {
-    text-align: center;
-    color: #999;
-}
-
-.fallback-icon {
-    font-size: 32px;
-    margin-bottom: 8px;
-}
-
-.fallback-text {
-    font-size: 14px;
-}
-
-/* ========== Responsive Breakpoints ========== */
-
-/* Large desktops: 5 columns */
-@media (min-width: 1200px) {
-    #year-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-/* Extra large screens: maintain max width */
-@media (min-width: 1600px) {
-    #year-grid-container {
-        max-width: 1600px;
-    }
-
-    #year-grid {
-        grid-template-columns: repeat(5, 1fr);
-        gap: 25px;
-    }
-
-    .year-item {
-        max-width: 300px;
-    }
-}
-
-/* Medium desktops: 4 columns */
-@media (min-width: 900px) and (max-width: 1199px) {
-    #year-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-/* Tablets: 3 columns */
-@media (min-width: 600px) and (max-width: 899px) {
-    #year-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .year-item {
-        max-width: 240px;
-    }
-}
-
-/* Mobile: 1 column */
-@media (max-width: 599px) {
-    #year-grid {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-
-    .year-item {
-        max-width: none;
-        border-radius: 8px;
-        padding: 8px;
-        min-height: 180px;
-        /* Ensure adequate height for 20x20 grid */
-    }
-
-    .year-label {
-        font-size: 12px;
-        padding: 3px 6px;
-        top: 6px;
-        right: 8px;
-    }
-
-    .activity-grid {
-        gap: 1px;
-        padding: 4px;
-        margin-top: 20px;
-        min-height: 140px;
-        /* Ensure grid has adequate space */
-    }
-
-    #year-grid-container {
-        padding: 10px 0;
-    }
-
-    /* Reduce hover effects on mobile */
-    .year-item:hover {
-        transform: none;
-    }
-
-    /* Ensure activity squares are touch-friendly */
-    .activity-square {
-        min-width: 3px;
-        min-height: 3px;
-    }
-}
-
-/* Extra small mobile devices */
-@media (max-width: 360px) {
-    #year-grid {
-        gap: 10px;
-    }
-
-    .year-item {
-        padding: 6px;
-        min-height: 160px;
-        /* Ensure minimum height for 20x20 grid */
-    }
-
-    .activity-grid {
-        gap: 0.5px;
-        padding: 3px;
-        margin-top: 16px;
-        min-height: 120px;
-        /* Ensure squares remain visible */
-    }
-
-    .year-label {
-        font-size: 11px;
-        padding: 2px 5px;
-    }
-
-    /* Ensure activity squares remain visible on very small screens */
-    .activity-square {
-        min-width: 2px;
-        min-height: 2px;
-    }
-}
-
-/* ========== Touch Device Optimizations ========== */
-
-/* Touch feedback for mobile */
 @media (hover: none) and (pointer: coarse) {
     .year-item:active {
         transform: scale(0.98);
@@ -304,6 +165,24 @@
     .activity-square:not(.empty):hover {
         transform: none;
         box-shadow: none;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    html,
+    body {
+        overflow-y: auto;
+        height: auto;
+    }
+
+    body {
+        flex-direction: column;
+    }
+
+    .main-content-wrapper {
+        height: auto;
+        min-height: 100vh;
+        overflow: visible;
     }
 }
 
@@ -387,18 +266,6 @@
     }
 }
 
-/* ========== Accessibility ========== */
-
-/* Focus styles for keyboard navigation */
-.year-item:focus-visible {
-    outline: 2px solid #22c55e;
-    outline-offset: 2px;
-}
-
-.dark-mode .year-item:focus-visible {
-    outline-color: #4ade80;
-}
-
 /* Reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
     * {
@@ -428,4 +295,110 @@
         transform: none;
         box-shadow: none;
     }
+}
+
+.heatmap-container {
+    width: fit-content;
+    max-width: 100%;
+    margin: 20px 0;
+    padding: 20px;
+    background: var(--year-grid-bg);
+    border-radius: 12px;
+    box-shadow: var(--year-item-shadow);
+    border: 1px solid var(--grid-border-color);
+    display: block;
+    height: auto;
+    overflow-x: auto;
+    overflow-y: visible;
+    box-sizing: border-box;
+    grid-column: 1 / -1;
+
+    opacity: 0;
+    transform: translateY(-20px) scaleY(0.8);
+    transform-origin: top center;
+    transition: all var(--transition-duration) ease;
+
+    position: relative;
+    z-index: 5;
+    scroll-margin-top: 20px;
+}
+
+.heatmap-container.expanded {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+}
+
+.heatmap-container:hover {
+    box-shadow: var(--year-item-hover-shadow);
+    transform: translateY(0) scaleY(1) translateZ(0);
+}
+
+.heatmap-grid {
+    width: max-content;
+}
+
+.heatmap-cell {
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    box-sizing: border-box;
+    background: var(--empty-square-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: normal;
+    color: var(--year-label-color);
+    position: relative;
+    cursor: default;
+    transition: all 0.2s ease;
+}
+
+/* Activity cell styles */
+.heatmap-cell.activity-cell {
+    background: var(--activity-square-color);
+}
+
+.heatmap-cell.activity-cell:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+    z-index: 10;
+}
+
+.dark-mode .heatmap-cell.activity-cell:hover {
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+}
+
+/* Label & Empty styling */
+.heatmap-cell.label-cell {
+    background: transparent;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.heatmap-cell.empty-corner {
+    background: transparent;
+}
+
+/* Today styles */
+.heatmap-cell.today-cell {
+    background: #ff4d4f !important;
+    border: none;
+}
+
+/* Tooltip */
+.heatmap-cell[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 25;
+    pointer-events: none;
 }
