@@ -906,6 +906,12 @@ function toggleHeatmap(yearGrid, year) {
     }, 100);
 }
 
+function navigateToCalendarMonth(year, month) {
+    if (!Number.isInteger(year) || !Number.isInteger(month)) return;
+    const targetUrl = `sakaical.html?year=${year}&month=${month}`;
+    window.location.href = targetUrl;
+}
+
 function createHeatmap(year) {
     const container = document.createElement('div');
     container.className = 'heatmap-container';
@@ -984,6 +990,11 @@ function createHeatmap(year) {
                 const cDayOfYear = getDayOfYear(date);
                 if (activityDaysSet.has(cDayOfYear)) {
                     cell.classList.add('activity-cell');
+                    cell.setAttribute('role', 'link');
+                    cell.setAttribute('aria-label', `${year}年${date.getUTCMonth() + 1}月へ移動`);
+                    cell.addEventListener('click', () => {
+                        navigateToCalendarMonth(year, date.getUTCMonth() + 1);
+                    });
                 }
 
                 if (typeof isSameJSTDay === 'function'
