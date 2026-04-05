@@ -599,12 +599,10 @@ function addTouchSupport(container) {
 
         grid.setAttribute('data-touch-enabled', 'true');
 
-        let touchStartTime = 0;
         let touchStartY = 0;
         let isScrolling = false;
 
         grid.addEventListener('touchstart', (e) => {
-            touchStartTime = Date.now();
             touchStartY = e.touches[0].clientY;
             isScrolling = false;
 
@@ -621,67 +619,14 @@ function addTouchSupport(container) {
             }
         }, { passive: true });
 
-        grid.addEventListener('touchend', (e) => {
-            const touchDuration = Date.now() - touchStartTime;
-
+        grid.addEventListener('touchend', () => {
             grid.classList.remove('touch-active');
-
-            if (!isScrolling && touchDuration < 500) {
-                handleYearGridTap(grid);
-            }
         }, { passive: true });
 
         grid.addEventListener('touchcancel', () => {
             grid.classList.remove('touch-active');
         }, { passive: true });
     });
-}
-
-function handleYearGridTap(grid) {
-    const year = grid.getAttribute('data-year');
-    if (!year) return;
-
-    if (navigator.vibrate) {
-        navigator.vibrate(50); 
-    }
-
-    showYearInfo(grid, year);
-}
-
-function showYearInfo(grid, year) {
-
-    const existingInfo = document.querySelector('.year-info-popup');
-    if (existingInfo) {
-        existingInfo.remove();
-    }
-
-    const activitySquares = grid.querySelectorAll('.activity-square:not(.empty)');
-    const activityCount = activitySquares.length;
-
-    const infoPopup = document.createElement('div');
-    infoPopup.className = 'year-info-popup';
-    infoPopup.innerHTML = `
-        <div class="year-info-content">
-            <h3>${year}</h3>
-            <p>${activityCount} active days</p>
-            <button class="close-info" onclick="this.parentElement.parentElement.remove()">×</button>
-        </div>
-    `;
-
-    const rect = grid.getBoundingClientRect();
-    infoPopup.style.position = 'fixed';
-    infoPopup.style.top = `${rect.top + window.scrollY - 60}px`;
-    infoPopup.style.left = `${rect.left + rect.width / 2}px`;
-    infoPopup.style.transform = 'translateX(-50%)';
-    infoPopup.style.zIndex = '1000';
-
-    document.body.appendChild(infoPopup);
-
-    setTimeout(() => {
-        if (infoPopup.parentElement) {
-            infoPopup.remove();
-        }
-    }, 3000);
 }
 
 function applyDarkModeToYearGrids() {
@@ -998,7 +943,9 @@ function createHeatmap(year) {
         activityDaysSet = processYearlyActivity(window.cachedAllEvents, year).activityDays;
     }
 
-    const todayJST = typeof getJSTNow === 'function' ? getJSTNow() : new Date();
+    const todayJST = typeof getJSTNow === 'function'
+        ? getJSTNow()
+        : new Date(Date.now() + 9 * 60 * 60 * 1000);
 
     for (let w = 0; w < 54; w++) {
         const start = new Date(firstMonday);
@@ -1039,9 +986,13 @@ function createHeatmap(year) {
                     cell.classList.add('activity-cell');
                 }
 
-                if (date.getUTCFullYear() === todayJST.getFullYear() &&
-                    date.getUTCMonth() === todayJST.getMonth() &&
-                    date.getUTCDate() === todayJST.getDate()) {
+                if (typeof isSameJSTDay === 'function'
+                    ? isSameJSTDay(date, todayJST)
+                    : (
+                        date.getUTCFullYear() === todayJST.getUTCFullYear() &&
+                        date.getUTCMonth() === todayJST.getUTCMonth() &&
+                        date.getUTCDate() === todayJST.getUTCDate()
+                    )) {
                     cell.classList.add('today-cell');
                 }
 
