@@ -298,6 +298,7 @@ body {
 /* Activity cell styles */
 .heatmap-cell.activity-cell {
     background: var(--activity-square-color);
+    cursor: pointer;
 }
 
 .heatmap-cell.activity-cell:hover {
