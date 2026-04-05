@@ -7,6 +7,35 @@ const special_memo = [
 
 let currentViewMode = 'schedule'; // 'schedule', 'anniversary', 'year'
 
+function getInitialCalendarSelection() {
+    const params = new URLSearchParams(window.location.search);
+    const requestedYear = parseInt(params.get('year'), 10);
+    const requestedMonth = parseInt(params.get('month'), 10);
+    const currentYear = getJSTYear();
+    const fallback = {
+        year: currentYear,
+        month: getJSTMonth()
+    };
+
+    if (!Number.isInteger(requestedYear) || !Number.isInteger(requestedMonth)) {
+        return fallback;
+    }
+
+    if (requestedMonth < 1 || requestedMonth > 12) {
+        return fallback;
+    }
+
+    const maxYear = currentYear + 3;
+    if (requestedYear < 1992 || requestedYear > maxYear) {
+        return fallback;
+    }
+
+    return {
+        year: requestedYear,
+        month: requestedMonth - 1
+    };
+}
+
 function calculateSakaiMilestones(year, month) {
     const milestones = [];
     const startDate = createJSTDate(1973, 9, 14);
@@ -467,6 +496,7 @@ function createDayElement(day, date, isOtherMonth, isToday = false) {
 function initializeSelectors() {
     const yearSelect = document.getElementById('year-select');
     const monthSelect = document.getElementById('month-select');
+    const initialSelection = getInitialCalendarSelection();
     const currentYear = getJSTYear();
 
     yearSelect.innerHTML = '';
@@ -475,7 +505,7 @@ function initializeSelectors() {
         opt.value = year; opt.textContent = year;
         yearSelect.appendChild(opt);
     }
-    yearSelect.value = currentYear;
+    yearSelect.value = initialSelection.year;
 
     const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
     monthSelect.innerHTML = '';
@@ -484,7 +514,7 @@ function initializeSelectors() {
         opt.value = i; opt.textContent = name;
         monthSelect.appendChild(opt);
     });
-    monthSelect.value = getJSTMonth();
+    monthSelect.value = initialSelection.month;
 
     yearSelect.addEventListener('change', updateCalendar);
     monthSelect.addEventListener('change', updateCalendar);
