@@ -71,7 +71,6 @@ function getActivityTypeClass(worksType) {
     return mapping[normalizedType] || 'activity-other';
 }
 
-// --- 更新：统一全局种类排序权重 ---
 function getActivityOrder(worksType) {
     const normalizedType = normalizeWorksType(worksType);
     const mapping = {
@@ -92,6 +91,34 @@ const CURRENT_YEAR = getJSTYear();
 const START_YEAR_MONTH_VIEW = 1992;
 const START_YEAR_GLOBAL = 1970;
 const AGE_START = 0;
+const ACTIVITY_LOCATION_COUNTRY_CONFIG = {
+    "Japan": { name: "Japan", flag: "🇯🇵" },
+    "China": { name: "China", flag: "🇨🇳" },
+    "Mainland China": { name: "China", flag: "🇨🇳" },
+    "Macau China": { name: "China", flag: "🇨🇳" },
+    "France": { name: "France", flag: "🇫🇷" },
+    "Israel": { name: "Israel", flag: "🇮🇱" },
+    "Egypt": { name: "Egypt", flag: "🇪🇬" },
+    "Scotland": { name: "United Kingdom", flag: "🇬🇧" },
+    "United Kingdom": { name: "United Kingdom", flag: "🇬🇧" },
+    "Germany": { name: "Germany", flag: "🇩🇪" },
+    "United States": { name: "United States of America", flag: "🇺🇸" },
+    "United States of America": { name: "United States of America", flag: "🇺🇸" },
+    "Mongolia": { name: "Mongolia", flag: "🇲🇳" },
+    "Azerbaijan": { name: "Azerbaijan", flag: "🇦🇿" },
+    "Thailand": { name: "Thailand", flag: "🇹🇭" }
+};
+const ACTIVITY_MAP_LIBRARY_URLS = {
+    d3: "https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js",
+    topojson: "https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js",
+    atlas: "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"
+};
+const activityMapState = {
+    initialized: false,
+    pendingInit: null,
+    locationFlagsMap: new Map(),
+    dismissalBound: false
+};
 
 function getAgeAtDate(birthDate, targetDate) {
     let age = targetDate.getUTCFullYear() - birthDate.getUTCFullYear();
@@ -100,6 +127,292 @@ function getAgeAtDate(birthDate, targetDate) {
         age--;
     }
     return age;
+}
+
+function loadScriptOnce(src) {
+    const existingScript = document.querySelector(`script[src="${src}"]`);
+    if (existingScript) {
+        if (existingScript.dataset.loaded === 'true') return Promise.resolve();
+        return new Promise((resolve, reject) => {
+            existingScript.addEventListener('load', () => {
+                existingScript.dataset.loaded = 'true';
+                resolve();
+            }, { once: true });
+            existingScript.addEventListener('error', () => reject(new Error(`Failed to load ${src}`)), { once: true });
+        });
+    }
+
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.onload = () => {
+            script.dataset.loaded = 'true';
+            resolve();
+        };
+        script.onerror = () => reject(new Error(`Failed to load ${src}`));
+        document.head.appendChild(script);
+    });
+}
+
+function ensureActivityMapLibraries() {
+    const tasks = [];
+    if (!window.d3) tasks.push(loadScriptOnce(ACTIVITY_MAP_LIBRARY_URLS.d3));
+    return Promise.all(tasks).then(() => {
+        if (window.topojson) return Promise.resolve();
+        return loadScriptOnce(ACTIVITY_MAP_LIBRARY_URLS.topojson);
+    });
+}
+
+function normalizeLocationDataset(locationData) {
+    const activeCountries = new Map();
+    const countryEvents = new Map();
+    const locationFlagsMap = new Map();
+
+    activeCountries.set('Japan', null);
+
+    locationData.forEach(row => {
+        if (!row.Location) return;
+        const locations = row.Location.split(',').map(location => location.trim()).filter(Boolean);
+
+        if (row.Name && row.Name.includes('Location')) {
+            locations.forEach(location => {
+                const config = ACTIVITY_LOCATION_COUNTRY_CONFIG[location];
+                if (config) locationFlagsMap.set(config.name, row.Url || '');
+            });
+            return;
+        }
+
+        locations.forEach(location => {
+            const config = ACTIVITY_LOCATION_COUNTRY_CONFIG[location];
+            if (!config) return;
+
+            const mappedName = config.name;
+            if (!activeCountries.has(mappedName)) activeCountries.set(mappedName, []);
+            if (!countryEvents.has(mappedName)) countryEvents.set(mappedName, []);
+
+            countryEvents.get(mappedName).push({
+                year: row.Year || '',
+                name: row.Name || '',
+                location: row.Location || '',
+                url: row.Url || ''
+            });
+        });
+    });
+
+    if (activeCountries.has('China')) {
+        activeCountries.set('Taiwan', activeCountries.get('China'));
+        if (countryEvents.has('China')) {
+            countryEvents.set('Taiwan', countryEvents.get('China'));
+        }
+    }
+
+    return { activeCountries, countryEvents, locationFlagsMap };
+}
+
+function hideActivityMapEvents() {
+    const container = document.getElementById('activity-map-events-container');
+    if (container) container.style.display = 'none';
+}
+
+function displayActivityMapEvents(events, countryName) {
+    const container = document.getElementById('activity-map-events-container');
+    const eventsGrid = document.getElementById('activity-map-events-grid');
+    const flagsSection = document.getElementById('activity-map-flags-section');
+    if (!container || !eventsGrid || !flagsSection) return;
+
+    eventsGrid.innerHTML = '';
+    flagsSection.innerHTML = '';
+    container.style.display = 'flex';
+
+    const flagCountryName = countryName === 'Taiwan' ? 'China' : countryName;
+    const config = ACTIVITY_LOCATION_COUNTRY_CONFIG[flagCountryName];
+    const flag = config ? config.flag : '';
+    const url = activityMapState.locationFlagsMap.get(flagCountryName);
+
+    if (flag) {
+        const flagItem = document.createElement('span');
+        flagItem.className = 'activity-map-flag-item';
+        flagItem.textContent = flag;
+        flagItem.title = flagCountryName;
+        flagItem.addEventListener('click', event => {
+            event.stopPropagation();
+            if (url) window.open(url, '_blank', 'noopener');
+        });
+        flagsSection.appendChild(flagItem);
+    }
+
+    events.forEach(eventData => {
+        const card = document.createElement('div');
+        card.className = 'activity-map-event-card';
+        card.innerHTML = `
+            <div class="year">${eventData.year}</div>
+            <div class="name">${eventData.name}</div>
+            <div class="location">${eventData.location}</div>
+        `;
+        card.addEventListener('click', event => {
+            event.stopPropagation();
+            if (eventData.url) window.open(eventData.url, '_blank', 'noopener');
+        });
+        eventsGrid.appendChild(card);
+    });
+}
+
+function bindActivityMapDismissal() {
+    if (activityMapState.dismissalBound) return;
+    document.addEventListener('click', event => {
+        const container = document.getElementById('activity-map-events-container');
+        const mapWrapper = document.getElementById('activity-map-wrapper');
+        if (!container || !mapWrapper || container.style.display !== 'flex') return;
+        if (!container.contains(event.target) && !mapWrapper.contains(event.target)) {
+            hideActivityMapEvents();
+        }
+    });
+    activityMapState.dismissalBound = true;
+}
+
+function renderActivityMap(worldData, locationData) {
+    const mapWrapper = document.getElementById('activity-map-wrapper');
+    const loading = document.getElementById('activity-map-loading');
+    const svgElement = document.getElementById('activity-world-map');
+    if (!mapWrapper || !loading || !svgElement) return;
+
+    const parentWidth = mapWrapper.parentElement ? mapWrapper.parentElement.clientWidth : 1200;
+    const width = Math.max(320, Math.min(parentWidth - 20, 1200));
+    const height = Math.max(320, Math.round(width * 0.5));
+    const { activeCountries, countryEvents, locationFlagsMap } = normalizeLocationDataset(locationData);
+
+    activityMapState.locationFlagsMap = locationFlagsMap;
+
+    const svg = window.d3.select(svgElement);
+    svg.selectAll('*').remove();
+    svg.attr('viewBox', `0 0 ${width} ${height}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet');
+
+    const defs = svg.append('defs');
+    const filter = defs.append('filter')
+        .attr('id', 'activity-map-drop-shadow')
+        .attr('height', '130%');
+
+    filter.append('feGaussianBlur')
+        .attr('in', 'SourceAlpha')
+        .attr('stdDeviation', 1.5)
+        .attr('result', 'blur');
+
+    filter.append('feOffset')
+        .attr('in', 'blur')
+        .attr('dx', 1)
+        .attr('dy', 1)
+        .attr('result', 'offsetBlur');
+
+    const merge = filter.append('feMerge');
+    merge.append('feMergeNode').attr('in', 'offsetBlur');
+    merge.append('feMergeNode').attr('in', 'SourceGraphic');
+
+    const g = svg.append('g');
+    const zoom = window.d3.zoom()
+        .scaleExtent([1, 8])
+        .on('zoom', event => {
+            g.attr('transform', event.transform);
+        });
+
+    svg.call(zoom);
+
+    if (mapWrapper.dataset.wheelBound !== 'true') {
+        mapWrapper.addEventListener('wheel', event => {
+            event.preventDefault();
+        }, { passive: false });
+        mapWrapper.dataset.wheelBound = 'true';
+    }
+
+    document.getElementById('activity-map-zoom-in').onclick = () => {
+        svg.transition().duration(300).call(zoom.scaleBy, 1.5);
+    };
+    document.getElementById('activity-map-zoom-out').onclick = () => {
+        svg.transition().duration(300).call(zoom.scaleBy, 0.67);
+    };
+    document.getElementById('activity-map-zoom-reset').onclick = () => {
+        svg.transition().duration(500).call(zoom.transform, window.d3.zoomIdentity);
+    };
+
+    const projection = window.d3.geoNaturalEarth1()
+        .scale(width / 5.4)
+        .translate([width / 2, height / 2]);
+    const path = window.d3.geoPath().projection(projection);
+
+    const countries = window.topojson.feature(worldData, worldData.objects.countries).features;
+    const land = window.topojson.feature(worldData, worldData.objects.land);
+
+    g.append('path')
+        .datum(land)
+        .attr('class', 'activity-map-continent')
+        .attr('d', path);
+
+    g.selectAll('.activity-map-active-country')
+        .data(countries.filter(country => activeCountries.has(country.properties.name)))
+        .enter()
+        .append('path')
+        .attr('class', country => country.properties.name === 'Japan' ? 'activity-map-japan' : 'activity-map-country')
+        .attr('d', path)
+        .style('filter', 'url(#activity-map-drop-shadow)')
+        .on('click', (event, country) => {
+            const countryName = country.properties.name;
+            if (countryName === 'Japan') return;
+            const events = countryEvents.get(countryName);
+            if (events && events.length > 0) {
+                displayActivityMapEvents(events, countryName);
+            }
+        });
+
+    g.selectAll('.activity-map-flag-label')
+        .data(countries.filter(country => activeCountries.has(country.properties.name)))
+        .enter()
+        .append('text')
+        .attr('class', 'activity-map-flag-label')
+        .attr('transform', country => {
+            const centroid = path.centroid(country);
+            if (!centroid[0] || !centroid[1]) return 'translate(0,0)';
+            return `translate(${centroid[0]}, ${centroid[1]})`;
+        })
+        .text(country => {
+            const config = ACTIVITY_LOCATION_COUNTRY_CONFIG[country.properties.name];
+            return config ? config.flag : '';
+        });
+
+    loading.style.display = 'none';
+    mapWrapper.style.display = 'flex';
+    bindActivityMapDismissal();
+}
+
+function initActivityMapView() {
+    const loading = document.getElementById('activity-map-loading');
+    const mapWrapper = document.getElementById('activity-map-wrapper');
+    if (!loading || !mapWrapper) return Promise.resolve();
+    if (activityMapState.initialized) return Promise.resolve();
+    if (activityMapState.pendingInit) return activityMapState.pendingInit;
+
+    loading.textContent = '地図を読み込んでいます...';
+    loading.style.display = 'block';
+    mapWrapper.style.display = 'none';
+
+    activityMapState.pendingInit = ensureActivityMapLibraries()
+        .then(() => Promise.all([
+            window.d3.json(ACTIVITY_MAP_LIBRARY_URLS.atlas),
+            fetch('data/location.csv').then(response => response.text()).then(parseCSV)
+        ]))
+        .then(([worldData, locationData]) => {
+            renderActivityMap(worldData, locationData);
+            activityMapState.initialized = true;
+        })
+        .catch(error => {
+            console.error('Map loading error:', error);
+            loading.textContent = `Map loading failed: ${error.message}`;
+        })
+        .finally(() => {
+            activityMapState.pendingInit = null;
+        });
+
+    return activityMapState.pendingInit;
 }
 
 function renderGraphStructure(containerId, dataMap, labelMap, type) {
@@ -474,7 +787,6 @@ function renderChartContent(data, showLeadRoleOnly, selectedTypes, showNonLeadOn
     const aggregatedData = {};
     let sortedKeys = [];
 
-    // --- Key generation based on fixed ranges ---
     if (currentChartMode === 'year') {
         for (let y = 1992; y <= CURRENT_YEAR; y++) sortedKeys.push(y);
     } else if (currentChartMode === 'age') {
@@ -551,7 +863,6 @@ function renderChartContent(data, showLeadRoleOnly, selectedTypes, showNonLeadOn
     const worksMapForDetail = {};
     sortedKeys.forEach(k => worksMapForDetail[k] = aggregatedData[k].worksList);
 
-    // --- 更新：更新柱状图种类排序（顺序 1-6） ---
     const typeOrder = ['映画', 'TV', '舞台', 'その他', '声の出演', 'BOOK'];
 
     sortedKeys.forEach(key => {
@@ -562,7 +873,7 @@ function renderChartContent(data, showLeadRoleOnly, selectedTypes, showNonLeadOn
         barContainer.style.minWidth = (currentChartMode === 'year' || currentChartMode === 'age') ? '12px' : '30px';
         barContainer.style.maxWidth = '60px';
         barContainer.style.display = 'flex';
-        barContainer.style.flexDirection = 'column-reverse'; // 从下往上堆叠
+        barContainer.style.flexDirection = 'column-reverse';
         barContainer.style.alignItems = 'center';
         barContainer.style.height = '100%';
         barContainer.style.cursor = 'pointer';
@@ -649,7 +960,6 @@ function showWorksDetail(key, worksDataMap, viewType) {
 
         let html = `<h4>${title}</h4>`;
 
-        // --- 更新：详情面板种类排序逻辑（顺序 1-6） ---
         const typeOrderMap = {
             '映画': 1,
             'TV': 2,
@@ -699,10 +1009,14 @@ document.addEventListener('DOMContentLoaded', function () {
             month: document.getElementById('contribution-graph'),
             year: document.getElementById('year-graph-container'),
             age: document.getElementById('age-graph-container'),
-            chart: document.getElementById('chart-view-container')
+            chart: document.getElementById('chart-view-container'),
+            map: document.getElementById('map-view-container')
         };
 
         Object.values(views).forEach(v => { if (v) v.style.display = 'none'; });
+        if (!document.getElementById('map-view-filter')?.checked) {
+            hideActivityMapEvents();
+        }
 
         if (document.getElementById('year-view-filter').checked) {
             views.year.style.display = 'block'; createYearGraph(worksData, showLeadRoleOnly, selectedTypes, showNonLeadOnly);
@@ -710,6 +1024,11 @@ document.addEventListener('DOMContentLoaded', function () {
             views.age.style.display = 'block'; createAgeGraph(worksData, showLeadRoleOnly, selectedTypes, showNonLeadOnly);
         } else if (document.getElementById('chart-view-filter')?.checked) {
             views.chart.style.display = 'block'; createChartView(worksData, showLeadRoleOnly, selectedTypes, showNonLeadOnly);
+        } else if (document.getElementById('map-view-filter')?.checked) {
+            views.map.style.display = 'block';
+            const detailContainer = document.getElementById('works-detail-container');
+            if (detailContainer) detailContainer.style.display = 'none';
+            initActivityMapView();
         } else {
             views.month.style.display = 'block'; createMonthGraph(worksData, showLeadRoleOnly, selectedTypes, showNonLeadOnly);
         }
@@ -722,7 +1041,6 @@ document.addEventListener('DOMContentLoaded', function () {
             worksData.forEach(item => item.WorksType = normalizeWorksType(item.WorksType));
             updateGraphView();
 
-            // 刷新图层视图
             leadRoleFilter.addEventListener('change', updateGraphView);
             if (nonLeadRoleFilter) {
                 nonLeadRoleFilter.addEventListener('change', updateGraphView);
