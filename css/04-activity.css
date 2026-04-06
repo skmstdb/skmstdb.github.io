@@ -697,3 +697,332 @@ body {
     vertical-align: bottom;
     box-sizing: border-box;
 }
+
+#map-view-container {
+    width: calc(100% - 16px);
+    max-width: calc(100% - 16px);
+    box-sizing: border-box;
+}
+
+#activity-map-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+}
+
+#activity-map-stage {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+#activity-map-loading {
+    font-size: 18px;
+    color: var(--text-color);
+}
+
+#activity-map-wrapper {
+    width: 100%;
+    flex: 1 1 auto;
+    border: 2px solid rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    padding: 0.75rem;
+    box-sizing: border-box;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    background: rgba(255, 255, 255, 0.35);
+}
+
+#activity-world-map {
+    width: 100%;
+    height: auto;
+    display: block;
+    touch-action: none;
+}
+
+.activity-map-continent {
+    fill: #f0f0f0;
+    stroke: #d0d0d0;
+    stroke-width: 1;
+}
+
+.activity-map-country {
+    fill: #90ee90;
+    stroke: #4a4a4a;
+    stroke-width: 0.5;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.activity-map-country:hover {
+    fill: #7fd87f;
+}
+
+.activity-map-japan {
+    fill: #90ee90;
+    stroke: #4a4a4a;
+    stroke-width: 0.5;
+    cursor: default;
+}
+
+.activity-map-flag-label {
+    font-size: 18px;
+    pointer-events: none;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.activity-map-zoom-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.activity-map-zoom-btn {
+    width: 40px;
+    height: 40px;
+    border: 2px solid #333;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.activity-map-zoom-btn:hover {
+    background: #f0f0f0;
+    transform: scale(1.05);
+}
+
+.activity-map-zoom-btn:active {
+    transform: scale(0.95);
+}
+
+#activity-map-events-container {
+    width: 100%;
+    display: none;
+    flex-direction: row;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+#activity-map-flags-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: fit-content;
+    padding-top: 6px;
+}
+
+.activity-map-flag-item {
+    font-size: 48px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.activity-map-flag-item:hover {
+    transform: scale(1.25);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+#activity-map-events-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    flex: 1;
+}
+
+.activity-map-event-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    flex: 1 1 calc(33.333% - 20px);
+    min-width: 250px;
+}
+
+.activity-map-event-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.activity-map-event-card .year {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.activity-map-event-card .name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.activity-map-event-card .location {
+    font-size: 13px;
+    color: #888;
+}
+
+@media (prefers-color-scheme: dark) {
+    #activity-map-wrapper {
+        border-color: #666;
+        background: rgba(0, 0, 0, 0.15);
+    }
+
+    .activity-map-continent {
+        fill: #343434;
+        stroke: #555;
+    }
+
+    .activity-map-zoom-btn {
+        background: #2a2a2a;
+        border-color: #666;
+        color: #e0e0e0;
+    }
+
+    .activity-map-zoom-btn:hover {
+        background: #3a3a3a;
+    }
+
+    .activity-map-event-card {
+        background: #2a2a2a;
+        border-color: #444;
+        color: #e0e0e0;
+    }
+
+    .activity-map-event-card .year {
+        color: #aaa;
+    }
+
+    .activity-map-event-card .name {
+        color: #e0e0e0;
+    }
+
+    .activity-map-event-card .location {
+        color: #999;
+    }
+}
+
+body.dark-mode #activity-map-wrapper {
+    border-color: #666;
+    background: rgba(0, 0, 0, 0.15);
+}
+
+body.dark-mode .activity-map-continent {
+    fill: #343434;
+    stroke: #555;
+}
+
+body.dark-mode .activity-map-zoom-btn {
+    background: #2a2a2a;
+    border-color: #666;
+    color: #e0e0e0;
+}
+
+body.dark-mode .activity-map-zoom-btn:hover {
+    background: #3a3a3a;
+}
+
+body.dark-mode .activity-map-event-card {
+    background: #2a2a2a;
+    border-color: #444;
+    color: #e0e0e0;
+}
+
+body.dark-mode .activity-map-event-card .year {
+    color: #aaa;
+}
+
+body.dark-mode .activity-map-event-card .name {
+    color: #e0e0e0;
+}
+
+body.dark-mode .activity-map-event-card .location {
+    color: #999;
+}
+
+@media (max-width: 768px) {
+    #map-view-container {
+        width: calc(100% - 12px);
+        max-width: calc(100% - 12px);
+    }
+
+    #activity-map-container {
+        gap: 18px;
+    }
+
+    #activity-map-stage {
+        gap: 10px;
+    }
+
+    #activity-map-wrapper {
+        padding: 0.75rem;
+    }
+
+    #activity-map-events-container {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    #activity-map-flags-section {
+        width: auto;
+        flex: 0 0 auto;
+        flex-direction: column;
+        justify-content: flex-start;
+        padding-top: 0;
+    }
+
+    .activity-map-event-card {
+        flex: 1 1 calc(50% - 20px);
+    }
+}
+
+@media (max-width: 480px) {
+    #activity-map-stage {
+        gap: 8px;
+    }
+
+    #activity-map-wrapper {
+        padding: 0.5rem;
+        border-radius: 8px;
+    }
+
+    .activity-map-zoom-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+    }
+
+    .activity-map-flag-label {
+        font-size: 15px;
+    }
+
+    .activity-map-flag-item {
+        font-size: 36px;
+    }
+
+    .activity-map-event-card {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+}
