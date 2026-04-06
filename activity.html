@@ -142,6 +142,13 @@
                                 <span class="slider round"></span>
                             </label>
                         </div>
+                        <div class="filter-item">
+                            <label class="switch-label">Map View</label>
+                            <label class="switch">
+                                <input type="checkbox" id="map-view-filter" class="view-filter" data-view="map">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -184,6 +191,26 @@
             </div>
 
             <div class="contribution-graph" id="chart-view-container" style="display: none;">
+            </div>
+
+            <div class="contribution-graph map-view-shell" id="map-view-container" style="display: none;">
+                <div id="activity-map-container">
+                    <div id="activity-map-loading">Loading...</div>
+                    <div id="activity-map-stage">
+                        <div id="activity-map-wrapper">
+                            <svg id="activity-world-map" aria-label="Location map"></svg>
+                        </div>
+                        <div class="activity-map-zoom-controls">
+                            <button class="activity-map-zoom-btn" id="activity-map-zoom-in" title="Zoom in">+</button>
+                            <button class="activity-map-zoom-btn" id="activity-map-zoom-out" title="Zoom out">−</button>
+                            <button class="activity-map-zoom-btn" id="activity-map-zoom-reset" title="Reset">⟲</button>
+                        </div>
+                    </div>
+                    <div id="activity-map-events-container">
+                        <div id="activity-map-flags-section"></div>
+                        <div id="activity-map-events-grid"></div>
+                    </div>
+                </div>
             </div>
 
             <div id="works-detail-container" class="works-detail-container" style="display: none;">
