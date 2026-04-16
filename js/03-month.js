@@ -93,7 +93,7 @@ function createMonthCell(year, month, worksInMonth) {
     const isClickable = year > 1992 || (year === 1992 && month >= 1);
     if (isClickable) {
         cell.onclick = () => {
-            window.location.href = `sakaical.html?year=${year}&month=${month}`;
+            window.location.href = `sakaical.html?year=${year}&month=${month}&view=schedule`;
         };
         cell.style.cursor = 'pointer';
     } else {
