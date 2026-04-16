@@ -908,7 +908,7 @@ function toggleHeatmap(yearGrid, year) {
 
 function navigateToCalendarMonth(year, month) {
     if (!Number.isInteger(year) || !Number.isInteger(month)) return;
-    const targetUrl = `sakaical.html?year=${year}&month=${month}`;
+    const targetUrl = `sakaical.html?year=${year}&month=${month}&view=schedule`;
     window.location.href = targetUrl;
 }
 
