@@ -9,23 +9,19 @@ function highlightCurrentPage() {
         const normalizePageName = (path) => {
             if (!path) return '';
             const fileName = path.split('/').pop().split('?')[0].split('#')[0];
-            // 移除 .html 后缀
             return fileName.replace(/\.html$/, '');
         };
 
         const currentPageName = normalizePageName(currentPath);
         const linkPageName = normalizePageName(href);
 
-        // 处理首页情况
         if ((currentPath === '/' || currentPath.endsWith('/') || currentPageName === 'index' || currentPageName === 'skmst') &&
             (href === './' || href === '../' || href === '/' || linkPageName === 'index' || linkPageName === 'skmst')) {
             link.classList.add('active');
         }
-        // 处理其他页面 - 使用标准化后的页面名称进行匹配
         else if (currentPageName && linkPageName && currentPageName === linkPageName) {
             link.classList.add('active');
         }
-        // 特殊处理 about 和 contact 页面
         else if ((currentPageName === 'about' || currentPageName === 'contact') && linkPageName === 'about') {
             link.classList.add('active');
         } else {
@@ -39,9 +35,6 @@ function highlightCurrentPage() {
     });
 }
 
-/**
- * 初始化汉堡菜单功能
- */
 function initializeHamburger() {
     const hamburger = document.querySelector('.hamburger');
     const nav = document.querySelector('nav');
@@ -62,9 +55,6 @@ function initializeHamburger() {
     }
 }
 
-/**
- * 加载导航栏内容
- */
 async function loadNavbar() {
     try {
         const response = await fetch('../navi/navbar.html');
@@ -78,7 +68,6 @@ async function loadNavbar() {
     }
 }
 
-// 当DOM加载完成后执行
 document.addEventListener('DOMContentLoaded', function () {
     loadNavbar();
 });
