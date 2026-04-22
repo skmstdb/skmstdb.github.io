@@ -1005,16 +1005,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const showLeadRoleOnly = leadRoleFilter.checked;
         const showNonLeadOnly = nonLeadRoleFilter ? nonLeadRoleFilter.checked : false;
         const selectedTypes = Array.from(typeFilters).filter(i => i.checked).map(i => i.dataset.type);
+        const mapFilterOn = document.getElementById('map-view-filter')?.checked;
+        const stageFilterOn = Array.from(typeFilters).some(i => i.checked && i.dataset.type === '舞台');
         const views = {
             month: document.getElementById('contribution-graph'),
             year: document.getElementById('year-graph-container'),
             age: document.getElementById('age-graph-container'),
             chart: document.getElementById('chart-view-container'),
-            map: document.getElementById('map-view-container')
+            map: document.getElementById('map-view-container'),
+            japanMap: document.getElementById('japan-map-view-container')
         };
 
         Object.values(views).forEach(v => { if (v) v.style.display = 'none'; });
-        if (!document.getElementById('map-view-filter')?.checked) {
+        if (!mapFilterOn) {
             hideActivityMapEvents();
         }
 
@@ -1024,7 +1027,13 @@ document.addEventListener('DOMContentLoaded', function () {
             views.age.style.display = 'block'; createAgeGraph(worksData, showLeadRoleOnly, selectedTypes, showNonLeadOnly);
         } else if (document.getElementById('chart-view-filter')?.checked) {
             views.chart.style.display = 'block'; createChartView(worksData, showLeadRoleOnly, selectedTypes, showNonLeadOnly);
-        } else if (document.getElementById('map-view-filter')?.checked) {
+        } else if (mapFilterOn && stageFilterOn) {
+            // Japan prefecture map: Map View + 舞台 both ON
+            views.japanMap.style.display = 'block';
+            const detailContainer = document.getElementById('works-detail-container');
+            if (detailContainer) detailContainer.style.display = 'none';
+            initJapanPrefectureMap(worksData);
+        } else if (mapFilterOn) {
             views.map.style.display = 'block';
             const detailContainer = document.getElementById('works-detail-container');
             if (detailContainer) detailContainer.style.display = 'none';
