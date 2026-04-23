@@ -10,18 +10,17 @@
         gtag('js', new Date());
         gtag('config', 'G-6C7BJGKMFT');
     </script>
-    
+
     <!-- Meta Tags -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="description"
-        content="堺雅人データベース【非公式】 / Sakai Masato Database [Unofficial]">
+    <meta name="description" content="堺雅人データベース【非公式】 / Sakai Masato Database [Unofficial]">
     <meta name="keywords"
         content="堺雅人, Sakai Masato, Masato Sakai, Database, heatmap, contribution graph, calendar, カレンダー">
-    
+
     <!-- Title -->
     <title>Sakai Masato Database</title>
-    
+
     <!-- Favicon for all devices and platforms -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
@@ -30,7 +29,7 @@
     <!-- Android Chrome -->
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png">
-    
+
     <!-- External Stylesheets and Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,7 +38,7 @@
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="navi/navi.css">
     <link rel="stylesheet" href="css/02-works.css">
-    
+
     <!-- Scripts and Other Resources -->
     <script src="js/mobileview.js"></script>
     <script src="js/visibility.js"></script>
@@ -64,18 +63,25 @@
                 <button class="filter-btn" data-filter="映画">映画</button>
                 <button class="filter-btn" data-filter="TV">TV</button>
                 <button class="filter-btn" data-filter="舞台">舞台</button>
-                <button class="filter-btn" data-filter="声の出演">声の出演</button>
                 <button class="filter-btn" data-filter="その他">その他</button>
+                <button class="filter-btn" data-filter="声の出演">声の出演</button>
                 <button class="filter-btn" data-filter="BOOK">BOOK</button>
             </div>
 
-            <div style="display: flex; justify-content: center; margin-bottom: 40px;">
-                <div class="switch-container" style="margin-left: 0;">
+            <div style="display: flex; justify-content: center; margin-bottom: 40px; gap: 20px; flex-wrap: wrap;">
+                <div class="switch-container" style="margin-left: 0; margin-bottom: 0;">
                     <label class="switch">
                         <input type="checkbox" id="lead-role-toggle">
                         <span class="slider"></span>
                     </label>
                     <span class="switch-label">主演作品</span>
+                </div>
+                <div class="switch-container" style="margin-left: 0; margin-bottom: 0;">
+                    <label class="switch">
+                        <input type="checkbox" id="award-toggle">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label">個人受賞作品</span>
                 </div>
             </div>
         </div>
