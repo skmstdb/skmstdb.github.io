@@ -38,21 +38,25 @@ document.addEventListener('DOMContentLoaded', async function () {
 
                 const dateStartStr = eventData['DateStart'];
                 let year = 0;
+                let dateStart = null;
                 if (dateStartStr && dateStartStr.trim() !== '') {
-                    const d = parseJSTDate(dateStartStr);
-                    if (d) year = d.getUTCFullYear();
+                    dateStart = parseJSTDate(dateStartStr);
+                    if (dateStart) year = dateStart.getUTCFullYear();
                 }
 
                 const individualAwards = awardStr.split(',').map(a => a.trim()).filter(a => a);
 
-                individualAwards.forEach(award => {
+                individualAwards.forEach((award, idx) => {
                     awardsRaw.push({
                         awardString: award,
                         title: eventData['Title'] || '',
                         name: eventData['Name'] || '',
                         worksType: eventData['WorksType'] || '',
                         url: eventData['URL'] || '',
-                        year: year
+                        year: year,
+                        dateStart: dateStart,
+                        rowIndex: i,
+                        stringIndex: idx
                     });
                 });
             }
@@ -131,12 +135,22 @@ document.addEventListener('DOMContentLoaded', async function () {
                     entries: [],
                     prizeTypes: new Set(),
                     worksTypes: new Set(),
-                    firstYear: Infinity
+                    firstYear: Infinity,
+                    firstDate: Infinity,
+                    firstDateRowIndex: -1,
+                    firstDateStringIndex: -1
                 };
             }
 
             if (item.year > 0 && item.year < groupMap[key].firstYear) {
                 groupMap[key].firstYear = item.year;
+            }
+
+            const itemDate = item.dateStart ? item.dateStart.getTime() : (item.year > 0 ? new Date(Date.UTC(item.year, 0, 1)).getTime() : Infinity);
+            if (itemDate < groupMap[key].firstDate || (itemDate === groupMap[key].firstDate && item.rowIndex > groupMap[key].firstDateRowIndex)) {
+                groupMap[key].firstDate = itemDate;
+                groupMap[key].firstDateRowIndex = item.rowIndex;
+                groupMap[key].firstDateStringIndex = item.stringIndex;
             }
 
             if (parsed.prize) {
@@ -161,7 +175,10 @@ document.addEventListener('DOMContentLoaded', async function () {
                 year: item.year,
                 url: item.url,
                 worksType: item.worksType,
-                awardFullString: item.awardString
+                awardFullString: item.awardString,
+                dateStart: item.dateStart,
+                rowIndex: item.rowIndex,
+                stringIndex: item.stringIndex
             });
 
             groupMap[key].worksTypes.add(item.worksType);
@@ -269,9 +286,13 @@ document.addEventListener('DOMContentLoaded', async function () {
         grid.className = 'awards-grid';
 
         const sortedKeys = Object.keys(awards).sort((a, b) => {
-            const aFirst = awards[a].firstYear || 0;
-            const bFirst = awards[b].firstYear || 0;
-            return aFirst - bFirst;
+            const aFirst = awards[a].firstDate !== Infinity ? awards[a].firstDate : (awards[a].firstYear !== Infinity ? new Date(Date.UTC(awards[a].firstYear, 0, 1)).getTime() : Infinity);
+            const bFirst = awards[b].firstDate !== Infinity ? awards[b].firstDate : (awards[b].firstYear !== Infinity ? new Date(Date.UTC(awards[b].firstYear, 0, 1)).getTime() : Infinity);
+            if (aFirst !== bFirst) return aFirst - bFirst;
+            if (awards[a].firstDateRowIndex !== awards[b].firstDateRowIndex) {
+                return awards[b].firstDateRowIndex - awards[a].firstDateRowIndex;
+            }
+            return awards[a].firstDateStringIndex - awards[b].firstDateStringIndex;
         });
 
         sortedKeys.forEach((key, index) => {
@@ -297,7 +318,39 @@ document.addEventListener('DOMContentLoaded', async function () {
         nameEl.textContent = group.baseName;
         card.appendChild(nameEl);
 
-        const prizeTypes = Array.from(group.prizeTypes);
+        const prizeDateMap = {};
+        group.entries.forEach(entry => {
+            if (entry.prize) {
+                let minDate = Infinity;
+                let minRow = -1;
+                let minStr = Infinity;
+                entry.works.forEach(w => {
+                    const d = w.dateStart ? w.dateStart.getTime() : (w.year > 0 ? new Date(Date.UTC(w.year, 0, 1)).getTime() : Infinity);
+                    if (d < minDate || (d === minDate && w.rowIndex > minRow)) {
+                        minDate = d;
+                        minRow = w.rowIndex;
+                        minStr = w.stringIndex;
+                    }
+                });
+                if (!prizeDateMap[entry.prize]) {
+                    prizeDateMap[entry.prize] = { date: minDate, row: minRow, str: minStr };
+                } else {
+                    const current = prizeDateMap[entry.prize];
+                    if (minDate < current.date || (minDate === current.date && minRow > current.row)) {
+                        prizeDateMap[entry.prize] = { date: minDate, row: minRow, str: minStr };
+                    }
+                }
+            }
+        });
+
+        const prizeTypes = Object.keys(prizeDateMap).sort((a, b) => {
+            const pA = prizeDateMap[a];
+            const pB = prizeDateMap[b];
+            if (pA.date !== pB.date) return pA.date - pB.date;
+            if (pA.row !== pB.row) return pB.row - pA.row;
+            return pA.str - pB.str;
+        });
+
         if (prizeTypes.length > 0) {
             const prizesRow = document.createElement('div');
             prizesRow.className = 'award-card-prizes';
@@ -342,7 +395,12 @@ document.addEventListener('DOMContentLoaded', async function () {
             const entryWorksContainer = document.createElement('div');
             entryWorksContainer.className = 'award-entry-works';
 
-            const works = [...entry.works].sort((a, b) => a.year - b.year);
+            const works = [...entry.works].sort((a, b) => {
+                const aDate = a.dateStart ? a.dateStart.getTime() : (a.year > 0 ? new Date(Date.UTC(a.year, 0, 1)).getTime() : Infinity);
+                const bDate = b.dateStart ? b.dateStart.getTime() : (b.year > 0 ? new Date(Date.UTC(b.year, 0, 1)).getTime() : Infinity);
+                if (aDate !== bDate) return aDate - bDate;
+                return b.rowIndex - a.rowIndex;
+            });
             const uniqueWorks = [];
             works.forEach(w => {
                 if (!uniqueWorks.find(uw => uw.title === w.title && uw.year === w.year)) {
