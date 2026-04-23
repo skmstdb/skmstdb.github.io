@@ -17,7 +17,8 @@ body {
     margin: 0;
     padding: 0;
     height: 100%;
-    overflow: hidden; /* Lock body scroll on desktop */
+    overflow: hidden;
+    /* Lock body scroll on desktop */
     font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
 }
 
@@ -43,9 +44,6 @@ body {
     margin-bottom: 20px;
 }
 
-/* ============================
-   Category Section (映画 / TV)
-   ============================ */
 .award-category-section {
     max-width: 1200px;
     margin: 0 auto 50px auto;
@@ -64,18 +62,12 @@ body {
     letter-spacing: 2px;
 }
 
-/* ============================
-   Awards Grid
-   ============================ */
 .awards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
     gap: 20px;
 }
 
-/* ============================
-   Award Card
-   ============================ */
 .award-card-wrapper {
     position: relative;
 }
@@ -142,9 +134,6 @@ body {
     white-space: nowrap;
 }
 
-/* ============================
-   Works Panel (expanded)
-   ============================ */
 .works-panel {
     max-height: 0;
     overflow: hidden;
@@ -245,9 +234,6 @@ body {
     color: #999;
 }
 
-/* ============================
-   Stats Summary
-   ============================ */
 .stats-summary {
     display: flex;
     justify-content: center;
@@ -273,14 +259,12 @@ body {
     color: var(--accent-color);
 }
 
-/* ============================
-   Animation
-   ============================ */
 @keyframes fadeInUp {
     from {
         opacity: 0;
         transform: translateY(16px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -292,9 +276,6 @@ body {
     animation: fadeInUp 0.5s ease forwards;
 }
 
-/* ============================
-   Mobile Responsive
-   ============================ */
 @media (max-width: 767px) {
 
     html,
@@ -323,9 +304,10 @@ body {
     }
 
     .stats-summary {
-        flex-direction: column;
-        gap: 10px;
+        flex-direction: row;
+        gap: 20px;
         align-items: center;
+        justify-content: center;
     }
 
     .awards-grid {
@@ -362,9 +344,6 @@ body {
     }
 }
 
-/* ============================
-   Skeleton Loading
-   ============================ */
 .skeleton-card {
     background: linear-gradient(90deg,
             var(--panel-bg) 25%,
@@ -381,6 +360,7 @@ body {
     0% {
         background-position: 200% 0;
     }
+
     100% {
         background-position: -200% 0;
     }
