@@ -21,8 +21,10 @@
 
     <!-- Site globals: color vars + dark mode -->
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="navi/navi.css">
     <script src="js/mobileview.js"></script>
     <script src="js/darkmode.js"></script>
+    <script src="navi/navHighlight.js"></script>
 
     <style>
         :root {
@@ -39,93 +41,25 @@
             }
         }
 
-        /* ── Full-screen layout ── */
-        html,
-        body {
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            position: fixed;
-        }
-
-        html,
-        body,
-        * {
+        .hp-wrapper,
+        .hp-wrapper *,
+        .modal-overlay * {
             font-family: "ヒラギノ明朝 ProN", "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
         }
 
-        body {
+        .hp-wrapper {
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--text-color);
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        /* ── Outer wrapper: two panels, 70% of page height ── */
-        .hp-layout {
-            display: flex;
-            flex-direction: row;
-            width: calc(100% - 80px);
-            height: 70vh;
-            gap: 20px;
+            width: 100%;
+            height: calc(100vh - 100px);
             box-sizing: border-box;
-            align-items: stretch;
-            justify-content: center;
         }
 
-        /* ────────────────────────
-           LEFT: entry block
-        ──────────────────────── */
-        .hp-block {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            border: 4px solid var(--border-color);
-            border-radius: 20px;
-            padding: 30px;
-            text-decoration: none;
-            color: var(--text-color);
-            background-color: var(--bg-color);
-            cursor: pointer;
-            box-sizing: border-box;
-            transition: all 0.3s ease;
-        }
-
-        .hp-block:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .hp-block:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .dark-mode .hp-block {
-            border-color: var(--border-color);
-        }
-
-        .hp-block-title {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            font-size: clamp(2rem, 5.5vw, 4rem);
-            font-weight: bold;
-            line-height: 1.3;
-            letter-spacing: 2px;
-            text-align: left;
-        }
-
-        /* ────────────────────────
-           RIGHT: carousel
-        ──────────────────────── */
         .hp-carousel-outer {
-            flex: 1;
+            width: 100%;
+            max-width: 1200px;
+            height: 75vh;
             border: 4px solid var(--border-color);
             border-radius: 20px;
             overflow: hidden;
@@ -322,66 +256,36 @@
         /* ── Mobile ── */
         @media (max-width: 768px) {
 
-            html,
-            body {
-                overflow: hidden;
-                height: 100vh;
-                position: fixed;
-            }
-
-            body {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .hp-layout {
-                flex-direction: column;
-                width: 80%;
-                max-width: 400px;
+            .hp-wrapper {
                 height: auto;
-                max-height: 80vh;
-                padding: 16px 0;
-                align-items: center;
-                justify-content: center;
-                gap: 20px;
+                min-height: 60vh;
+                padding: 20px;
             }
 
-            .hp-block {
-                width: 100%;
-                min-height: 150px;
-            }
-
-            /* Fix carousel height explicitly on mobile */
             .hp-carousel-outer {
                 width: 100%;
-                height: 250px;
-                min-height: 250px;
+                height: 400px;
+                min-height: 400px;
             }
 
             .carousel-track {
-                height: 250px;
+                height: 400px;
             }
 
             .carousel-slide {
-                height: 250px !important;
-                min-height: 250px !important;
-            }
-
-            .hp-block-title {
-                font-size: clamp(24px, 8vw, 36px);
+                height: 400px !important;
+                min-height: 400px !important;
             }
 
             .slide-name {
                 white-space: normal;
-                font-size: 16px;
+                font-size: 20px;
             }
 
             .slide-info {
-                font-size: 13px;
+                font-size: 14px;
             }
 
-            .hp-block:hover,
             .hp-carousel-outer:hover {
                 transform: translateY(-3px);
             }
@@ -391,14 +295,12 @@
 
 <body>
 
-    <div class="hp-layout">
+    <aside class="sidebar">
+        <!-- Navbar content will be loaded here -->
+    </aside>
 
-        <!-- LEFT: entry block -->
-        <div class="hp-block" onclick="showDisclaimer('sakaical.html')">
-            <div class="hp-block-title">SAKAI MASATO<br>DATABASE</div>
-        </div>
-
-        <!-- RIGHT: infinite carousel -->
+    <div class="main-content-wrapper hp-wrapper">
+        <!-- infinite carousel -->
         <div class="hp-carousel-outer" id="carouselOuter">
             <div class="carousel-track" id="track"></div>
 
@@ -407,7 +309,6 @@
 
             <div class="carousel-dots" id="dotsEl"></div>
         </div>
-
     </div>
 
     <!-- Disclaimer Modal -->
@@ -430,7 +331,7 @@
             },
             {
                 name: '日曜劇場『VIVANT』',
-                info: '2026年7月～12月 毎週日曜よる9時放送',
+                info: 'comeback in 2026',
                 url: 'https://www.tbs.co.jp/VIVANT_tbs/'
             },
             {
@@ -440,14 +341,13 @@
             }
         ];
 
-        const N = SLIDES.length;   // 4
-        const TOTAL = N + 2;          // 6 (including two clones)
+        const N = SLIDES.length;
+        const TOTAL = N + 2;
 
         const track = document.getElementById('track');
         const outer = document.getElementById('carouselOuter');
         const dotsEl = document.getElementById('dotsEl');
 
-        // ── Build slides in DOM ──
         (function buildDOM() {
             const order = [SLIDES[N - 1], ...SLIDES, SLIDES[0]];
 
@@ -460,16 +360,13 @@
                 track.appendChild(a);
             });
 
-            // Track is TOTAL × outer width
             track.style.width = `${TOTAL * 100}%`;
 
-            // Each slide = 1/TOTAL of track = 100% of outer
             document.querySelectorAll('.carousel-slide').forEach(s => {
                 s.style.width = `${100 / TOTAL}%`;
             });
         })();
 
-        // ── Build dots ──
         SLIDES.forEach((_, i) => {
             const b = document.createElement('button');
             b.className = 'dot' + (i === 0 ? ' active' : '');
@@ -478,7 +375,6 @@
             dotsEl.appendChild(b);
         });
 
-        // ── State ──
         let trackPos = 1;
         let realIdx = 0;
         let busy = false;
@@ -567,7 +463,6 @@
             if (manual) resetTimer();
         }
 
-        // ── Auto-play ──
         function startTimer() {
             timer = setInterval(() => goNext(false), 4500);
         }
@@ -577,11 +472,9 @@
         }
         startTimer();
 
-        // ── Controls ──
         document.getElementById('nextBtn').addEventListener('click', e => { e.stopPropagation(); goNext(true); });
         document.getElementById('prevBtn').addEventListener('click', e => { e.stopPropagation(); goPrev(true); });
 
-        // Touch swipe
         let tx = 0;
         outer.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
         outer.addEventListener('touchend', e => {
@@ -589,18 +482,14 @@
             if (Math.abs(dx) > 40) dx < 0 ? goNext(true) : goPrev(true);
         });
 
-        // Keyboard
         document.addEventListener('keydown', e => {
             if (e.key === 'ArrowRight') goNext(true);
             if (e.key === 'ArrowLeft') goPrev(true);
         });
 
-        // Prevent navigation during busy transition
         document.querySelectorAll('.carousel-slide').forEach(a => {
             a.addEventListener('click', e => { if (busy) e.preventDefault(); });
         });
-
-        /* ── Disclaimer ── */
         let pendingRedirect = null;
         function showDisclaimer(url) {
             pendingRedirect = url;
@@ -618,6 +507,15 @@
             if (e.target === this) closeDisclaimer();
         });
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDisclaimer(); });
+
+        document.querySelector('.sidebar').addEventListener('click', function (e) {
+            const link = e.target.closest('a');
+            if (link && link.href && !link.classList.contains('active')) {
+                e.preventDefault();
+                showDisclaimer(link.href);
+            }
+        });
+
     </script>
 
 </body>
