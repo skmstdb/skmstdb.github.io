@@ -1104,7 +1104,7 @@ body.dark-mode .activity-map-event-card .location {
 /* Detail panel */
 #japan-pref-detail {
     width: 100%;
-    max-width: 780px;
+    max-width: 920px;
     box-sizing: border-box;
     border: 1px solid rgba(0, 0, 0, 0.12);
     border-radius: 10px;
@@ -1143,10 +1143,45 @@ body.dark-mode .activity-map-event-card .location {
     line-height: 1;
 }
 
-.japan-pref-detail-grid {
+.japan-pref-detail-content {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    column-gap: 20px;
+    row-gap: 25px;
+}
+
+.japan-pref-venue-left {
+    display: flex;
+    flex-direction: column;
+    min-width: 120px;
+    align-items: flex-start;
+    padding-top: 6px;
+}
+
+.japan-pref-venue-tag {
+    background-color: #f0f0f0;
+    color: #333;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    display: inline-block;
+}
+
+.japan-pref-venue-tag[onclick]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transition: all 0.2s ease;
+}
+
+.japan-pref-venue-right {
     display: flex;
     flex-wrap: wrap;
     gap: 14px;
+    flex: 1;
 }
 
 .japan-pref-work-card {
@@ -1177,8 +1212,7 @@ body.dark-mode .activity-map-event-card .location {
 }
 
 .jpw-place {
-    font-size: 0.8rem;
-    color: #555;
+    display: none;
 }
 
 .jpw-role {
@@ -1219,8 +1253,10 @@ body.dark-mode .pref-count {
     color: #aaa;
 }
 
-body.dark-mode .jpw-place {
-    color: #aaa;
+body.dark-mode .japan-pref-venue-tag {
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    border-color: #444;
 }
 
 @media (max-width: 768px) {
@@ -1236,6 +1272,18 @@ body.dark-mode .jpw-place {
 
     .japan-tile {
         font-size: 9px;
+    }
+
+    .japan-pref-detail-content {
+        grid-template-columns: 1fr;
+        row-gap: 15px;
+    }
+
+    .japan-pref-venue-left {
+        min-width: auto;
+        align-items: flex-start;
+        padding-top: 0;
+        margin-bottom: -5px;
     }
 
     .japan-pref-work-card {
