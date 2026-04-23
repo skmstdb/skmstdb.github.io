@@ -87,7 +87,7 @@ const VENUE_PREFECTURE_MAP = {
     '相鉄本多劇場': '神奈川',
 };
 
-const japanMapState = { initialized: false, prefWorks: {}, dismissalBound: false };
+const japanMapState = { initialized: false, prefWorks: {}, placeUrls: {}, dismissalBound: false };
 
 function getJapanTileGridPosition(pref) {
     return {
@@ -121,6 +121,28 @@ function buildJapanPrefectureWorksMap(biographyData) {
 function initJapanPrefectureMap(biographyData) {
     const container = document.getElementById('japan-map-container');
     if (!container) return;
+    
+    if (Object.keys(japanMapState.placeUrls).length === 0) {
+        fetch('data/place.csv')
+            .then(res => res.text())
+            .then(csvText => {
+                const places = parseCSV(csvText);
+                places.forEach(p => {
+                    if(p.Name && p.URL) {
+                        japanMapState.placeUrls[p.Name] = p.URL;
+                    }
+                });
+            })
+            .catch(err => console.error('Error loading place.csv:', err))
+            .finally(() => {
+                finalizeInitJapanMap(biographyData);
+            });
+    } else {
+        finalizeInitJapanMap(biographyData);
+    }
+}
+
+function finalizeInitJapanMap(biographyData) {
     japanMapState.prefWorks = buildJapanPrefectureWorksMap(biographyData);
     japanMapState.initialized = true;
     renderJapanTileMap(japanMapState.prefWorks);
@@ -193,7 +215,42 @@ function renderJapanTileMap(prefWorks) {
 function showJapanPrefectureDetail(pref, works) {
     const panel = document.getElementById('japan-pref-detail');
     if (!panel) return;
-    const sorted = [...works].sort((a, b) => (a.dateStart || '').localeCompare(b.dateStart || ''));
+
+    const worksByVenue = {};
+    works.forEach(w => {
+        if (!worksByVenue[w.place]) worksByVenue[w.place] = [];
+        worksByVenue[w.place].push(w);
+    });
+
+    const sortedVenues = Object.keys(worksByVenue).sort((a, b) => {
+        const latestA = worksByVenue[a].reduce((max, w) => (w.dateStart || '') > max ? (w.dateStart || '') : max, '');
+        const latestB = worksByVenue[b].reduce((max, w) => (w.dateStart || '') > max ? (w.dateStart || '') : max, '');
+        return latestB.localeCompare(latestA);
+    });
+
+    const venueGroupsHTML = sortedVenues.map(venue => {
+        const venueWorks = worksByVenue[venue].sort((a, b) => (a.dateStart || '').localeCompare(b.dateStart || ''));
+        const venueUrl = japanMapState.placeUrls[venue] || '';
+        const tagHtml = venueUrl 
+            ? `<span class="japan-pref-venue-tag" onclick="window.open('${venueUrl}','_blank','noopener')" style="cursor:pointer" title="${venue}">${venue}</span>`
+            : `<span class="japan-pref-venue-tag">${venue}</span>`;
+
+        return `
+            <div class="japan-pref-venue-left">
+                ${tagHtml}
+            </div>
+            <div class="japan-pref-venue-right">
+                ${venueWorks.map(w => `
+                    <div class="japan-pref-work-card activity-stage"
+                        ${w.url ? `onclick="window.open('${w.url}','_blank','noopener')" style="cursor:pointer"` : ''}>
+                        <div class="jpw-title">${w.title}</div>
+                        <div class="jpw-meta">${w.dateStart}${w.dateEnd && w.dateEnd !== w.dateStart ? ' ~ ' + w.dateEnd : ''}</div>
+                        ${w.role ? `<div class="jpw-role">${w.role}</div>` : ''}
+                    </div>
+                `).join('')}
+            </div>`;
+    }).join('');
+
     panel.innerHTML = `
         <div class="japan-pref-detail-header">
             <h3>${pref.name} <span class="pref-count">${works.length}件</span></h3>
@@ -202,16 +259,8 @@ function showJapanPrefectureDetail(pref, works) {
                 document.querySelectorAll('.japan-tile').forEach(t=>t.classList.remove('active'))
             ">×</button>
         </div>
-        <div class="japan-pref-detail-grid">
-            ${sorted.map(w => `
-                <div class="japan-pref-work-card activity-stage"
-                    ${w.url ? `onclick="window.open('${w.url}','_blank','noopener')" style="cursor:pointer"` : ''}>
-                    <div class="jpw-title">${w.title}</div>
-                    <div class="jpw-meta">${w.dateStart}${w.dateEnd && w.dateEnd !== w.dateStart ? ' ~ ' + w.dateEnd : ''}</div>
-                    <div class="jpw-place">${w.place}</div>
-                    ${w.role ? `<div class="jpw-role">${w.role}</div>` : ''}
-                </div>
-            `).join('')}
+        <div class="japan-pref-detail-content">
+            ${venueGroupsHTML}
         </div>`;
     panel.style.display = 'block';
 }
