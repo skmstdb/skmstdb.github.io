@@ -1195,7 +1195,19 @@ body.dark-mode .japan-tile {
 }
 
 body.dark-mode .japan-tile.has-works {
+    background-color: var(--tile-bg, #4caf50);
+    color: var(--tile-color, #fff);
     border-color: transparent;
+    opacity: 0.9;
+}
+
+body.dark-mode .japan-tile.has-works:hover {
+    opacity: 1;
+}
+
+body.dark-mode .japan-tile.has-works.active {
+    box-shadow: 0 0 0 3px var(--bg-color, #1a1a1a), 0 0 0 5px var(--tile-bg, #4caf50);
+    opacity: 1;
 }
 
 body.dark-mode #japan-pref-detail {
