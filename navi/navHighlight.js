@@ -15,8 +15,7 @@ function highlightCurrentPage() {
         const currentPageName = normalizePageName(currentPath);
         const linkPageName = normalizePageName(href);
 
-        if ((currentPath === '/' || currentPath.endsWith('/') || currentPageName === 'skmst') &&
-            (href === './' || href === '../' || href === '/' || linkPageName === 'skmst')) {
+        if (currentPageName === 'skmst' && linkPageName === 'skmst') {
             link.classList.add('active');
         }
         else if (currentPageName && linkPageName && currentPageName === linkPageName) {
