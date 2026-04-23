@@ -1,5 +1,4 @@
 :root {
-    /* Page-specific variables for timeline */
     --panel-bg: #ffffff;
     --timeline-line: #ddd;
     --timeline-dot: #333333;
@@ -8,7 +7,6 @@
 }
 
 .dark-mode {
-    /* Dark mode for timeline */
     --panel-bg: #1e1e1e;
     --timeline-line: #555;
     --timeline-dot: #e0e0e0;
@@ -20,7 +18,9 @@ html,
 body {
     margin: 0;
     padding: 0;
-    min-height: 100vh;
+    height: 100%;
+    overflow: hidden;
+    /* Lock body scroll on desktop */
     font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
 }
 
@@ -30,8 +30,9 @@ body {
 }
 
 .main-content-wrapper {
-    min-height: 100vh;
-    padding-bottom: 60px; /* Ensure adequate bottom spacing */
+    height: 100vh;
+    overflow-y: auto;
+    padding-bottom: 60px;
 }
 
 .content-header {
@@ -80,9 +81,7 @@ body {
 
 .filter-btn {
     padding: 8px 10px;
-    /* Reduced side padding as width is fixed */
     min-width: 100px;
-    /* Fixed width for uniformity */
     border: 1px solid var(--border-color);
     background: var(--panel-bg);
     color: var(--text-color);
@@ -94,9 +93,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     text-align: center;
-    /* Ensure centered text */
     display: inline-flex;
-    /* Use flex for centering */
     justify-content: center;
     align-items: center;
 }
@@ -117,10 +114,9 @@ body {
     max-width: 900px;
     margin: 0 auto;
     position: relative;
-    padding: 20px 0 60px 0; /* Add bottom padding for proper spacing */
+    padding: 20px 0 60px 0;
 }
 
-/* Timeline vertical line */
 .timeline-container::before {
     content: '';
     position: absolute;
@@ -138,11 +134,11 @@ body {
 }
 
 .timeline-year:last-child {
-    margin-bottom: 60px; /* Ensure last timeline-year has adequate bottom clearance */
+    margin-bottom: 60px;
 }
 
 .timeline-year:last-child .year-label {
-    margin-bottom: 30px; /* Maintain spacing for last year label */
+    margin-bottom: 30px;
 }
 
 .year-label {
@@ -180,13 +176,11 @@ body {
     }
 }
 
-/* Lead roles on the right */
 .timeline-item.lead-role {
     margin-left: calc(55% + 30px);
     padding-left: 30px;
 }
 
-/* Non-lead roles on the left */
 .timeline-item.non-lead-role {
     margin-left: 0;
     padding-right: 30px;
@@ -244,21 +238,33 @@ body {
 
 /* Mobile responsive */
 @media (max-width: 767px) {
+    html,
+    body {
+        overflow-y: auto;
+        height: auto;
+    }
+
     body {
         flex-direction: column;
     }
 
     .main-content-wrapper {
-        padding: 80px 20px 80px 20px; /* Fallback for older browsers */
-        padding: 80px 20px max(80px, 8vh) 20px; /* Mobile-specific spacing with top padding to avoid sidebar overlap */
+        height: auto;
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+        overflow: visible;
+        -webkit-overflow-scrolling: touch;
+        display: block;
+        padding: 80px 20px 80px 20px;
+        padding: 80px 20px max(80px, 8vh) 20px;
     }
 
     .timeline-container {
-        padding: 20px 0 80px 0; /* Extra bottom padding on mobile */
+        padding: 20px 0 80px 0;
     }
 
     .timeline-year:last-child {
-        margin-bottom: 80px; /* Extra bottom spacing for mobile single-column timeline */
+        margin-bottom: 80px;
     }
 
     .title {
@@ -266,9 +272,10 @@ body {
     }
 
     .stats-summary {
-        flex-direction: column;
-        gap: 10px;
+        flex-direction: row;
+        gap: 20px;
         align-items: center;
+        justify-content: center;
     }
 
     .filter-buttons {
@@ -280,7 +287,6 @@ body {
         font-size: 12px;
     }
 
-    /* Single column timeline on mobile */
     .timeline-container::before {
         left: 20px;
     }
@@ -301,36 +307,33 @@ body {
     }
 }
 
-/* Tablet responsive */
 @media (min-width: 768px) and (max-width: 1024px) {
     .main-content-wrapper {
-        padding-bottom: 70px; /* Fallback for older browsers */
-        padding-bottom: max(70px, 6vh); /* Tablet-specific bottom spacing */
+        padding-bottom: 70px;
+        padding-bottom: max(70px, 6vh);
     }
-    
+
     .timeline-container {
         max-width: 700px;
-        padding: 20px 0 70px 0; /* Tablet bottom spacing */
+        padding: 20px 0 70px 0;
     }
-    
+
     .timeline-year:last-child {
-        margin-bottom: 70px; /* Tablet bottom spacing for last year */
+        margin-bottom: 70px;
     }
 }
 
-/* Large desktop adjustments */
 @media (min-width: 1440px) {
     .main-content-wrapper {
-        padding-bottom: 80px; /* Fallback for older browsers */
-        padding-bottom: max(80px, 6vh); /* Extra spacing for large screens */
+        padding-bottom: 80px;
+        padding-bottom: max(80px, 6vh);
     }
-    
+
     .timeline-container {
-        padding: 20px 0 80px 0; /* Extra bottom spacing for large screens */
+        padding: 20px 0 80px 0;
     }
 }
 
-/* Skeleton loading animation */
 .skeleton-year {
     opacity: 1;
 }
@@ -366,12 +369,10 @@ body {
     }
 }
 
-/* Toggle Switch Styles */
 .switch-container {
     display: flex;
     align-items: center;
     margin-left: 10px;
-    /* Match button margin/gap if needed, flex gap handles it usually */
 }
 
 .switch {
