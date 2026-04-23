@@ -15,8 +15,8 @@ function highlightCurrentPage() {
         const currentPageName = normalizePageName(currentPath);
         const linkPageName = normalizePageName(href);
 
-        if ((currentPath === '/' || currentPath.endsWith('/') || currentPageName === 'index' || currentPageName === 'skmst') &&
-            (href === './' || href === '../' || href === '/' || linkPageName === 'index' || linkPageName === 'skmst')) {
+        if ((currentPath === '/' || currentPath.endsWith('/') || currentPageName === 'skmst') &&
+            (href === './' || href === '../' || href === '/' || linkPageName === 'skmst')) {
             link.classList.add('active');
         }
         else if (currentPageName && linkPageName && currentPageName === linkPageName) {
