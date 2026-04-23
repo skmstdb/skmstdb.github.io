@@ -1,17 +1,10 @@
 document.addEventListener('DOMContentLoaded', async function () {
-
-    // ============================================
-    // INITIALIZATION
-    // ============================================
     if (typeof loadNavbar === 'function') {
         await loadNavbar();
     }
 
     await loadAwardData();
 
-    // ============================================
-    // DATA LOADING & PARSING
-    // ============================================
     async function loadAwardData() {
         try {
             const response = await fetch('/data/biography.csv');
@@ -20,10 +13,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
             if (rows.length < 2) return;
 
-            // Parse header
             const header = parseCSVRow(rows[0]);
 
-            // Parse all rows with awards
             const awardsRaw = [];
 
             for (let i = 1; i < rows.length; i++) {
@@ -41,12 +32,10 @@ document.addEventListener('DOMContentLoaded', async function () {
                 const awardStr = eventData['Award'] || '';
                 if (!awardStr) continue;
 
-                // Filter by Note column: exclude rows containing 'memo' or 'uwasa'
                 const note = eventData['Note'] || '';
                 const noteWords = note.toLowerCase().split(',').map(w => w.trim());
                 if (noteWords.includes('memo') || noteWords.includes('uwasa')) continue;
 
-                // Parse date for year
                 const dateStartStr = eventData['DateStart'];
                 let year = 0;
                 if (dateStartStr && dateStartStr.trim() !== '') {
@@ -54,7 +43,6 @@ document.addEventListener('DOMContentLoaded', async function () {
                     if (d) year = d.getUTCFullYear();
                 }
 
-                // Split compound awards
                 const individualAwards = awardStr.split(',').map(a => a.trim()).filter(a => a);
 
                 individualAwards.forEach(award => {
@@ -69,10 +57,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 });
             }
 
-            // Parse and group awards
             const groupedAwards = groupAwards(awardsRaw);
-
-            // Render
             renderAwards(groupedAwards, awardsRaw);
 
         } catch (error) {
@@ -80,9 +65,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
     }
 
-    // ============================================
-    // CSV ROW PARSER
-    // ============================================
     function parseCSVRow(row) {
         const cols = [];
         let current = '';
@@ -103,21 +85,15 @@ document.addEventListener('DOMContentLoaded', async function () {
         return cols;
     }
 
-    // ============================================
-    // AWARD PARSING & GROUPING
-    // ============================================
     function parseAwardString(awardStr) {
         let kai = '';
         let rest = awardStr;
-
-        // Extract 回 prefix (第XX回)
         const kaiMatch = awardStr.match(/^(第\d+回)/);
         if (kaiMatch) {
             kai = kaiMatch[1];
             rest = awardStr.substring(kai.length);
         }
 
-        // Known prize suffixes to extract
         const prizeSuffixes = [
             '主演男優賞',
             '助演男優賞',
@@ -159,17 +135,14 @@ document.addEventListener('DOMContentLoaded', async function () {
                 };
             }
 
-            // Track first appearance year (earliest year across all works)
             if (item.year > 0 && item.year < groupMap[key].firstYear) {
                 groupMap[key].firstYear = item.year;
             }
 
-            // Collect unique prize types for the card display
             if (parsed.prize) {
                 groupMap[key].prizeTypes.add(parsed.prize);
             }
 
-            // Find or create entry for this kai+prize combination
             const entryKey = parsed.kai + '|' + parsed.prize;
             let entry = groupMap[key].entries.find(e => (e.kai + '|' + e.prize) === entryKey);
             if (!entry) {
@@ -194,7 +167,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             groupMap[key].worksTypes.add(item.worksType);
         });
 
-        // Sort entries within each group by kai number ascending
         Object.values(groupMap).forEach(group => {
             group.entries.sort((a, b) => {
                 const aNum = parseInt((a.kai.match(/\d+/) || [0])[0]);
@@ -206,9 +178,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         return groupMap;
     }
 
-    // ============================================
-    // CATEGORIZE BY WORKS TYPE
-    // ============================================
     function categorizeByType(groupMap) {
         const movieAwards = {};
         const tvAwards = {};
@@ -234,9 +203,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         return { movieAwards, tvAwards };
     }
 
-    // ============================================
-    // STATS COUNTING
-    // ============================================
     function countUniqueWorks(awardsRaw) {
         const worksSet = new Set();
         awardsRaw.forEach(item => {
@@ -247,7 +213,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     function countUniqueTimes(awardsRaw) {
-        // Times = number of unique award strings (unique ceremonies)
         const awardSet = new Set();
         awardsRaw.forEach(item => {
             awardSet.add(item.awardString);
@@ -255,14 +220,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         return awardSet.size;
     }
 
-    // ============================================
-    // RENDERING
-    // ============================================
     function renderAwards(groupMap, awardsRaw) {
         const container = document.getElementById('award-container');
         container.innerHTML = '';
-
-        // Stats: X awards (unique award names), Y times (unique ceremonies), Z works (unique works)
         const totalAwardTypes = Object.keys(groupMap).length;
         const totalTimes = countUniqueTimes(awardsRaw);
         const totalWorks = countUniqueWorks(awardsRaw);
@@ -285,13 +245,11 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         const { movieAwards, tvAwards } = categorizeByType(groupMap);
 
-        // Render 映画 section
         if (Object.keys(movieAwards).length > 0) {
             const movieSection = renderCategorySection('映画', movieAwards);
             container.appendChild(movieSection);
         }
 
-        // Render TV section
         if (Object.keys(tvAwards).length > 0) {
             const tvSection = renderCategorySection('TV', tvAwards);
             container.appendChild(tvSection);
@@ -310,7 +268,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         const grid = document.createElement('div');
         grid.className = 'awards-grid';
 
-        // Sort award groups by first appearance date ascending (earliest first)
         const sortedKeys = Object.keys(awards).sort((a, b) => {
             const aFirst = awards[a].firstYear || 0;
             const bFirst = awards[b].firstYear || 0;
@@ -332,7 +289,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         wrapper.className = 'award-card-wrapper';
         wrapper.style.animationDelay = `${index * 0.08}s`;
 
-        // Award card — only name centered + prize types in one row below
         const card = document.createElement('div');
         card.className = 'award-card';
 
@@ -341,16 +297,16 @@ document.addEventListener('DOMContentLoaded', async function () {
         nameEl.textContent = group.baseName;
         card.appendChild(nameEl);
 
-        // Prize types row
         const prizeTypes = Array.from(group.prizeTypes);
         if (prizeTypes.length > 0) {
             const prizesRow = document.createElement('div');
             prizesRow.className = 'award-card-prizes';
 
             prizeTypes.forEach(prize => {
+                const count = group.entries.filter(e => e.prize === prize).length;
                 const tag = document.createElement('span');
                 tag.className = 'award-prize-tag';
-                tag.textContent = prize;
+                tag.textContent = count > 0 ? `${prize} ${count}` : prize;
                 prizesRow.appendChild(tag);
             });
 
@@ -359,36 +315,33 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         wrapper.appendChild(card);
 
-        // Works panel (hidden by default)
         const worksPanel = document.createElement('div');
         worksPanel.className = 'works-panel';
 
         const worksPanelInner = document.createElement('div');
         worksPanelInner.className = 'works-panel-inner';
 
-        // Group works by specific award entry
         group.entries.forEach(entry => {
             const entrySection = document.createElement('div');
             entrySection.className = 'award-entry-section';
-            
+
             const entryHeader = document.createElement('div');
             entryHeader.className = 'award-entry-header';
-            
+
             const kaiSpan = document.createElement('span');
             kaiSpan.className = 'award-entry-header-kai';
             kaiSpan.textContent = entry.kai;
             entryHeader.appendChild(kaiSpan);
-            
+
             const prizeSpan = document.createElement('span');
             prizeSpan.textContent = entry.prize;
             entryHeader.appendChild(prizeSpan);
-            
+
             entrySection.appendChild(entryHeader);
-            
+
             const entryWorksContainer = document.createElement('div');
             entryWorksContainer.className = 'award-entry-works';
-            
-            // Sort works within this entry by year ascending
+
             const works = [...entry.works].sort((a, b) => a.year - b.year);
             const uniqueWorks = [];
             works.forEach(w => {
@@ -396,7 +349,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                     uniqueWorks.push(w);
                 }
             });
-            
+
             uniqueWorks.forEach(work => {
                 const workCard = document.createElement('a');
                 workCard.className = 'work-card';
@@ -420,7 +373,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 workCard.appendChild(row1);
                 entryWorksContainer.appendChild(workCard);
             });
-            
+
             entrySection.appendChild(entryWorksContainer);
             worksPanelInner.appendChild(entrySection);
         });
@@ -428,11 +381,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         worksPanel.appendChild(worksPanelInner);
         wrapper.appendChild(worksPanel);
 
-        // Click to toggle works panel
         card.addEventListener('click', () => {
             const isExpanded = card.classList.contains('expanded');
 
-            // Close all other expanded cards
             document.querySelectorAll('.award-card.expanded').forEach(c => {
                 c.classList.remove('expanded');
             });
@@ -440,7 +391,6 @@ document.addEventListener('DOMContentLoaded', async function () {
                 p.classList.remove('open');
             });
 
-            // Toggle this card
             if (!isExpanded) {
                 card.classList.add('expanded');
                 worksPanel.classList.add('open');
