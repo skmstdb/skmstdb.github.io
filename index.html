@@ -255,11 +255,15 @@
 
         /* ── Mobile ── */
         @media (max-width: 768px) {
+            .sidebar {
+                -webkit-transform: translateZ(0);
+                transform: translateZ(0);
+            }
 
             .hp-wrapper {
                 height: auto;
                 min-height: 60vh;
-                padding: 20px;
+                padding: 80px 20px 20px 20px;
             }
 
             .hp-carousel-outer {
@@ -508,9 +512,9 @@
         });
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDisclaimer(); });
 
-        document.querySelector('.sidebar').addEventListener('click', function (e) {
+        document.addEventListener('click', function (e) {
             const link = e.target.closest('a');
-            if (link && link.href && !link.classList.contains('active')) {
+            if (link && link.closest('.sidebar') && link.href && !link.classList.contains('active')) {
                 e.preventDefault();
                 showDisclaimer(link.href);
             }
