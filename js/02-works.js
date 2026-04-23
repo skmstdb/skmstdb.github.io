@@ -1,35 +1,27 @@
 document.addEventListener('DOMContentLoaded', async function () {
     let allWorks = [];
-    let currentTypeFilter = 'all'; // Type filter: all, 映画, TV, 舞台, etc.
-    let isLeadFilterActive = false; // Lead role filter: true/false
-
-    // ============================================
-    // INITIALIZATION - Ensure navbar loads first
-    // ============================================
-    // 1. Load navbar first (explicit control)
-    // Note: loadNavbar() already calls highlightCurrentPage() and initializeHamburger()
+    let currentTypeFilter = 'all';
+    let isLeadFilterActive = false;
+    let isAwardFilterActive = false;
     if (typeof loadNavbar === 'function') {
         await loadNavbar();
     }
 
-    // 2. Then load main content
     await loadData();
 
-    // Parse CSV and generate timeline
     async function loadData() {
         try {
             const response = await fetch('/data/biography.csv');
             const data = await response.text();
             const rows = data.split('\n');
-            
-            if (rows.length < 2) return; // Need at least header and one data row
-            
-            // Extract header row
+
+            if (rows.length < 2) return;
+
             const headerRow = rows[0];
             const header = [];
             let current = '';
             let inQuotes = false;
-            
+
             for (let i = 0; i < headerRow.length; i++) {
                 const char = headerRow[i];
                 if (char === '"') {
@@ -43,7 +35,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
             header.push(current.trim());
 
-            allWorks = rows.slice(1) // Skip header
+            allWorks = rows.slice(1)
                 .map(row => {
                     const cols = [];
                     let current = '';
@@ -64,13 +56,11 @@ document.addEventListener('DOMContentLoaded', async function () {
 
                     if (cols.length < header.length) return null;
 
-                    // Build eventData object with named properties
                     const eventData = {};
                     for (let i = 0; i < header.length && i < cols.length; i++) {
                         eventData[header[i]] = cols[i] ? cols[i].trim() : '';
                     }
 
-                    // Filter by Note column: exclude rows containing 'memo' or 'uwasa'
                     const note = eventData['Note'] || '';
                     const noteWords = note.toLowerCase().split(',').map(word => word.trim());
                     if (noteWords.includes('memo') || noteWords.includes('uwasa')) {
@@ -83,12 +73,10 @@ document.addEventListener('DOMContentLoaded', async function () {
                         dateStart = parseJSTDate(dateStartStr);
                     }
 
-                    // Calculate year from DateStart or Note column
                     let year = 0;
                     if (dateStart) {
                         year = dateStart.getUTCFullYear();
                     } else {
-                        // Check Note column for year (YYYY format) if DateStart is empty
                         const noteText = eventData['Note'] || '';
                         if (noteText && !noteWords.includes('uwasa')) {
                             const yearMatch = noteText.match(/\b(19|20)\d{2}\b/);
@@ -105,33 +93,29 @@ document.addEventListener('DOMContentLoaded', async function () {
                         role: eventData['Role'],
                         type: eventData['WorksType'],
                         dateStart: dateStart,
-                        url: eventData['URL']
+                        url: eventData['URL'],
+                        award: eventData['Award']
                     };
                 })
                 .filter(work => work && work.year > 0);
 
-            // Sort by year descending, then by date descending
-            // Using UTC methods consistently for JST-based dates
             allWorks.sort((a, b) => {
                 if (b.year !== a.year) {
                     return b.year - a.year;
                 }
                 if (a.dateStart && b.dateStart) {
-                    // Compare dates using UTC methods for JST-based date comparison
-                    // Since parseJSTDate returns dates with UTC components representing JST dates,
-                    // we use UTC methods for consistent timezone handling
                     const aYear = a.dateStart.getUTCFullYear();
                     const bYear = b.dateStart.getUTCFullYear();
                     if (bYear !== aYear) {
                         return bYear - aYear;
                     }
-                    
+
                     const aMonth = a.dateStart.getUTCMonth();
                     const bMonth = b.dateStart.getUTCMonth();
                     if (bMonth !== aMonth) {
                         return bMonth - aMonth;
                     }
-                    
+
                     const aDate = a.dateStart.getUTCDate();
                     const bDate = b.dateStart.getUTCDate();
                     return bDate - aDate;
@@ -150,35 +134,36 @@ document.addEventListener('DOMContentLoaded', async function () {
         const filterButtons = document.querySelectorAll('.filter-btn');
         const typeFilters = ['all', '映画', 'TV', '舞台', '声の出演', 'その他', 'BOOK'];
         const leadToggle = document.getElementById('lead-role-toggle');
+        const awardToggle = document.getElementById('award-toggle');
 
-        // Handle Lead Role Toggle
+        function updateAllButtonState() {
+            if (isLeadFilterActive || isAwardFilterActive) {
+                filterButtons.forEach(b => {
+                    if (b.dataset.filter === 'all') {
+                        b.classList.remove('active');
+                    }
+                });
+            } else if (currentTypeFilter === 'all') {
+                filterButtons.forEach(b => {
+                    if (b.dataset.filter === 'all') {
+                        b.classList.add('active');
+                    }
+                });
+            }
+        }
+
         if (leadToggle) {
             leadToggle.addEventListener('change', (e) => {
                 isLeadFilterActive = e.target.checked;
+                updateAllButtonState();
+                applyFilters();
+            });
+        }
 
-                // Interaction with "All":
-                // If turning ON lead filter, deselect "All" button if it was active?
-                // Or keep "All" active because it means "All types" + "Lead Only"?
-                // Current logic implies "All" button creates a "Reset" state.
-                // Let's decide: If Lead is ON, "All" (Reset) button should probably NOT be active visually 
-                // if "All" button means "Reset Everything".
-                // But usually "All" means "All Types". 
-                // Let's stick to previous behavior: logic de-activated 'all' button.
-
-                if (isLeadFilterActive) {
-                    filterButtons.forEach(b => {
-                        if (b.dataset.filter === 'all') {
-                            b.classList.remove('active');
-                        }
-                    });
-                } else if (currentTypeFilter === 'all') {
-                    filterButtons.forEach(b => {
-                        if (b.dataset.filter === 'all') {
-                            b.classList.add('active');
-                        }
-                    });
-                }
-
+        if (awardToggle) {
+            awardToggle.addEventListener('change', (e) => {
+                isAwardFilterActive = e.target.checked;
+                updateAllButtonState();
                 applyFilters();
             });
         }
@@ -188,29 +173,24 @@ document.addEventListener('DOMContentLoaded', async function () {
                 const filter = btn.dataset.filter;
 
                 if (filter === 'all') {
-                    // Reset all filters
                     currentTypeFilter = 'all';
                     isLeadFilterActive = false;
-                    if (leadToggle) leadToggle.checked = false; // Uncheck toggle
+                    isAwardFilterActive = false;
+                    if (leadToggle) leadToggle.checked = false;
+                    if (awardToggle) awardToggle.checked = false;
 
-                    // Update button states
                     filterButtons.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                 } else if (typeFilters.includes(filter)) {
-                    // Type filter clicked
                     currentTypeFilter = filter;
-
-                    // Remove active from all type filter buttons
                     filterButtons.forEach(b => {
                         if (typeFilters.includes(b.dataset.filter)) {
                             b.classList.remove('active');
                         }
                     });
 
-                    // Add active to clicked button
                     btn.classList.add('active');
 
-                    // "All" button visual update
                     filterButtons.forEach(b => {
                         if (b.dataset.filter === 'all') {
                             b.classList.remove('active');
@@ -218,7 +198,6 @@ document.addEventListener('DOMContentLoaded', async function () {
                     });
                 }
 
-                // Apply combined filters
                 applyFilters();
             });
         });
@@ -227,14 +206,16 @@ document.addEventListener('DOMContentLoaded', async function () {
     function applyFilters() {
         let filteredWorks = allWorks;
 
-        // Apply type filter first
         if (currentTypeFilter !== 'all') {
             filteredWorks = filteredWorks.filter(w => w.type === currentTypeFilter);
         }
 
-        // Apply lead role filter if active
         if (isLeadFilterActive) {
             filteredWorks = filteredWorks.filter(w => w.role && w.role.includes('主演'));
+        }
+
+        if (isAwardFilterActive) {
+            filteredWorks = filteredWorks.filter(w => w.award && w.award.trim() !== '');
         }
 
         generateTimeline(filteredWorks);
@@ -243,8 +224,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     function generateTimeline(works) {
         const totalWorks = works.length;
         const leadRoles = works.filter(w => w.role && w.role.includes('主演')).length;
+        const awardedWorks = works.filter(w => w.award && w.award.trim() !== '').length;
 
-        // Generate stats summary based on filtered works
         const statsSummary = document.getElementById('stats-summary');
         statsSummary.innerHTML = `
             <div class="stat-item">
@@ -255,9 +236,12 @@ document.addEventListener('DOMContentLoaded', async function () {
                 <span class="stat-number">${leadRoles}</span>
                 <span>主演</span>
             </div>
+            <div class="stat-item">
+                <span class="stat-number">${awardedWorks}</span>
+                <span>個人受賞</span>
+            </div>
         `;
 
-        // Group works by year
         const worksByYear = {};
         works.forEach(work => {
             if (!worksByYear[work.year]) {
@@ -266,36 +250,28 @@ document.addEventListener('DOMContentLoaded', async function () {
             worksByYear[work.year].push(work);
         });
 
-        // Generate all years from 1992 to current year (or max year in data)
-        // Use JST-based current year for consistent timezone handling
         const currentYear = getJSTNow().getUTCFullYear();
         const maxYearInData = Math.max(...allWorks.map(w => w.year));
         const endYear = Math.max(currentYear, maxYearInData);
         const startYear = 1992;
 
-        // Generate years list: [endYear, ..., 1992, 1973]
         const yearsToRender = [];
         for (let y = endYear; y >= startYear; y--) {
             yearsToRender.push(y);
         }
         yearsToRender.push(1973);
 
-        // Prepare year sections data
         const yearSectionsData = yearsToRender.map(year => ({
             year,
             works: worksByYear[year] || []
         }));
 
-        // Clear skeleton and render progressively
         const timelineContainer = document.getElementById('timeline-container');
         timelineContainer.innerHTML = '';
 
         renderTimelineProgressively(yearSectionsData, timelineContainer);
     }
 
-    // ============================================
-    // CREATE YEAR SECTION - Extracted for clarity
-    // ============================================
     function createYearSection(yearData) {
         const { year, works } = yearData;
 
@@ -344,12 +320,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         return yearDiv;
     }
 
-    // ============================================
-    // PROGRESSIVE RENDERING - Render in batches
-    // ============================================
     function renderTimelineProgressively(yearSectionsData, container) {
         return new Promise((resolve) => {
-            const BATCH_SIZE = 3; // Render 3 years per frame
+            const BATCH_SIZE = 3;
             let currentIndex = 0;
 
             function renderBatch() {
@@ -373,14 +346,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
     }
 
-    // Original timeline generation logic (now replaced by progressive rendering above)
     function generateTimelineOld_UNUSED(works) {
-        // This function is kept for reference but not used
-        // The new implementation uses progressive rendering
         const totalWorks = works.length;
         const leadRoles = works.filter(w => w.role && w.role.includes('主演')).length;
-
-        // Generate stats summary based on filtered works
         const statsSummary = document.getElementById('stats-summary');
         statsSummary.innerHTML = `
             <div class="stat-item">
@@ -393,7 +361,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             </div>
         `;
 
-        // Group works by year
         const worksByYear = {};
         works.forEach(work => {
             if (!worksByYear[work.year]) {
@@ -402,8 +369,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             worksByYear[work.year].push(work);
         });
 
-        // Generate all years from 1992 to current year (or max year in data)
-        // Use JST-based current year for consistent timezone handling
         const currentYear = getJSTNow().getUTCFullYear();
         const maxYearInData = Math.max(...allWorks.map(w => w.year));
         const endYear = Math.max(currentYear, maxYearInData);
