@@ -25,19 +25,14 @@
     <script src="js/mobileview.js"></script>
     <script src="js/darkmode.js"></script>
     <script src="navi/navHighlight.js"></script>
-
     <style>
         :root {
-            --bg-color: #f6f4ef;
             --border-color: #000000;
-            --text-color: #000000;
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
-                --bg-color: #121212;
                 --border-color: #333333;
-                --text-color: #f9f9f9;
             }
         }
 
@@ -53,7 +48,6 @@
             justify-content: center;
             width: 100%;
             height: calc(100vh - 100px);
-            box-sizing: border-box;
         }
 
         .hp-carousel-outer {
@@ -64,7 +58,6 @@
             border-radius: 20px;
             overflow: hidden;
             position: relative;
-            box-sizing: border-box;
             background-color: var(--bg-color);
             transition: all 0.3s ease;
         }
@@ -99,7 +92,6 @@
             justify-content: center;
             text-align: center;
             padding: 30px 24px;
-            box-sizing: border-box;
             text-decoration: none;
             color: var(--text-color);
             transition: background-color 0.3s;
@@ -254,11 +246,8 @@
         }
 
         /* ── Mobile ── */
-        @media (max-width: 768px) {
-            .sidebar {
-                -webkit-transform: translateZ(0);
-                transform: translateZ(0);
-            }
+        @media (max-width: 767px) {
+
 
             .hp-wrapper {
                 height: auto;
@@ -513,12 +502,26 @@
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDisclaimer(); });
 
         document.addEventListener('click', function (e) {
+            if (e.target.closest('.hamburger')) {
+                return;
+            }
+
             const link = e.target.closest('a');
-            if (link && link.closest('.sidebar') && link.href && !link.classList.contains('active')) {
+
+            if (
+                link &&
+                link.closest('.sidebar') &&
+                link.href &&
+                !link.classList.contains('active') &&
+                link.getAttribute('href') !== '#' &&
+                !link.dataset.noDisclaimer
+            ) {
                 e.preventDefault();
                 showDisclaimer(link.href);
             }
         });
+
+
 
     </script>
 
