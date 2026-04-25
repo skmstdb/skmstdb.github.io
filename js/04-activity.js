@@ -50,7 +50,7 @@ function parseAndFormatDates(dateStringList) {
 
 function normalizeWorksType(worksType) {
     if (!worksType) return 'その他';
-    const validTypes = ['映画', 'TV', '舞台', 'BOOK', 'その他', '声の出演'];
+    const validTypes = ['映画', 'TV', '舞台', 'BOOK', 'その他', '声の出演', 'Location'];
     const trimmedType = worksType.trim();
     if (validTypes.includes(trimmedType)) {
         return trimmedType;
@@ -66,7 +66,8 @@ function getActivityTypeClass(worksType) {
         '舞台': 'activity-stage',
         'BOOK': 'activity-book',
         'その他': 'activity-other',
-        '声の出演': 'activity-voice'
+        '声の出演': 'activity-voice',
+        'Location': 'activity-location'
     };
     return mapping[normalizedType] || 'activity-other';
 }
@@ -79,7 +80,8 @@ function getActivityOrder(worksType) {
         '舞台': 3,
         'その他': 4,
         '声の出演': 5,
-        'BOOK': 6
+        'BOOK': 6,
+        'Location': 7
     };
     return mapping[normalizedType] || 99;
 }
@@ -119,6 +121,8 @@ const activityMapState = {
     locationFlagsMap: new Map(),
     dismissalBound: false
 };
+let locationData = [];
+let workLocationMap = {};
 
 function getAgeAtDate(birthDate, targetDate) {
     let age = targetDate.getUTCFullYear() - birthDate.getUTCFullYear();
@@ -623,7 +627,6 @@ function getFilteredActivityDates(item) {
     return relevantDates;
 }
 
-// 非主演筛选作用的类型
 const NON_LEAD_APPLICABLE_TYPES = ['映画', 'TV', '舞台', 'その他', '声の出演'];
 
 function createMonthGraph(data, showLeadRoleOnly = false, selectedTypes = [], showNonLeadOnly = false) {
@@ -633,8 +636,10 @@ function createMonthGraph(data, showLeadRoleOnly = false, selectedTypes = [], sh
         const noteWords = note.toLowerCase().split(',').map(word => word.trim());
         if (noteWords.includes('memo') || noteWords.includes('uwasa')) return;
         if (showLeadRoleOnly || showNonLeadOnly) {
-            const matchLead = showLeadRoleOnly && item.Role === '主演';
-            const matchNonLead = showNonLeadOnly && item.Role !== '主演' && NON_LEAD_APPLICABLE_TYPES.includes(item.WorksType);
+            if (item.WorksType === 'BOOK') return;
+            const isLead = item.Role === '主演';
+            const matchLead = showLeadRoleOnly && isLead;
+            const matchNonLead = showNonLeadOnly && !isLead && NON_LEAD_APPLICABLE_TYPES.includes(item.WorksType);
             if (!matchLead && !matchNonLead) return;
         }
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
@@ -661,8 +666,10 @@ function createYearGraph(data, showLeadRoleOnly = false, selectedTypes = [], sho
         const noteWords = note.toLowerCase().split(',').map(word => word.trim());
         if (noteWords.includes('memo') || noteWords.includes('uwasa')) return;
         if (showLeadRoleOnly || showNonLeadOnly) {
-            const matchLead = showLeadRoleOnly && item.Role === '主演';
-            const matchNonLead = showNonLeadOnly && item.Role !== '主演' && NON_LEAD_APPLICABLE_TYPES.includes(item.WorksType);
+            if (item.WorksType === 'BOOK') return;
+            const isLead = item.Role === '主演';
+            const matchLead = showLeadRoleOnly && isLead;
+            const matchNonLead = showNonLeadOnly && !isLead && NON_LEAD_APPLICABLE_TYPES.includes(item.WorksType);
             if (!matchLead && !matchNonLead) return;
         }
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
@@ -688,8 +695,10 @@ function createAgeGraph(data, showLeadRoleOnly = false, selectedTypes = [], show
         const noteWords = note.toLowerCase().split(',').map(word => word.trim());
         if (noteWords.includes('memo') || noteWords.includes('uwasa')) return;
         if (showLeadRoleOnly || showNonLeadOnly) {
-            const matchLead = showLeadRoleOnly && item.Role === '主演';
-            const matchNonLead = showNonLeadOnly && item.Role !== '主演' && NON_LEAD_APPLICABLE_TYPES.includes(item.WorksType);
+            if (item.WorksType === 'BOOK') return;
+            const isLead = item.Role === '主演';
+            const matchLead = showLeadRoleOnly && isLead;
+            const matchNonLead = showNonLeadOnly && !isLead && NON_LEAD_APPLICABLE_TYPES.includes(item.WorksType);
             if (!matchLead && !matchNonLead) return;
         }
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
@@ -708,7 +717,6 @@ function createAgeGraph(data, showLeadRoleOnly = false, selectedTypes = [], show
     renderGraphStructure('age-graph-container', ageWorksMap, ageWorksMap, 'age');
 }
 
-// --- Chart View Implementation ---
 let currentChartMode = 'year';
 
 function createChartView(data, showLeadRoleOnly = false, selectedTypes = [], showNonLeadOnly = false) {
@@ -720,16 +728,19 @@ function createChartView(data, showLeadRoleOnly = false, selectedTypes = [], sho
     if (!controlsDiv) {
         controlsDiv = document.createElement('div');
         controlsDiv.className = 'chart-controls';
-        controlsDiv.style.marginBottom = '20px';
-        controlsDiv.style.textAlign = 'center';
 
         const modes = [
             { id: 'year', label: 'Year' },
-            { id: '5-year', label: '5 Years' },
+            { id: '5-year', label: '5-Year' },
             { id: 'decade', label: 'Decade' },
             { id: 'age', label: 'Age' },
-            { id: '5-year-age', label: 'Age 5 Years' },
-            { id: 'age-decade', label: 'Age Decade' }
+            { id: '5-year-age', label: 'Age-5Y' },
+            { id: 'age-decade', label: 'Age-Decade' },
+            { id: 'works-type', label: 'Work Type' },
+            { id: 'role-type', label: 'Role Type' },
+            { id: 'role', label: 'Role' },
+            { id: 'location', label: 'Location' },
+            { id: 'place', label: 'Place' }
         ];
 
         modes.forEach(mode => {
@@ -737,17 +748,11 @@ function createChartView(data, showLeadRoleOnly = false, selectedTypes = [], sho
             btn.textContent = mode.label;
             btn.className = 'chart-mode-btn';
             if (mode.id === currentChartMode) btn.classList.add('active');
-            btn.style.padding = '5px 15px';
-            btn.style.margin = '0 5px';
-            btn.style.cursor = 'pointer';
-            btn.style.border = '1px solid #ccc';
-            btn.style.backgroundColor = mode.id === currentChartMode ? '#ddd' : '#fff';
-            btn.style.borderRadius = '4px';
 
             btn.addEventListener('click', () => {
                 currentChartMode = mode.id;
-                container.querySelectorAll('.chart-mode-btn').forEach(b => b.style.backgroundColor = '#fff');
-                btn.style.backgroundColor = '#ddd';
+                container.querySelectorAll('.chart-mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
                 const currentShowLeadRoleOnly = document.getElementById('lead-role-filter').checked;
                 const currentShowNonLeadOnly = document.getElementById('non-lead-role-filter')?.checked || false;
                 const currentSelectedTypes = Array.from(document.querySelectorAll('.type-filter'))
@@ -764,15 +769,6 @@ function createChartView(data, showLeadRoleOnly = false, selectedTypes = [], sho
     if (!chartArea) {
         chartArea = document.createElement('div');
         chartArea.className = 'chart-content';
-        chartArea.style.display = 'flex';
-        chartArea.style.alignItems = 'flex-end';
-        chartArea.style.height = '540px';
-        chartArea.style.width = '100%';
-        chartArea.style.padding = '10px 0 30px 0';
-        chartArea.style.overflowX = 'auto';
-        chartArea.style.justifyContent = 'space-between';
-        chartArea.style.gap = '2px';
-        chartArea.style.boxSizing = 'border-box';
         container.appendChild(chartArea);
     }
 
@@ -808,51 +804,135 @@ function renderChartContent(data, showLeadRoleOnly, selectedTypes, showNonLeadOn
     } else if (currentChartMode === 'age-decade') {
         const endAgeDecade = Math.floor(getAgeAtDate(BIRTH_DATE, getJSTNow()) / 10) * 10;
         for (let ad = 10; ad <= endAgeDecade; ad += 10) sortedKeys.push(ad + 's');
+    } else if (currentChartMode === 'works-type') {
+        sortedKeys = ['映画', 'TV', '舞台', 'その他', '声の出演', 'BOOK'];
+    } else if (currentChartMode === 'role-type') {
+        sortedKeys = ['主演', '非主演'];
+    } else if (currentChartMode === 'role') {
+        sortedKeys = ['Actor', 'Voice Actor', 'Writer'];
+    } else if (currentChartMode === 'location') {
+        const countries = new Set();
+        Object.values(workLocationMap).forEach(countrySet => {
+            countrySet.forEach(c => countries.add(c));
+        });
+        sortedKeys = Array.from(countries).sort();
+    } else if (currentChartMode === 'place') {
+        const prefSet = new Set();
+        data.forEach(item => {
+            if (showLeadRoleOnly || showNonLeadOnly) {
+                if (item.WorksType === 'BOOK') return;
+                const isLead = item.Role === '主演';
+                if (showLeadRoleOnly && !isLead) return;
+                if (showNonLeadOnly && (isLead || !NON_LEAD_APPLICABLE_TYPES.includes(item.WorksType))) return;
+            }
+            if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
+
+            if (item.Place) {
+                item.Place.split(',').forEach(p => {
+                    const pref = getPrefectureFromVenue(p.trim());
+                    if (pref) prefSet.add(pref);
+                });
+            }
+        });
+        const regionOrder = ['hokkaido', 'tohoku', 'kanto', 'chubu', 'kinki', 'chugoku', 'shikoku', 'kyushu'];
+        sortedKeys = Array.from(prefSet).sort((a, b) => {
+            const pA = JAPAN_TILE_PREFS.find(p => p.name === a);
+            const pB = JAPAN_TILE_PREFS.find(p => p.name === b);
+            const regA = pA ? regionOrder.indexOf(pA.region) : 99;
+            const regB = pB ? regionOrder.indexOf(pB.region) : 99;
+            if (regA !== regB) return regA - regB;
+            return a.localeCompare(b);
+        });
     }
 
     sortedKeys.forEach(k => {
         aggregatedData[k] = { total: 0, worksList: [], typeCounts: {} };
     });
 
-    data.forEach(item => {
-        const note = item.Note || '';
-        if (note.toLowerCase().includes('memo') || note.toLowerCase().includes('uwasa')) return;
-        if (showLeadRoleOnly || showNonLeadOnly) {
-            const matchLead = showLeadRoleOnly && item.Role === '主演';
-            const matchNonLead = showNonLeadOnly && item.Role !== '主演' && NON_LEAD_APPLICABLE_TYPES.includes(item.WorksType);
-            if (!matchLead && !matchNonLead) return;
-        }
-        if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
-
-        const keys = new Set();
-        const filteredActivityDates = getFilteredActivityDates(item);
-        filteredActivityDates.forEach(dateStr => {
-            const dateObj = parseJSTDate(dateStr);
-            if (!dateObj) return;
-            let key;
-            if (currentChartMode === 'year') key = dateObj.getUTCFullYear();
-            else if (currentChartMode === 'decade') key = Math.floor(dateObj.getUTCFullYear() / 10) * 10 + 's';
-            else if (currentChartMode === '5-year') {
-                const y = dateObj.getUTCFullYear();
-                key = y < 1995 ? '1992-1994' : `${1995 + Math.floor((y - 1995) / 5) * 5}-${1995 + Math.floor((y - 1995) / 5) * 5 + 4}`;
-            } else if (currentChartMode === '5-year-age') {
-                const age = getAgeAtDate(BIRTH_DATE, dateObj);
-                if (age >= 19) key = age < 20 ? `${age}` : `${Math.floor(age / 5) * 5}-${Math.floor(age / 5) * 5 + 4}`;
-            } else if (currentChartMode === 'age') key = getAgeAtDate(BIRTH_DATE, dateObj);
-            else if (currentChartMode === 'age-decade') key = Math.floor(getAgeAtDate(BIRTH_DATE, dateObj) / 10) * 10 + 's';
-
-            if (key !== undefined && aggregatedData[key]) keys.add(key);
+    if (currentChartMode === 'location') {
+        locationData.forEach(loc => {
+            if (!loc.Location || (loc.Name && loc.Name.trim() === 'Location')) return;
+            const countries = loc.Location.split(',').map(c => c.trim()).filter(Boolean);
+            countries.forEach(c => {
+                const config = ACTIVITY_LOCATION_COUNTRY_CONFIG[c];
+                const mappedName = config ? config.name : c;
+                if (aggregatedData[mappedName]) {
+                    aggregatedData[mappedName].total++;
+                    aggregatedData[mappedName].worksList.push({
+                        Title: loc.Name || '',
+                        DateStart: loc.Year || '',
+                        WorksType: 'Location',
+                        Location: loc.Location,
+                        Url: loc.Url
+                    });
+                    aggregatedData[mappedName].typeCounts['Location'] = (aggregatedData[mappedName].typeCounts['Location'] || 0) + 1;
+                }
+            });
         });
-
-        keys.forEach(key => {
-            if (!aggregatedData[key].worksList.some(w => w.Title === item.Title)) {
-                aggregatedData[key].worksList.push(item);
-                aggregatedData[key].total++;
-                const nType = normalizeWorksType(item.WorksType);
-                aggregatedData[key].typeCounts[nType] = (aggregatedData[key].typeCounts[nType] || 0) + 1;
+    } else {
+        data.forEach(item => {
+            const note = item.Note || '';
+            if (note.toLowerCase().includes('memo') || note.toLowerCase().includes('uwasa')) return;
+            if (showLeadRoleOnly || showNonLeadOnly) {
+                if (item.WorksType === 'BOOK') return;
+                const isLead = item.Role === '主演';
+                const matchLead = showLeadRoleOnly && isLead;
+                const matchNonLead = showNonLeadOnly && !isLead && NON_LEAD_APPLICABLE_TYPES.includes(item.WorksType);
+                if (!matchLead && !matchNonLead) return;
             }
+            if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
+
+            const keys = new Set();
+            const filteredActivityDates = getFilteredActivityDates(item);
+            filteredActivityDates.forEach(dateStr => {
+                const dateObj = parseJSTDate(dateStr);
+                if (!dateObj) return;
+                let key;
+                if (currentChartMode === 'year') key = dateObj.getUTCFullYear();
+                else if (currentChartMode === 'decade') key = Math.floor(dateObj.getUTCFullYear() / 10) * 10 + 's';
+                else if (currentChartMode === '5-year') {
+                    const y = dateObj.getUTCFullYear();
+                    key = y < 1995 ? '1992-1994' : `${1995 + Math.floor((y - 1995) / 5) * 5}-${1995 + Math.floor((y - 1995) / 5) * 5 + 4}`;
+                } else if (currentChartMode === '5-year-age') {
+                    const age = getAgeAtDate(BIRTH_DATE, dateObj);
+                    if (age >= 19) key = age < 20 ? `${age}` : `${Math.floor(age / 5) * 5}-${Math.floor(age / 5) * 5 + 4}`;
+                } else if (currentChartMode === 'age') key = getAgeAtDate(BIRTH_DATE, dateObj);
+                else if (currentChartMode === 'age-decade') key = Math.floor(getAgeAtDate(BIRTH_DATE, dateObj) / 10) * 10 + 's';
+                else if (currentChartMode === 'works-type') key = normalizeWorksType(item.WorksType);
+                else if (currentChartMode === 'role-type') {
+                    if (item.WorksType === 'BOOK') {
+                        key = undefined;
+                    } else {
+                        key = item.Role === '主演' ? '主演' : '非主演';
+                    }
+                }
+                else if (currentChartMode === 'role') {
+                    const nt = normalizeWorksType(item.WorksType);
+                    if (['映画', 'TV', '舞台', 'その他'].includes(nt)) key = 'Actor';
+                    else if (nt === '声の出演') key = 'Voice Actor';
+                    else if (nt === 'BOOK') key = 'Writer';
+                } else if (currentChartMode === 'place') {
+                    if (item.Place) {
+                        item.Place.split(',').forEach(p => {
+                            const pref = getPrefectureFromVenue(p.trim());
+                            if (pref && aggregatedData[pref]) keys.add(pref);
+                        });
+                    }
+                }
+
+                if (key !== undefined && aggregatedData[key]) keys.add(key);
+            });
+
+            keys.forEach(key => {
+                if (!aggregatedData[key].worksList.some(w => w.Title === item.Title)) {
+                    aggregatedData[key].worksList.push(item);
+                    aggregatedData[key].total++;
+                    const nType = normalizeWorksType(item.WorksType);
+                    aggregatedData[key].typeCounts[nType] = (aggregatedData[key].typeCounts[nType] || 0) + 1;
+                }
+            });
         });
-    });
+    }
 
     if (sortedKeys.length === 0) {
         chartArea.innerHTML = '<p>No data available for current selection.</p>';
@@ -863,15 +943,16 @@ function renderChartContent(data, showLeadRoleOnly, selectedTypes, showNonLeadOn
     const worksMapForDetail = {};
     sortedKeys.forEach(k => worksMapForDetail[k] = aggregatedData[k].worksList);
 
-    const typeOrder = ['映画', 'TV', '舞台', 'その他', '声の出演', 'BOOK'];
+    const typeOrder = ['映画', 'TV', '舞台', 'その他', '声の出演', 'BOOK', 'Location'];
 
     sortedKeys.forEach(key => {
         const dataPoint = aggregatedData[key];
         const barContainer = document.createElement('div');
         barContainer.className = 'chart-bar-container';
-        barContainer.style.flex = '1 0 auto';
-        barContainer.style.minWidth = (currentChartMode === 'year' || currentChartMode === 'age') ? '12px' : '30px';
-        barContainer.style.maxWidth = '60px';
+        barContainer.style.flex = '0 0 auto';
+        barContainer.style.minWidth = (currentChartMode === 'year' || currentChartMode === 'age') ? '12px' : '45px';
+        barContainer.style.maxWidth = '100px';
+        barContainer.style.margin = '0 5px';
         barContainer.style.display = 'flex';
         barContainer.style.flexDirection = 'column-reverse';
         barContainer.style.alignItems = 'center';
@@ -896,7 +977,28 @@ function renderChartContent(data, showLeadRoleOnly, selectedTypes, showNonLeadOn
 
         const label = document.createElement('div');
         label.className = 'chart-bar-label';
-        label.textContent = currentChartMode === 'year' ? String(key).slice(-2) : key;
+        let labelText = key;
+        if (currentChartMode === 'year') labelText = String(key).slice(-2);
+        else if (currentChartMode === 'works-type') {
+            labelText = key;
+        } else if (currentChartMode === 'location') {
+            const config = Object.values(ACTIVITY_LOCATION_COUNTRY_CONFIG).find(c => c.name === key);
+            if (config) labelText = config.flag;
+        }
+        label.textContent = labelText;
+        if (currentChartMode === 'location') label.style.fontSize = '1.4rem';
+
+        if (currentChartMode === 'place') {
+            const prefObj = JAPAN_TILE_PREFS.find(p => p.name === key);
+            if (prefObj) {
+                const color = REGION_COLORS[prefObj.region].base;
+                label.style.backgroundColor = color;
+                label.style.color = '#fff';
+                label.style.padding = '2px 4px';
+                label.style.borderRadius = '3px';
+                label.style.fontSize = '0.7rem';
+            }
+        }
         label.style.fontSize = '10px';
         label.style.marginTop = '4px';
 
@@ -940,13 +1042,19 @@ function showWorksDetail(key, worksDataMap, viewType) {
     let title = '';
     if (viewType === 'month') {
         const [y, m] = key.split('-');
-        title = `${y} ${MONTH_NAMES[parseInt(m)]}`;
+        const monthNum = (parseInt(m) + 1).toString().padStart(2, '0');
+        title = `Month: ${y}-${monthNum}`;
     } else if (viewType === 'year') title = `Year: ${key}`;
     else if (viewType === 'age') title = `公開時年齢: ${key}`;
     else if (viewType === 'decade') title = `Decade: ${key}`;
     else if (viewType === '5-year') title = `Period: ${key}`;
     else if (viewType === '5-year-age') title = `Age Period: ${key}`;
     else if (viewType === 'age-decade') title = `Age Decade: ${key}`;
+    else if (viewType === 'works-type') title = `Work Type: ${key}`;
+    else if (viewType === 'role-type') title = `Role Type: ${key}`;
+    else if (viewType === 'role') title = `Role: ${key}`;
+    else if (viewType === 'location') title = `Location: ${key}`;
+    else if (viewType === 'place') title = `Place: ${key}`;
 
     if (works.length === 0) {
         detailContent.innerHTML = `<p>No works found for ${title}.</p>`;
@@ -960,34 +1068,45 @@ function showWorksDetail(key, worksDataMap, viewType) {
 
         let html = `<h4>${title}</h4>`;
 
-        const typeOrderMap = {
-            '映画': 1,
-            'TV': 2,
-            '舞台': 3,
-            'その他': 4,
-            '声の出演': 5,
-            'BOOK': 6
-        };
-
-        const sortedTypes = Object.keys(worksByType).sort((a, b) =>
-            (typeOrderMap[a] || 99) - (typeOrderMap[b] || 99)
-        );
-
-        sortedTypes.forEach(type => {
-            let typeWorks = worksByType[type];
-            typeWorks.sort((a, b) => {
-                const dA = parseJSTDate(a.DateStart), dB = parseJSTDate(b.DateStart);
-                if (!dA && !dB) return 0; if (!dA) return 1; if (!dB) return -1;
-                return dA.getTime() !== dB.getTime() ? dA.getTime() - dB.getTime() : a.Title.localeCompare(b.Title);
+        if (viewType === 'location') {
+            html += `<div class="location-works-list">`;
+            works.sort((a, b) => (b.DateStart || '').localeCompare(a.DateStart || ''));
+            works.forEach(work => {
+                const cardContent = `
+                    <div class="location-work-card">
+                        <div class="year">${work.DateStart}</div>
+                        <div class="name">${work.Title}</div>
+                        <div class="location-detail">${work.Location || ''}</div>
+                    </div>
+                `;
+                if (work.Url) {
+                    html += `<a href="${work.Url}" target="_blank" class="location-work-link">${cardContent}</a>`;
+                } else {
+                    html += cardContent;
+                }
             });
-            const tClass = getActivityTypeClass(type);
-            html += `<div class="works-type-group"><h5 class="${tClass}-title">${type}</h5><div class="works-row ${tClass}-row">`;
-            typeWorks.forEach(work => {
-                let dDisp = work.DateStart + (work.DateEnd && work.DateEnd !== work.DateStart ? ` ~ ${work.DateEnd}` : '');
-                html += `<div class="work-card ${tClass}"><div class="work-title">${work.Title}</div><div class="work-date">${dDisp}</div>${work.Role ? `<div class="work-role">${work.Role}</div>` : ''}</div>`;
+            html += `</div>`;
+        } else {
+            const sortedTypes = Object.keys(worksByType).sort((a, b) =>
+                getActivityOrder(a) - getActivityOrder(b)
+            );
+
+            sortedTypes.forEach(type => {
+                let typeWorks = worksByType[type];
+                typeWorks.sort((a, b) => {
+                    const dA = parseJSTDate(a.DateStart), dB = parseJSTDate(b.DateStart);
+                    if (!dA && !dB) return 0; if (!dA) return 1; if (!dB) return -1;
+                    return dA.getTime() !== dB.getTime() ? dA.getTime() - dB.getTime() : a.Title.localeCompare(b.Title);
+                });
+                const tClass = getActivityTypeClass(type);
+                html += `<div class="works-type-group"><h5 class="${tClass}-title">${type}</h5><div class="works-row ${tClass}-row">`;
+                typeWorks.forEach(work => {
+                    let dDisp = work.DateStart + (work.DateEnd && work.DateEnd !== work.DateStart ? ` ~ ${work.DateEnd}` : '');
+                    html += `<div class="work-card ${tClass}"><div class="work-title">${work.Title}</div><div class="work-date">${dDisp}</div>${work.Role ? `<div class="work-role">${work.Role}</div>` : ''}</div>`;
+                });
+                html += '</div></div>';
             });
-            html += '</div></div>';
-        });
+        }
         detailContent.innerHTML = html;
     }
     detailContainer.style.display = 'block';
@@ -1043,24 +1162,46 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    fetch('../data/biography.csv')
-        .then(res => res.text())
-        .then(data => {
-            worksData = parseCSV(data);
-            worksData.forEach(item => item.WorksType = normalizeWorksType(item.WorksType));
-            updateGraphView();
+    Promise.all([
+        fetch('../data/biography.csv').then(res => res.text()),
+        fetch('../data/location.csv').then(res => res.text())
+    ]).then(([bioData, locData]) => {
+        worksData = parseCSV(bioData);
+        locationData = parseCSV(locData);
 
-            leadRoleFilter.addEventListener('change', updateGraphView);
-            if (nonLeadRoleFilter) {
-                nonLeadRoleFilter.addEventListener('change', updateGraphView);
+        locationData.forEach(row => {
+            if (row.Location && row.Name && row.Name.trim() !== 'Location') {
+                const locations = row.Location.split(',').map(l => l.trim()).filter(Boolean);
+                locations.forEach(l => {
+                    const config = ACTIVITY_LOCATION_COUNTRY_CONFIG[l];
+                    const mappedName = config ? config.name : l;
+                    if (!workLocationMap[row.Name]) workLocationMap[row.Name] = new Set();
+                    workLocationMap[row.Name].add(mappedName);
+                });
             }
-
-            typeFilters.forEach(f => f.addEventListener('change', updateGraphView));
-            viewFilters.forEach(f => f.addEventListener('change', function () {
-                viewFilters.forEach(o => { if (o !== this) o.checked = false; });
-                updateGraphView();
-            }));
-            const closeBtn = document.querySelector('#works-detail-container .close-detail');
-            if (closeBtn) closeBtn.addEventListener('click', () => document.getElementById('works-detail-container').style.display = 'none');
         });
+
+        worksData.forEach(item => item.WorksType = normalizeWorksType(item.WorksType));
+        updateGraphView();
+
+        leadRoleFilter.addEventListener('change', updateGraphView);
+        if (nonLeadRoleFilter) {
+            nonLeadRoleFilter.addEventListener('change', updateGraphView);
+        }
+
+        typeFilters.forEach(f => f.addEventListener('change', updateGraphView));
+        viewFilters.forEach(f => f.addEventListener('change', function () {
+            viewFilters.forEach(o => { if (o !== this) o.checked = false; });
+            updateGraphView();
+        }));
+        const closeBtn = document.querySelector('#works-detail-container .close-detail');
+        if (closeBtn) closeBtn.addEventListener('click', () => document.getElementById('works-detail-container').style.display = 'none');
+    });
 });
+function getPrefectureFromVenue(venueName) {
+    if (!venueName) return null;
+    let pref = typeof VENUE_PREFECTURE_MAP !== 'undefined' ? VENUE_PREFECTURE_MAP[venueName] : null;
+    if (!pref) return null;
+    if (pref === '東京') return '東京都';
+    return pref;
+}
