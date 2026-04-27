@@ -629,18 +629,21 @@ function getFilteredActivityDates(item) {
 
 const NON_LEAD_APPLICABLE_TYPES = ['映画', 'TV', '舞台', 'その他', '声の出演'];
 
-function createMonthGraph(data, showLeadRoleOnly = false, selectedTypes = [], showNonLeadOnly = false) {
+function createMonthGraph(data, showLeadRoleOnly = false, selectedTypes = [], showNonLeadOnly = false, showAwardOnly = false) {
     const monthlyWorksMap = {};
     data.forEach(item => {
         const note = item.Note || '';
         const noteWords = note.toLowerCase().split(',').map(word => word.trim());
         if (noteWords.includes('memo') || noteWords.includes('uwasa')) return;
         if (showLeadRoleOnly || showNonLeadOnly) {
-            if (item.WorksType === 'BOOK') return;
             const isLead = item.Role === '主演';
-            const matchLead = showLeadRoleOnly && isLead;
+            const matchLead = showLeadRoleOnly && isLead && item.WorksType !== 'BOOK';
             const matchNonLead = showNonLeadOnly && !isLead && NON_LEAD_APPLICABLE_TYPES.includes(item.WorksType);
             if (!matchLead && !matchNonLead) return;
+        }
+        if (showAwardOnly) {
+            const hasAward = item.Award && item.Award.trim() !== '';
+            if (!hasAward) return;
         }
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
 
@@ -659,18 +662,21 @@ function createMonthGraph(data, showLeadRoleOnly = false, selectedTypes = [], sh
 }
 
 
-function createYearGraph(data, showLeadRoleOnly = false, selectedTypes = [], showNonLeadOnly = false) {
+function createYearGraph(data, showLeadRoleOnly = false, selectedTypes = [], showNonLeadOnly = false, showAwardOnly = false) {
     const yearlyWorksMap = {};
     data.forEach(item => {
         const note = item.Note || '';
         const noteWords = note.toLowerCase().split(',').map(word => word.trim());
         if (noteWords.includes('memo') || noteWords.includes('uwasa')) return;
         if (showLeadRoleOnly || showNonLeadOnly) {
-            if (item.WorksType === 'BOOK') return;
             const isLead = item.Role === '主演';
-            const matchLead = showLeadRoleOnly && isLead;
+            const matchLead = showLeadRoleOnly && isLead && item.WorksType !== 'BOOK';
             const matchNonLead = showNonLeadOnly && !isLead && NON_LEAD_APPLICABLE_TYPES.includes(item.WorksType);
             if (!matchLead && !matchNonLead) return;
+        }
+        if (showAwardOnly) {
+            const hasAward = item.Award && item.Award.trim() !== '';
+            if (!hasAward) return;
         }
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
 
@@ -688,18 +694,21 @@ function createYearGraph(data, showLeadRoleOnly = false, selectedTypes = [], sho
     renderGraphStructure('year-graph-container', yearlyWorksMap, yearlyWorksMap, 'year');
 }
 
-function createAgeGraph(data, showLeadRoleOnly = false, selectedTypes = [], showNonLeadOnly = false) {
+function createAgeGraph(data, showLeadRoleOnly = false, selectedTypes = [], showNonLeadOnly = false, showAwardOnly = false) {
     const ageWorksMap = {};
     data.forEach(item => {
         const note = item.Note || '';
         const noteWords = note.toLowerCase().split(',').map(word => word.trim());
         if (noteWords.includes('memo') || noteWords.includes('uwasa')) return;
         if (showLeadRoleOnly || showNonLeadOnly) {
-            if (item.WorksType === 'BOOK') return;
             const isLead = item.Role === '主演';
-            const matchLead = showLeadRoleOnly && isLead;
+            const matchLead = showLeadRoleOnly && isLead && item.WorksType !== 'BOOK';
             const matchNonLead = showNonLeadOnly && !isLead && NON_LEAD_APPLICABLE_TYPES.includes(item.WorksType);
             if (!matchLead && !matchNonLead) return;
+        }
+        if (showAwardOnly) {
+            const hasAward = item.Award && item.Award.trim() !== '';
+            if (!hasAward) return;
         }
         if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
 
@@ -719,7 +728,7 @@ function createAgeGraph(data, showLeadRoleOnly = false, selectedTypes = [], show
 
 let currentChartMode = 'year';
 
-function createChartView(data, showLeadRoleOnly = false, selectedTypes = [], showNonLeadOnly = false) {
+function createChartView(data, showLeadRoleOnly = false, selectedTypes = [], showNonLeadOnly = false, showAwardOnly = false) {
     const container = document.getElementById('chart-view-container');
     if (!container) return;
     container.style.width = '100%';
@@ -755,9 +764,10 @@ function createChartView(data, showLeadRoleOnly = false, selectedTypes = [], sho
                 btn.classList.add('active');
                 const currentShowLeadRoleOnly = document.getElementById('lead-role-filter').checked;
                 const currentShowNonLeadOnly = document.getElementById('non-lead-role-filter')?.checked || false;
+                const currentShowAwardOnly = document.getElementById('individual-award-filter')?.checked || false;
                 const currentSelectedTypes = Array.from(document.querySelectorAll('.type-filter'))
                     .filter(input => input.checked).map(input => input.dataset.type);
-                renderChartContent(data, currentShowLeadRoleOnly, currentSelectedTypes, currentShowNonLeadOnly);
+                renderChartContent(data, currentShowLeadRoleOnly, currentSelectedTypes, currentShowNonLeadOnly, currentShowAwardOnly);
             });
             controlsDiv.appendChild(btn);
         });
@@ -772,10 +782,10 @@ function createChartView(data, showLeadRoleOnly = false, selectedTypes = [], sho
         container.appendChild(chartArea);
     }
 
-    renderChartContent(data, showLeadRoleOnly, selectedTypes, showNonLeadOnly);
+    renderChartContent(data, showLeadRoleOnly, selectedTypes, showNonLeadOnly, showAwardOnly);
 }
 
-function renderChartContent(data, showLeadRoleOnly, selectedTypes, showNonLeadOnly = false) {
+function renderChartContent(data, showLeadRoleOnly, selectedTypes, showNonLeadOnly = false, showAwardOnly = false) {
     const chartArea = document.querySelector('#chart-view-container .chart-content');
     if (!chartArea) return;
     chartArea.innerHTML = '';
@@ -820,10 +830,14 @@ function renderChartContent(data, showLeadRoleOnly, selectedTypes, showNonLeadOn
         const prefSet = new Set();
         data.forEach(item => {
             if (showLeadRoleOnly || showNonLeadOnly) {
-                if (item.WorksType === 'BOOK') return;
                 const isLead = item.Role === '主演';
-                if (showLeadRoleOnly && !isLead) return;
-                if (showNonLeadOnly && (isLead || !NON_LEAD_APPLICABLE_TYPES.includes(item.WorksType))) return;
+                const matchLead = showLeadRoleOnly && isLead && item.WorksType !== 'BOOK';
+                const matchNonLead = showNonLeadOnly && !isLead && NON_LEAD_APPLICABLE_TYPES.includes(item.WorksType);
+                if (!matchLead && !matchNonLead) return;
+            }
+            if (showAwardOnly) {
+                const hasAward = item.Award && item.Award.trim() !== '';
+                if (!hasAward) return;
             }
             if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
 
@@ -874,11 +888,14 @@ function renderChartContent(data, showLeadRoleOnly, selectedTypes, showNonLeadOn
             const note = item.Note || '';
             if (note.toLowerCase().includes('memo') || note.toLowerCase().includes('uwasa')) return;
             if (showLeadRoleOnly || showNonLeadOnly) {
-                if (item.WorksType === 'BOOK') return;
                 const isLead = item.Role === '主演';
-                const matchLead = showLeadRoleOnly && isLead;
+                const matchLead = showLeadRoleOnly && isLead && item.WorksType !== 'BOOK';
                 const matchNonLead = showNonLeadOnly && !isLead && NON_LEAD_APPLICABLE_TYPES.includes(item.WorksType);
                 if (!matchLead && !matchNonLead) return;
+            }
+            if (showAwardOnly) {
+                const hasAward = item.Award && item.Award.trim() !== '';
+                if (!hasAward) return;
             }
             if (selectedTypes.length > 0 && !selectedTypes.includes(item.WorksType)) return;
 
@@ -1116,6 +1133,7 @@ function showWorksDetail(key, worksDataMap, viewType) {
 document.addEventListener('DOMContentLoaded', function () {
     const leadRoleFilter = document.getElementById('lead-role-filter');
     const nonLeadRoleFilter = document.getElementById('non-lead-role-filter');
+    const individualAwardFilter = document.getElementById('individual-award-filter');
     const typeFilters = document.querySelectorAll('.type-filter');
     const viewFilters = document.querySelectorAll('.view-filter');
     let worksData = [];
@@ -1123,6 +1141,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateGraphView() {
         const showLeadRoleOnly = leadRoleFilter.checked;
         const showNonLeadOnly = nonLeadRoleFilter ? nonLeadRoleFilter.checked : false;
+        const showAwardOnly = individualAwardFilter ? individualAwardFilter.checked : false;
         const selectedTypes = Array.from(typeFilters).filter(i => i.checked).map(i => i.dataset.type);
         const mapFilterOn = document.getElementById('map-view-filter')?.checked;
         const stageFilterOn = Array.from(typeFilters).some(i => i.checked && i.dataset.type === '舞台');
@@ -1141,11 +1160,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (document.getElementById('year-view-filter').checked) {
-            views.year.style.display = 'block'; createYearGraph(worksData, showLeadRoleOnly, selectedTypes, showNonLeadOnly);
+            views.year.style.display = 'block'; createYearGraph(worksData, showLeadRoleOnly, selectedTypes, showNonLeadOnly, showAwardOnly);
         } else if (document.getElementById('age-view-filter').checked) {
-            views.age.style.display = 'block'; createAgeGraph(worksData, showLeadRoleOnly, selectedTypes, showNonLeadOnly);
+            views.age.style.display = 'block'; createAgeGraph(worksData, showLeadRoleOnly, selectedTypes, showNonLeadOnly, showAwardOnly);
         } else if (document.getElementById('chart-view-filter')?.checked) {
-            views.chart.style.display = 'block'; createChartView(worksData, showLeadRoleOnly, selectedTypes, showNonLeadOnly);
+            views.chart.style.display = 'block'; createChartView(worksData, showLeadRoleOnly, selectedTypes, showNonLeadOnly, showAwardOnly);
         } else if (mapFilterOn && stageFilterOn) {
             // Japan prefecture map: Map View + 舞台 both ON
             views.japanMap.style.display = 'block';
@@ -1158,7 +1177,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (detailContainer) detailContainer.style.display = 'none';
             initActivityMapView();
         } else {
-            views.month.style.display = 'block'; createMonthGraph(worksData, showLeadRoleOnly, selectedTypes, showNonLeadOnly);
+            views.month.style.display = 'block'; createMonthGraph(worksData, showLeadRoleOnly, selectedTypes, showNonLeadOnly, showAwardOnly);
         }
     }
 
@@ -1187,6 +1206,9 @@ document.addEventListener('DOMContentLoaded', function () {
         leadRoleFilter.addEventListener('change', updateGraphView);
         if (nonLeadRoleFilter) {
             nonLeadRoleFilter.addEventListener('change', updateGraphView);
+        }
+        if (individualAwardFilter) {
+            individualAwardFilter.addEventListener('change', updateGraphView);
         }
 
         typeFilters.forEach(f => f.addEventListener('change', updateGraphView));
