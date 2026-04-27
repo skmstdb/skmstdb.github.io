@@ -51,16 +51,64 @@ body {
     border-radius: 8px;
     padding: 15px;
     width: fit-content;
+    max-width: 100%;
+    box-sizing: border-box;
     margin-left: auto;
     margin-right: auto;
 }
 
 #filter-row-1,
-#filter-row-2 {
+#filter-row-2,
+#filter-row-3 {
     display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    width: 100%;
     gap: 0.5rem;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 1024px) {
+
+    #filter-row-1,
+    #filter-row-2,
+    #filter-row-3 {
+        justify-content: center;
+    }
+}
+
+#filter-row-1::-webkit-scrollbar,
+#filter-row-2::-webkit-scrollbar,
+#filter-row-3::-webkit-scrollbar {
+    height: 4px;
+}
+
+#filter-row-1::-webkit-scrollbar-track,
+#filter-row-2::-webkit-scrollbar-track,
+#filter-row-3::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#filter-row-1::-webkit-scrollbar-thumb,
+#filter-row-2::-webkit-scrollbar-thumb,
+#filter-row-3::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.dark-mode #filter-row-1::-webkit-scrollbar-thumb,
+.dark-mode #filter-row-2::-webkit-scrollbar-thumb,
+.dark-mode #filter-row-3::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+#filter-row-1 .filter-item,
+#filter-row-2 .filter-item,
+#filter-row-3 .filter-item {
+    flex: 0 0 auto;
+    white-space: nowrap;
 }
 
 .filter-item {
@@ -130,7 +178,6 @@ body {
     box-shadow: none;
     border: none;
     table-layout: fixed;
-    /* Chrome特定修复 */
     -webkit-border-horizontal-spacing: var(--activity-cell-gap);
     -webkit-border-vertical-spacing: var(--activity-cell-gap);
 }
@@ -151,7 +198,6 @@ body {
     display: table-cell;
     vertical-align: middle;
     width: var(--activity-cell-size);
-    /* Chrome特定修复 */
     box-sizing: border-box;
     position: relative;
 }
@@ -184,11 +230,9 @@ body {
     white-space: nowrap;
     line-height: 1;
     font-size: 0.7rem;
-    /* Chrome特定修复 */
     box-sizing: border-box;
 }
 
-/* New Year Header Styles */
 .year-header-row {
     display: table-row;
     height: var(--activity-cell-size);
@@ -361,50 +405,6 @@ body {
         font-size: 0.8rem;
     }
 
-    .filter-container {
-        width: 100%;
-        max-width: 100%;
-        box-sizing: border-box;
-    }
-
-    #filter-row-1,
-    #filter-row-2 {
-        display: flex;
-        flex-wrap: nowrap;
-        width: 100%;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        justify-content: flex-start;
-        padding-bottom: 8px;
-    }
-
-    #filter-row-1::-webkit-scrollbar,
-    #filter-row-2::-webkit-scrollbar {
-        height: 4px;
-    }
-
-    #filter-row-1::-webkit-scrollbar-track,
-    #filter-row-2::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    #filter-row-1::-webkit-scrollbar-thumb,
-    #filter-row-2::-webkit-scrollbar-thumb {
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 4px;
-    }
-
-    .dark-mode #filter-row-1::-webkit-scrollbar-thumb,
-    .dark-mode #filter-row-2::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.3);
-    }
-
-    #filter-row-1 .filter-item,
-    #filter-row-2 .filter-item {
-        flex: 0 0 auto;
-        margin: 0 15px 0 0;
-        white-space: nowrap;
-    }
 }
 
 /* Tablet-specific adjustments */
@@ -452,7 +452,6 @@ body {
     box-shadow: 0 2px 10px var(--box-shadow-color);
     position: relative;
     max-width: 1000px;
-    /* Fixed width to fit 3 items per row */
     overflow: hidden;
     font-family: "ヒiragano Mincho ProN", "Hiragino Mincho ProN", "Yu MinCho", "YuMincho", serif;
 }
