@@ -48,7 +48,7 @@
             --about-divider-color: rgba(0, 0, 0, 0.16);
             --about-muted: #666;
             --about-text-size: clamp(0.88rem, 0.24vw + 0.8rem, 0.95rem);
-            --about-tile-size: clamp(128px, calc(((100vw * 6 / 7) - 140px) / 5), 180px);
+            --about-tile-size: clamp(128px, calc(((100vw * 6 / 7) - 155px) / 6), 180px);
             --about-gap: 15px;
         }
 
@@ -99,7 +99,7 @@
             gap: var(--about-gap);
             width: 100%;
             justify-content: center;
-            grid-template-columns: repeat(5, var(--about-tile-size));
+            grid-template-columns: repeat(6, var(--about-tile-size));
         }
 
         .about-top-row {
@@ -283,6 +283,7 @@
         }
 
         @media (max-width: 767px) {
+
             html,
             body {
                 overflow-y: auto;
@@ -380,9 +381,7 @@
                             <div class="about-uptime-counter" id="uptime-days">0 Days</div>
                         </div>
                     </section>
-                </div>
 
-                <div class="about-bottom-row">
                     <a class="about-tile about-link" href="https://www.youtube.com/@H2COL43" target="_blank"
                         rel="noopener noreferrer">
                         <span class="about-link-label">Youtube</span>
@@ -437,17 +436,16 @@
             if (!lastUpdateEl) return;
 
             const setDate = (date) => {
-                const options = { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric', 
-                    timeZone: 'Asia/Tokyo' 
+                const options = {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    timeZone: 'Asia/Tokyo'
                 };
                 lastUpdateEl.textContent = date.toLocaleDateString('en-US', options);
             };
 
             try {
-                // Strategy 1: GitHub API (Pushed At)
                 const apiResponse = await fetch(`https://api.github.com/repos/skmst-db/skmst-db.github.io?t=${Date.now()}`);
                 if (apiResponse.ok) {
                     const data = await apiResponse.json();
@@ -457,16 +455,13 @@
                     }
                 }
 
-                // Strategy 2: Last-Modified header from the site (Fallback for 403/Rate Limit)
-                // This header is usually updated by GitHub Pages upon each deployment
                 const siteResponse = await fetch(window.location.href, { method: 'HEAD' });
                 const lastMod = siteResponse.headers.get('Last-Modified');
                 if (lastMod) {
                     setDate(new Date(lastMod));
                     return;
                 }
-                
-                // Strategy 3: Try the main domain if Strategy 2 failed (e.g. if running locally)
+
                 const mainResponse = await fetch('https://skmst-db.github.io/', { method: 'HEAD' });
                 const mainMod = mainResponse.headers.get('Last-Modified');
                 if (mainMod) {
