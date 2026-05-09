@@ -99,15 +99,11 @@
             gap: var(--about-gap);
             width: 100%;
             justify-content: center;
+            grid-template-columns: repeat(5, var(--about-tile-size));
         }
 
         .about-top-row {
-            grid-template-columns: repeat(5, var(--about-tile-size));
             align-items: start;
-        }
-
-        .about-bottom-row {
-            grid-template-columns: repeat(5, var(--about-tile-size));
         }
 
         .about-tile {
@@ -156,7 +152,8 @@
 
         .about-link,
         .about-report,
-        .about-running {
+        .about-running,
+        .about-update {
             aspect-ratio: 1 / 1;
             display: flex;
             align-items: center;
@@ -194,11 +191,11 @@
             font-weight: 700;
             line-height: 1.65;
             color: #222;
+            width: 100%;
         }
 
-        .about-link-label,
-        .about-uptime-counter {
-            width: 100%;
+        .about-jst-note,
+        .about-link-label {
             text-align: center;
         }
 
@@ -214,6 +211,7 @@
             left: 50%;
             transform: translate(-50%, -50%);
             white-space: nowrap;
+            text-align: center;
         }
 
         .about-uptime-label {
@@ -317,7 +315,8 @@
 
             .about-link,
             .about-report,
-            .about-running {
+            .about-running,
+            .about-update {
                 aspect-ratio: auto;
                 min-height: 96px;
             }
@@ -369,6 +368,22 @@
                 </div>
 
                 <div class="about-bottom-row">
+                    <section class="about-tile about-update" aria-label="Last Updated">
+                        <div class="about-progress-section">
+                            <div class="about-uptime-label">Last Updated</div>
+                            <div class="about-uptime-counter" id="last-update-date">----.--.--</div>
+                        </div>
+                    </section>
+
+                    <section class="about-tile about-running" aria-label="Running">
+                        <div class="about-progress-section">
+                            <div class="about-uptime-label">Since Feb 27, 2025</div>
+                            <div class="about-uptime-counter" id="uptime-days">0 Days</div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="about-bottom-row">
                     <a class="about-tile about-link" href="https://www.youtube.com/@H2COL43" target="_blank"
                         rel="noopener noreferrer">
                         <span class="about-link-label">Youtube</span>
@@ -382,13 +397,6 @@
                     <a class="about-tile about-link" href="mailto:skmstinfo@protonmail.com">
                         <span class="about-link-label">Contact</span>
                     </a>
-
-                    <section class="about-tile about-running" aria-label="Running">
-                        <div class="about-progress-section">
-                            <div class="about-uptime-label">Since 2025.02.27</div>
-                            <div class="about-uptime-counter" id="uptime-days">0 Days</div>
-                        </div>
-                    </section>
 
                     <button class="about-tile about-report" id="report-issue-trigger" type="button">
                         <span class="about-link-label">Report an Issue</span>
@@ -409,6 +417,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             updateUptimeDays();
             setInterval(updateUptimeDays, 60000);
+            updateLastUpdateDate();
             initializeReportIssue();
         });
 
@@ -422,6 +431,56 @@
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
             uptimeDays.textContent = `${diffDays} Days`;
+        }
+
+        async function updateLastUpdateDate() {
+            const lastUpdateEl = document.getElementById('last-update-date');
+            if (!lastUpdateEl) return;
+
+            const setDate = (date) => {
+                const options = { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric', 
+                    timeZone: 'Asia/Tokyo' 
+                };
+                lastUpdateEl.textContent = date.toLocaleDateString('en-US', options);
+            };
+
+            try {
+                // Strategy 1: GitHub API (Pushed At)
+                const apiResponse = await fetch(`https://api.github.com/repos/skmst-db/skmst-db.github.io?t=${Date.now()}`);
+                if (apiResponse.ok) {
+                    const data = await apiResponse.json();
+                    if (data.pushed_at) {
+                        setDate(new Date(data.pushed_at));
+                        return;
+                    }
+                }
+
+                // Strategy 2: Last-Modified header from the site (Fallback for 403/Rate Limit)
+                // This header is usually updated by GitHub Pages upon each deployment
+                const siteResponse = await fetch(window.location.href, { method: 'HEAD' });
+                const lastMod = siteResponse.headers.get('Last-Modified');
+                if (lastMod) {
+                    setDate(new Date(lastMod));
+                    return;
+                }
+                
+                // Strategy 3: Try the main domain if Strategy 2 failed (e.g. if running locally)
+                const mainResponse = await fetch('https://skmst-db.github.io/', { method: 'HEAD' });
+                const mainMod = mainResponse.headers.get('Last-Modified');
+                if (mainMod) {
+                    setDate(new Date(mainMod));
+                    return;
+                }
+
+                throw new Error('All sources failed');
+
+            } catch (error) {
+                console.error('Failed to fetch last update date:', error);
+                lastUpdateEl.textContent = '----.--.--';
+            }
         }
 
         function initializeReportIssue() {
