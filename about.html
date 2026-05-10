@@ -446,26 +446,36 @@
             };
 
             try {
-                const apiResponse = await fetch(`https://api.github.com/repos/skmst-db/skmst-db.github.io?t=${Date.now()}`);
+                const apiResponse = await fetch(`https://api.github.com/repos/skmst-db/skmst-db.github.io/commits?path=data&per_page=1&t=${Date.now()}`);
                 if (apiResponse.ok) {
                     const data = await apiResponse.json();
-                    if (data.pushed_at) {
-                        setDate(new Date(data.pushed_at));
+                    if (data && data.length > 0 && data[0].commit && data[0].commit.committer && data[0].commit.committer.date) {
+                        setDate(new Date(data[0].commit.committer.date));
                         return;
                     }
                 }
 
-                const siteResponse = await fetch(window.location.href, { method: 'HEAD' });
-                const lastMod = siteResponse.headers.get('Last-Modified');
-                if (lastMod) {
-                    setDate(new Date(lastMod));
-                    return;
+                const dataFiles = ['data/biography.csv', 'data/other.csv', 'data/location.csv', 'data/syukujitsu.csv'];
+                let maxDate = 0;
+
+                for (const file of dataFiles) {
+                    try {
+                        const response = await fetch(file, { method: 'HEAD' });
+                        if (response.ok) {
+                            const lastMod = response.headers.get('Last-Modified');
+                            if (lastMod) {
+                                const fileDate = new Date(lastMod).getTime();
+                                if (fileDate > maxDate) {
+                                    maxDate = fileDate;
+                                }
+                            }
+                        }
+                    } catch (e) {
+                    }
                 }
 
-                const mainResponse = await fetch('https://skmst-db.github.io/', { method: 'HEAD' });
-                const mainMod = mainResponse.headers.get('Last-Modified');
-                if (mainMod) {
-                    setDate(new Date(mainMod));
+                if (maxDate > 0) {
+                    setDate(new Date(maxDate));
                     return;
                 }
 
