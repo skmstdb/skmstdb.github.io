@@ -445,16 +445,31 @@
                 lastUpdateEl.textContent = date.toLocaleDateString('en-US', options);
             };
 
+            const cachedDate = localStorage.getItem('skmst_data_update_date');
+            if (cachedDate) {
+                setDate(new Date(parseInt(cachedDate, 10)));
+            }
+
             try {
-                const apiResponse = await fetch(`https://api.github.com/repos/skmst-db/skmst-db.github.io/commits?path=data&per_page=1&t=${Date.now()}`);
+                const apiResponse = await fetch(`https://api.github.com/repos/skmst-db/skmst-db.github.io/commits?path=data&per_page=1`);
                 if (apiResponse.ok) {
                     const data = await apiResponse.json();
                     if (data && data.length > 0 && data[0].commit && data[0].commit.committer && data[0].commit.committer.date) {
-                        setDate(new Date(data[0].commit.committer.date));
+                        const dateObj = new Date(data[0].commit.committer.date);
+                        setDate(dateObj);
+                        localStorage.setItem('skmst_data_update_date', dateObj.getTime().toString());
                         return;
                     }
+                } else if (apiResponse.status === 403 && cachedDate) {
+                    return;
                 }
+            } catch (error) {
+                console.error('Failed to fetch from GitHub API:', error);
+            }
 
+            const isLocal = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            
+            if (isLocal) {
                 const dataFiles = ['data/biography.csv', 'data/other.csv', 'data/location.csv', 'data/syukujitsu.csv'];
                 let maxDate = 0;
 
@@ -478,12 +493,10 @@
                     setDate(new Date(maxDate));
                     return;
                 }
-
-                throw new Error('All sources failed');
-
-            } catch (error) {
-                console.error('Failed to fetch last update date:', error);
-                lastUpdateEl.textContent = '----.--.--';
+            }
+            
+            if (!cachedDate) {
+               lastUpdateEl.textContent = '----.--.--';
             }
         }
 
