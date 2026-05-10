@@ -1,39 +1,40 @@
-/* 深色模式 */
 :root {
     --sidebar-bg-color: #1a1a1a;
 }
 
-/* 浅色模式 */
 @media (prefers-color-scheme: light) {
     :root {
         --sidebar-bg-color: #f6f4ef;
     }
 }
 
-/* 导航栏样式 */
 .sidebar {
     background-color: var(--sidebar-bg-color);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 20px;
+    padding: clamp(10px, 1.5vw, 20px);
     box-shadow: 2px 0 5px var(--box-shadow-color);
     transition: background-color var(--transition-duration);
     overflow: hidden;
 }
 
 .logo-text {
-    font-size: 16px;
+    font-size: clamp(13px, 1.5vw, 16px);
     font-weight: bold;
     text-align: center;
     margin-bottom: 20px;
     cursor: pointer;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .logo-text a {
     text-decoration: none;
     color: var(--link-color);
     transition: color var(--transition-duration);
+    display: inline-block;
+    text-align: left;
 }
 
 .logo-text a:hover {
@@ -52,8 +53,10 @@
 
 .sidebar-nav-item {
     margin-bottom: 15px;
-    font-size: 18px;
+    font-size: clamp(13px, 1.6vw, 18px);
     font-weight: bold;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .sidebar-nav-item a {
@@ -76,10 +79,12 @@
 }
 
 .footer {
-    font-size: 12px;
+    font-size: clamp(10px, 1vw, 12px);
     text-align: center;
     margin-top: 20px;
     color: var(--text-color);
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .mobile-footer {
@@ -107,7 +112,6 @@
     transition: 0.3s;
 }
 
-/* 响应式设计 */
 @media (min-width: 768px) and (max-width: 1024px) {
     .hamburger {
         display: none;
@@ -153,6 +157,7 @@
         margin-bottom: 0;
         text-align: left;
         display: block;
+        font-size: 16px;
     }
 
     .hamburger {
@@ -169,6 +174,7 @@
         flex-direction: column;
         padding: 20px 0;
         z-index: 999;
+        border-top: 1px solid var(--box-shadow-color);
         border-bottom: 1px solid var(--box-shadow-color);
     }
 
@@ -176,12 +182,10 @@
         display: flex;
     }
 
-    /* Hide the original desktop footer on mobile */
     .footer {
         display: none;
     }
 
-    /* Show and style the mobile footer inside nav */
     .mobile-footer {
         display: block;
         padding: 20px 10px;
@@ -204,6 +208,7 @@
         text-align: center;
         border-bottom: 1px dashed var(--text-color);
         padding: 15px 0;
+        font-size: 16px;
     }
 
     .sidebar-nav-item:last-child {
@@ -219,7 +224,6 @@
     }
 }
 
-/* Desktop-only active style for Logo */
 @media (min-width: 768px) {
     .logo-text a.active {
         color: var(--active-link-text-color);
