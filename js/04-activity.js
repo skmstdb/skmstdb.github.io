@@ -885,7 +885,7 @@ function renderChartContent(data, showLeadRoleOnly, selectedTypes, showNonLeadOn
             if (!isWorkMatch(item, showLeadRoleOnly, selectedTypes, showNonLeadOnly, showAwardOnly)) return;
 
             if (item.Place) {
-                item.Place.split(',').forEach(p => {
+                splitJapanVenueList(item.Place).forEach(p => {
                     const pref = getPrefectureFromVenue(p.trim());
                     if (pref) prefSet.add(pref);
                 });
@@ -971,7 +971,7 @@ function renderChartContent(data, showLeadRoleOnly, selectedTypes, showNonLeadOn
                     else if (nt === 'BOOK') key = 'Writer';
                 } else if (currentChartMode === 'place') {
                     if (item.Place) {
-                        item.Place.split(',').forEach(p => {
+                        splitJapanVenueList(item.Place).forEach(p => {
                             const pref = getPrefectureFromVenue(p.trim());
                             if (pref && aggregatedData[pref]) keys.add(pref);
                         });
