@@ -67,27 +67,64 @@ const REGION_COLORS = {
     kyushu: { base: '#f06292', text: '#fff' },
 };
 
-const VENUE_PREFECTURE_MAP = {
-    '東京新橋演舞場': '東京', '東京シアタークリエ': '東京', '新国立劇場': '東京',
-    '銀座ヤマハホール': '東京', '世田谷パブリックシアター': '東京', 'PARCO劇場': '東京',
-    '俳優座劇場': '東京', '下北沢駅前劇場': '東京', '下北沢OFFOFFシアター': '東京',
-    "六本木Bar,isn't it": '東京', 'シアタートラム': '東京', 'シアターコクーン': '東京',
-    '紀伊國屋サザンシアター': '東京', '東京グローブ座': '東京', '中野スタジオあくとれ': '東京',
-    'シアターVアカサカ': '東京', '六本木・キャラメル': '東京', '恵比寿EAST GALLERY': '東京',
-    'シアターサンモール': '東京', '新宿シアタートップス': '東京', '早大劇研アトリエ': '東京',
-    '早大劇研大隈講堂裏特設テント': '東京',
-    '大阪梅田芸術劇場': '大阪', '近鉄小劇場': '大阪',
-    'メルパルクホール福岡': '福岡', '福岡サンパレス': '福岡',
-    '宮崎県立芸術劇場': '宮崎',
-    '名古屋市民会館': '愛知',
-    '仙台銀行ホール': '宮城',
-    '新潟市民芸術文化会館': '新潟', '苗場プリンスホテル': '新潟',
-    '松本まつもと市民芸術館': '長野',
-    '山口情報芸術センター': '山口',
-    '相鉄本多劇場': '神奈川',
-};
+const VENUE_PREFECTURE_MAP = (() => {
+    const lists = {
+        '東京': [
+            '東京新橋演舞場', '東京シアタークリエ', '新国立劇場', '銀座ヤマハホール',
+            '世田谷パブリックシアター', 'PARCO劇場', '俳優座劇場', '下北沢駅前劇場',
+            '下北沢OFFOFFシアター', "六本木Bar,isn't it", 'シアタートラム', 'シアターコクーン',
+            '紀伊國屋サザンシアター', '東京グローブ座', '中野スタジオあくとれ', 'シアターVアカサカ',
+            '六本木・キャラメル', '恵比寿EAST GALLERY', 'シアターサンモール', '新宿シアタートップス',
+            '早大劇研アトリエ', '早大劇研大隈講堂裏特設テント'
+        ],
+        '大阪': ['大阪梅田芸術劇場', '近鉄小劇場'],
+        '福岡': ['メルパルクホール福岡', '福岡サンパレス'],
+        '新潟': ['新潟市民芸術文化会館', '苗場プリンスホテル'],
+        '宮崎': ['宮崎県立芸術劇場'],
+        '愛知': ['名古屋市民会館'],
+        '宮城': ['仙台銀行ホール'],
+        '長野': ['松本まつもと市民芸術館'],
+        '山口': ['山口情報芸術センター'],
+        '神奈川': ['相鉄本多劇場']
+    };
+    
+    const map = {};
+    for (const pref in lists) {
+        lists[pref].forEach(venue => map[venue] = pref);
+    }
+    return map;
+})();
 
 const japanMapState = { initialized: false, prefWorks: {}, placeUrls: {}, dismissalBound: false };
+
+function splitJapanVenueList(placeText) {
+    if (!placeText) return [];
+    const parts = placeText.split(',').map(v => v.trim()).filter(Boolean);
+    const venues = [];
+
+    for (let i = 0; i < parts.length; i++) {
+        let matchedVenue = '';
+        let matchedEnd = i;
+        let candidate = '';
+
+        for (let j = i; j < parts.length; j++) {
+            candidate = candidate ? `${candidate},${parts[j]}` : parts[j];
+            if (VENUE_PREFECTURE_MAP[candidate]) {
+                matchedVenue = candidate;
+                matchedEnd = j;
+            }
+        }
+
+        if (matchedVenue) {
+            venues.push(matchedVenue);
+            i = matchedEnd;
+        } else {
+            venues.push(parts[i]);
+        }
+    }
+
+    return venues;
+}
 
 function getJapanTileGridPosition(pref) {
     return {
@@ -102,7 +139,7 @@ function buildJapanPrefectureWorksMap(biographyData) {
         if (!item.Place || !item.Place.trim()) return;
         const note = (item.Note || '').toLowerCase();
         if (note.includes('memo') || note.includes('uwasa')) return;
-        item.Place.split(',').map(v => v.trim()).filter(Boolean).forEach(venue => {
+        splitJapanVenueList(item.Place).forEach(venue => {
             const prefName = VENUE_PREFECTURE_MAP[venue];
             if (!prefName) return;
             if (!prefWorks[prefName]) prefWorks[prefName] = [];
@@ -121,14 +158,14 @@ function buildJapanPrefectureWorksMap(biographyData) {
 function initJapanPrefectureMap(biographyData) {
     const container = document.getElementById('japan-map-container');
     if (!container) return;
-    
+
     if (Object.keys(japanMapState.placeUrls).length === 0) {
         fetch('data/place.csv')
             .then(res => res.text())
             .then(csvText => {
                 const places = parseCSV(csvText);
                 places.forEach(p => {
-                    if(p.Name && p.URL) {
+                    if (p.Name && p.URL) {
                         japanMapState.placeUrls[p.Name] = p.URL;
                     }
                 });
@@ -231,7 +268,7 @@ function showJapanPrefectureDetail(pref, works) {
     const venueGroupsHTML = sortedVenues.map(venue => {
         const venueWorks = worksByVenue[venue].sort((a, b) => (a.dateStart || '').localeCompare(b.dateStart || ''));
         const venueUrl = japanMapState.placeUrls[venue] || '';
-        const tagHtml = venueUrl 
+        const tagHtml = venueUrl
             ? `<span class="japan-pref-venue-tag" onclick="window.open('${venueUrl}','_blank','noopener')" style="cursor:pointer" title="${venue}">${venue}</span>`
             : `<span class="japan-pref-venue-tag">${venue}</span>`;
 
