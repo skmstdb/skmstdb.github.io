@@ -69,7 +69,7 @@ function calculateSakaiMilestones(year, month) {
                 title: `S-${dayCount}th`,
                 url: 'https://sakai-masato.com/',
                 source: 'sakai-milestone',
-                color: 'rgba(46, 204, 113, 0.8)', // 绿色
+                color: 'rgba(46, 204, 113, 0.8)',
                 id: 'milestone-' + dayCount
             });
         }
@@ -402,15 +402,12 @@ function isWeekViewMobile() {
 
 function getWeekViewDates() {
     const baseDate = getWeekViewDayStart(getJSTNow());
-    //week 天数
     return Array.from({ length: 7 }, (_, index) => createJSTDate(
         baseDate.getUTCFullYear(),
         baseDate.getUTCMonth(),
         baseDate.getUTCDate() + index
     ));
 }
-
-/* Function removed as it was empty and unused */
 
 function createWeekDateNavigation() {
     const navigation = document.getElementById('week-date-navigation');
@@ -662,14 +659,12 @@ function setCalendarViewLayout() {
     const container = document.querySelector('.calendar-container');
     const isWeekView = currentViewMode === 'week';
     const isUpcomingView = currentViewMode === 'upcoming';
-    const isYearView = currentViewMode === 'year';
 
     if (calendarGrid) calendarGrid.style.display = (isWeekView || isUpcomingView) ? 'none' : '';
     if (weekPanel) weekPanel.classList.toggle('is-active', isWeekView);
     if (upcomingPanel) upcomingPanel.classList.toggle('is-active', isUpcomingView);
     if (container) {
         container.classList.toggle('week-mode', isWeekView);
-        container.classList.toggle('upcoming-mode', isUpcomingView);
     }
 
     [prevButton, nextButton, todayButton, yearSelect, monthSelect].forEach(control => {
@@ -702,12 +697,9 @@ async function renderUpcomingView() {
     const now = getJSTNow();
     const today = createJSTDate(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
 
-    // Find Monday of the current week
     const dayOfWeek = today.getUTCDay();
     const diffToMonday = (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
     const startMonday = createJSTDate(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - diffToMonday);
-
-    // Add Weekday Headers
     const weekdays = ['月', '火', '水', '木', '金', '土', '日'];
     weekdays.forEach(wd => {
         const header = document.createElement('div');
@@ -722,8 +714,7 @@ async function renderUpcomingView() {
         days.push(current);
     }
 
-    // Load all necessary data
-    const events = await parseCSV(); // Bio + Other
+    const events = await parseCSV();
     const rawAnniversary = await parseAnniversaryCSV();
     const holidays = await parseSyukujitsuCSV();
 
@@ -731,12 +722,10 @@ async function renderUpcomingView() {
 
 
 
-    // Process each day
     for (const day of days) {
         const year = day.getUTCFullYear();
         const month = day.getUTCMonth();
 
-        // Collect events for this day
         let dayEvents = [];
 
         // 1. Anniversary View content:
@@ -819,7 +808,6 @@ async function renderUpcomingView() {
         const dayHolidays = holidays.filter(h => isSameJSTDay(h.startDate, day));
         dayEvents.push(...dayHolidays.map(h => ({ ...h, source: 'syukujitsu' })));
 
-        // Create Day Block
         const dayBlock = document.createElement('div');
         dayBlock.className = 'upcoming-day';
         if (isSameJSTDay(day, today)) dayBlock.classList.add('is-today');
@@ -841,45 +829,49 @@ async function renderUpcomingView() {
         const hasHoliday = dayEvents.some(e => e.source === 'syukujitsu');
 
         if (hasRealScheduleEvent) {
-            numberLabel.style.color = 'rgba(52, 152, 219, 1)'; // Blue - Highest Priority
+            numberLabel.style.color = 'rgba(52, 152, 219, 1)';
         } else if (hasAnniversaryEvent) {
-            numberLabel.style.color = '#e74c3c'; // Red
-        }
-
-        if (hasHoliday) {
-            numberLabel.classList.add('is-holiday');
+            numberLabel.style.color = '#e74c3c';
         }
 
         header.appendChild(numberLabel);
+
+        const subLabel = document.createElement('div');
+        subLabel.className = 'upcoming-month-label';
+        const isToday = isSameJSTDay(day, today);
+        if (isToday && hasHoliday) {
+            subLabel.textContent = `${day.getUTCMonth() + 1}月·祝日`;
+        } else if (isToday) {
+            subLabel.textContent = `${day.getUTCMonth() + 1}月`;
+        } else if (hasHoliday) {
+            subLabel.textContent = '祝日';
+        } else {
+            subLabel.style.visibility = 'hidden';
+            subLabel.textContent = '·';
+        }
+        header.appendChild(subLabel);
+
         dayBlock.appendChild(header);
 
-        if (dayEvents.length > 0) {
+        const nonHolidayEvents = dayEvents.filter(e => e.source !== 'syukujitsu');
+        if (nonHolidayEvents.length > 0) {
             dayBlock.classList.add('has-events');
             dayBlock.addEventListener('click', () => {
                 document.querySelectorAll('.upcoming-day').forEach(d => d.classList.remove('is-selected'));
                 dayBlock.classList.add('is-selected');
-                showUpcomingDetails(day, dayEvents);
+                showUpcomingDetails(day, nonHolidayEvents);
             });
         }
 
         upcomingGrid.appendChild(dayBlock);
-
-        // Default selection: Today
-        if (isSameJSTDay(day, today)) {
-            requestAnimationFrame(() => {
-                dayBlock.classList.add('is-selected');
-                showUpcomingDetails(day, dayEvents);
-            });
-        }
     }
 }
 
 function showUpcomingDetails(date, events) {
     const dateLabel = document.getElementById('upcoming-details-date');
     const container = document.getElementById('upcoming-details-container');
-    if (!dateLabel || !container) return;
-
-    dateLabel.style.display = 'block';
+    const modal = document.getElementById('upcoming-modal-overlay');
+    if (!dateLabel || !container || !modal) return;
     dateLabel.textContent = formatJSTDateJapanese(date);
     container.innerHTML = '';
 
@@ -888,12 +880,11 @@ function showUpcomingDetails(date, events) {
         return;
     }
 
-    // Tag all events with originalDate if missing for sorting
     const eventsWithDates = events.map(e => {
         let originalDate = e.originalDate;
         if (!originalDate) {
             if (e.source === 'sakai-milestone' || e.source === 'sakai-birthday') originalDate = createJSTDate(1973, 9, 14);
-            else if (e.source === 'character-birthday' || e.source === 'syukujitsu') originalDate = new Date(0); // Oldest
+            else if (e.source === 'character-birthday' || e.source === 'syukujitsu') originalDate = new Date(0);
             else originalDate = e.startDate || new Date(0);
         }
         return { ...e, originalDate };
@@ -929,6 +920,8 @@ function showUpcomingDetails(date, events) {
         const card = createUpcomingDetailCard(displayTitle, anniversaryText, event.url, isHoliday);
         container.appendChild(card);
     });
+
+    modal.classList.add('is-active');
 }
 
 function createUpcomingDetailCard(title, anniversaryText, url, isHoliday) {
@@ -1500,6 +1493,19 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.body.style.visibility = 'visible';
     await initializeCalendar();
     applyDarkModeToCalendar();
+
+    const upcomingModalClose = document.getElementById('upcoming-modal-close');
+    const upcomingModalOverlay = document.getElementById('upcoming-modal-overlay');
+    if (upcomingModalClose && upcomingModalOverlay) {
+        const closeModal = () => {
+            upcomingModalOverlay.classList.remove('is-active');
+            document.querySelectorAll('.upcoming-day').forEach(d => d.classList.remove('is-selected'));
+        };
+        upcomingModalClose.addEventListener('click', closeModal);
+        upcomingModalOverlay.addEventListener('click', (e) => {
+            if (e.target === upcomingModalOverlay) closeModal();
+        });
+    }
 
     const obs = new MutationObserver(muts => {
         muts.forEach(m => { if (m.attributeName === 'class') applyDarkModeToCalendar(); });
