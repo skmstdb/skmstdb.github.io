@@ -39,6 +39,8 @@ async function fetchBiographyCSV() {
                 startDate: startDate,
                 endDate: eventData['DateEnd'] ? parseJSTDate(eventData['DateEnd']) : startDate,
                 title: eventData['Title'] || '',
+                name: eventData['Name'] || '',
+                note: eventData['Note'] || '',
                 url: eventData['URL'] ? eventData['URL'].trim() : '#',
                 id: Math.random().toString(36).substr(2, 9),
                 weekday: eventData['Weekday'] || '',
@@ -248,4 +250,31 @@ function getSakaiBirthdayInfo(date) {
     const nextAge = nextBirthday.getUTCFullYear() - SAKAI_BIRTH.year;
 
     return { isBirthday, age, daysUntilBirthday, nextAge };
+}
+
+//[Used by: Schedule, Anniversary, Year, Upcoming, Week, Month View, Activity View]
+function isEventActiveOnDate(event, date) {
+    const dateStr = formatDate(date);
+
+    // 1. Check additional dates (Whitelist)
+    if (event.additionalDates && event.additionalDates.includes(dateStr)) {
+        return true;
+    }
+
+    // 2. Check exclude dates (Blacklist)
+    if (event.excludeDates && event.excludeDates.includes(dateStr)) {
+        return false;
+    }
+
+    // 3. Check date range
+    const startTime = event.startDate.getTime();
+    const endTime = event.endDate ? event.endDate.getTime() : startTime;
+    const dateTime = date.getTime();
+
+    if (dateTime < startTime || dateTime > endTime) {
+        return false;
+    }
+
+    // 4. Check weekday requirement
+    return isValidWeekdayForDate(event.weekday, date);
 }
