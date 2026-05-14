@@ -547,7 +547,7 @@ function renderGraphStructure(containerId, dataMap, labelMap, type) {
             monthRow.appendChild(monthLabelCell);
 
             years.forEach(year => {
-                const key = `${year}-${monthIndex}`;
+                const key = `${year}-${monthIndex + 1}`;
                 const yearCell = document.createElement('div');
                 yearCell.className = 'year-container';
                 const yearBox = document.createElement('div');
@@ -721,7 +721,7 @@ function createMonthGraph(data, showLeadRoleOnly = false, selectedTypes = [], sh
         filteredActivityDates.forEach(dateStr => {
             const dateObj = parseJSTDate(dateStr);
             if (!dateObj) return;
-            const key = `${dateObj.getUTCFullYear()}-${dateObj.getUTCMonth()}`;
+            const key = `${dateObj.getUTCFullYear()}-${dateObj.getUTCMonth() + 1}`;
             if (!monthlyWorksMap[key]) monthlyWorksMap[key] = [];
             if (!monthlyWorksMap[key].some(work => work.Title === item.Title)) {
                 monthlyWorksMap[key].push(item);
@@ -1103,7 +1103,14 @@ function showWorksDetail(key, worksDataMap, viewType) {
     let works = worksDataMap[key] || [];
     let title = '';
     if (viewType === 'year') title = `Year: ${key}`;
-    else if (viewType === 'month') title = `Month: ${key}`;
+    else if (viewType === 'month') {
+        if (String(key).includes('-')) {
+            const parts = String(key).split('-');
+            title = `${parts[0]}年${parts[1]}月`;
+        } else {
+            title = `${key}月`;
+        }
+    }
     else if (viewType === 'quarter') title = `Quarter: ${key}`;
     else if (viewType === 'week') title = `Week: ${key}曜日`;
     else if (viewType === 'age') title = `公開時年齢: ${key}`;
